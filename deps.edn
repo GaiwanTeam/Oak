@@ -1,0 +1,5 @@
+{:paths ["src" "resources"]
+ :deps
+ {com.lambdaisland/config {:mvn/version "0.9.34"}
+  com.lambdaisland/makina {:local/root "/home/arne/lambdaisland/makina"}
+  com.lambdaisland/cli {:mvn/version "0.24.97"}}}
