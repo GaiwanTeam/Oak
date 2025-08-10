@@ -1,0 +1,23 @@
+{
+  "configuration": {
+    "appenders": {
+      "Console": {
+        "name": "ConsoleAppender",
+        "PatternLayout": {
+          "pattern": "%d{HH:mm:ss.SSS} [%highlight{%5p}{FATAL=bg_red, ERROR=red, WARN=yellow, INFO=green, DEBUG=cyan, TRACE=blue}] %style{%logger{36}}{magenta} - %msg%n"
+        }
+      }
+    },
+    "loggers": {
+      "logger": [
+        {"name": "io.helidon.common", "level": "info"}
+      ],
+      "root": {
+        "level": "debug",
+        "appenderRef": {
+          "ref": "ConsoleAppender"
+        }
+      }
+    }
+  }
+}

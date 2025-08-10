@@ -14,4 +14,5 @@
 
  :aliases
  {:dev
-  {:extra-deps {org.clojure/tools.namespace {:mvn/version "1.5.0"}}}}}
+  {:replace-paths ["dev" "src" "resources"]
+   :extra-deps {org.clojure/tools.namespace {:mvn/version "1.5.0"}}}}}
