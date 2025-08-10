@@ -2,4 +2,9 @@
  :deps
  {com.lambdaisland/config {:mvn/version "0.9.34"}
   com.lambdaisland/makina {:local/root "/home/arne/lambdaisland/makina"}
-  com.lambdaisland/cli {:mvn/version "0.24.97"}}}
+  com.lambdaisland/cli {:mvn/version "0.24.97"}
+  com.s-exp/hirundo {:mvn/version "0.1.43"}}
+
+ :aliases
+ {:dev
+  {:extra-deps {org.clojure/tools.namespace {:mvn/version "1.5.0"}}}}}
