@@ -1,0 +1,24 @@
+{
+  "configuration": {
+    "status": "WARN",
+    "appenders": {
+      "Console": {
+        "name": "JsonConsole",
+        "target": "SYSTEM_OUT",
+        "JsonLayout": {
+          "compact": true,
+          "eventEol": true,
+          "properties": true
+        }
+      }
+    },
+    "loggers": {
+      "root": {
+        "level": "info",
+        "appenderRef": {
+          "ref": "JsonConsole"
+        }
+      }
+    }
+  }
+}

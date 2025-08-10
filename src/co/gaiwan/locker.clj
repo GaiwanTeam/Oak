@@ -25,7 +25,7 @@
     :doc "Set the HTTP port"}])
 
 (defn -main [& args]
-  (cli/dispatch
+  (cli/dispatch*
    {:name "co.gaiwan.locker"
     :doc ""
     :commands commands

@@ -1,1 +1,1 @@
-{:co.gaiwan.locker/http {:port 9999}}
+{:co.gaiwan.locker/http {:port #config :http/port}}

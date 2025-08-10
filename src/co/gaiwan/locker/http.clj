@@ -3,7 +3,6 @@
    [s-exp.hirundo :as hirundo]))
 
 (defn start [config]
-  (def cfg config)
   (hirundo/start!
    {:http-handler (fn [{:as request :keys [body headers]}]
                     {:status 200
