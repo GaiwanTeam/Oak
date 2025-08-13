@@ -1,10 +1,10 @@
-(ns co.gaiwan.locker
+(ns co.gaiwan.oak
   ""
   (:gen-class)
   (:require
    [clojure.pprint :as pprint]
    [lambdaisland.cli :as cli]
-   [co.gaiwan.locker.config :as config]))
+   [co.gaiwan.oak.config :as config]))
 
 (defn run-cmd [_]
   (config/start!))
@@ -26,7 +26,7 @@
 
 (defn -main [& args]
   (cli/dispatch*
-   {:name "co.gaiwan.locker"
+   {:name "co.gaiwan.oak"
     :doc ""
     :commands commands
     :flags flags

@@ -1,11 +1,11 @@
-(ns co.gaiwan.locker.config
+(ns co.gaiwan.oak.config
   (:refer-clojure :exclude [get])
   (:require
    [lambdaisland.config :as config]
    [lambdaisland.config.cli :as config-cli]
    [lambdaisland.makina.app :as app]))
 
-(def prefix "locker")
+(def prefix "oak")
 
 (defonce cli-opts (atom {}))
 

@@ -1,4 +1,4 @@
-(ns co.gaiwan.locker.http
+(ns co.gaiwan.oak.http
   (:require
    [s-exp.hirundo :as hirundo]))
 
