@@ -1,4 +1,4 @@
-(ns co.gaiwan.oak.config
+(ns co.gaiwan.oak.app.config
   (:refer-clojure :exclude [get])
   (:require
    [lambdaisland.config :as config]
@@ -20,9 +20,10 @@
 (def entries (partial config/entries config))
 (def reload! (partial config/reload! config))
 
-(defonce system
+(def system
   (app/create
    {:prefix prefix
+    :ns-prefix "co.gaiwan.oak.system"
     :data-readers {'config get}}))
 
 (def load! (partial app/load! system))
@@ -30,3 +31,10 @@
 (def stop! (partial app/stop! system))
 (def refresh (partial app/refresh `system))
 (def refresh-all (partial app/refresh-all `system))
+
+(comment
+  system
+  (load!)
+  (start!)
+  (stop!)
+  (refresh))

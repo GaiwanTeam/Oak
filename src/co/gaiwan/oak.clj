@@ -4,7 +4,7 @@
   (:require
    [clojure.pprint :as pprint]
    [lambdaisland.cli :as cli]
-   [co.gaiwan.oak.config :as config]))
+   [co.gaiwan.oak.app.config :as config]))
 
 (defn run-cmd [_]
   (config/start!))

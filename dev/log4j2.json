@@ -10,7 +10,9 @@
     },
     "loggers": {
       "logger": [
-        {"name": "io.helidon.common", "level": "info"}
+        {"name": "io.helidon", "level": "info"},
+        {"name": "io.methvin.watcher", "level": "info"},
+        {"name": "org.eclipse.aether", "level": "info"}
       ],
       "root": {
         "level": "debug",

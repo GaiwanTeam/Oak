@@ -1,1 +1,3 @@
-{:co.gaiwan.oak/http {:port #config :http/port}}
+{:http   {:port   #config :http/port
+          :router #makina/ref :router}
+ :router {}}

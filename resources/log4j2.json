@@ -1,6 +1,5 @@
 {
   "configuration": {
-    "status": "WARN",
     "appenders": {
       "Console": {
         "name": "JsonConsole",
@@ -13,6 +12,9 @@
       }
     },
     "loggers": {
+      "logger": [
+        {"name": "io.helidon", "level": "info"}
+      ],
       "root": {
         "level": "info",
         "appenderRef": {
