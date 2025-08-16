@@ -125,9 +125,13 @@
   (clojure.data.csv/read-csv
    (slurp
     "https://www.iana.org/assignments/jose/web-signature-encryption-algorithms.csv")))
+
+(defn slurp-csv [f]
+  (clojure.data.csv/read-csv (slurp f)))
+
 "https://www.iana.org/assignments/jose/web-signature-encryption-header-parameters.csv"
 "https://www.iana.org/assignments/jose/web-signature-encryption-algorithms.csv"
-"https://www.iana.org/assignments/jose/web-key-types.csv"
+(slurp-csv "https://www.iana.org/assignments/jose/web-key-types.csv")
 "https://www.iana.org/assignments/jose/web-key-elliptic-curve.csv"
 "https://www.iana.org/assignments/jose/web-key-parameters.csv"
 
