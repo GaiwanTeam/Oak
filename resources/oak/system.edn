@@ -1,3 +1,6 @@
 {:http   {:port   #config :http/port
           :router #makina/ref :router}
- :router {}}
+ :router {}
+ :database {:config #config :db/config}
+ :security-providers {:prepend #config :java.security.provider/prepend
+                      :append #config :java.security.provider/append}}

@@ -1,10 +1,11 @@
 {
   "configuration": {
+    "monitorInterval": 10,
     "appenders": {
       "Console": {
         "name": "ConsoleAppender",
         "PatternLayout": {
-          "pattern": "%d{HH:mm:ss.SSS} [%highlight{%5p}{FATAL=bg_red, ERROR=red, WARN=yellow, INFO=green, DEBUG=cyan, TRACE=blue}] %style{%logger{36}}{magenta} - %msg%n"
+          "pattern": "%d{HH:mm:ss.SSS} [%highlight{%5p}{FATAL=bg_red, ERROR=red, WARN=yellow, INFO=green, DEBUG=cyan, TRACE=blue}] %style{%logger{36}}{magenta}: %msg%exception%n"
         }
       }
     },
@@ -13,7 +14,9 @@
         {"name": "io.helidon", "level": "info"},
         {"name": "io.methvin.watcher", "level": "info"},
         {"name": "org.eclipse.aether", "level": "info"},
-        {"name": "org.apache.http", "level": "info"}
+        {"name": "org.apache.http", "level": "info"},
+        {"name": "sun.net.www", "level": "info"},
+        {"name": "jdk.event.security", "level": "info"}
       ],
       "root": {
         "level": "debug",

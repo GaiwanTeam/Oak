@@ -1,4 +1,5 @@
 (ns co.gaiwan.oak.system.router
+  "HTTP router and middleware setup"
   (:require
    [muuntaja.core :as muuntaja]
    [muuntaja.format.charred :as muuntaja-charred]

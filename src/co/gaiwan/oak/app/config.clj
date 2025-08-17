@@ -1,6 +1,8 @@
 (ns co.gaiwan.oak.app.config
   (:refer-clojure :exclude [get])
   (:require
+   [clojure.java.io :as io]
+   [co.gaiwan.oak.util.log :as log]
    [lambdaisland.config :as config]
    [lambdaisland.config.cli :as config-cli]
    [lambdaisland.makina.app :as app]))
@@ -38,3 +40,16 @@
   (start!)
   (stop!)
   (refresh))
+
+(defn reload-full! []
+  (log/info :message "Configuration changed, reloading config and restarting app")
+  (reload!)
+  (refresh))
+
+(when-let [watch! (try (requiring-resolve 'lambdaisland.launchpad.watcher/watch!) (catch Exception _))]
+  (let [local-config (io/file "config.local.edn")]
+    (watch!
+     (cond-> {(.getCanonicalPath (io/file (.toURI (io/resource (str prefix "/config.edn"))))) (fn [_] (reload-full!))
+              (.getCanonicalPath (io/file (.toURI (io/resource (str prefix "/dev.edn"))))) (fn [_] (reload-full!))}
+       (.exists local-config)
+       (assoc (.getCanonicalPath local-config) (fn [_] (reload-full!)))))))

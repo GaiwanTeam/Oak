@@ -1,11 +1,18 @@
-(ns db-schema
+(ns repl-sessions.db-schema
   (:require
    [co.gaiwan.oak.app.config :as config]
+   [co.gaiwan.oak.util.jose :as jose]
    [honey.sql :as honey]
+   [lambdaisland.makina.app :as makina]
    [next.jdbc :as jdbc]
    [next.jdbc.connection :as connection]))
 
-(def ds (jdbc/get-datasource {:jdbcUrl "jdbc:postgresql://localhost:5432/postgres?user=postgres"}))
+
+(config/start! [:database])
+(config/refresh)
+
+(def ds (:data-source (makina/component config/system :database)))
+(def ds (jdbc/get-datasource {:jdbcUrl "jdbc:postgresql://localhost:5432/oak?user=oak&password=oak"}))
 
 (def schema
   {:actor
@@ -35,11 +42,12 @@
     [:active :boolean]
     ]
 
-   :keypair
-   [[:id :uuid :primary-key]
-    [:type :text]
-    [:public_key :text]
-    [:private_key :text]]
+   :jwk
+   [[:kid :uuid :primary-key]
+    [:public_key :jsonb]
+    [:full_key :jsonb]
+    [:is_default :boolean]
+    [:revoked_at :timestamptz]]
    })
 
 (def meta
@@ -53,3 +61,16 @@
                                    :with-columns (concat
                                                   (map #(vec (take 2 %)) cols)
                                                   meta)})))
+
+(let [k (jose/new-jwk {"kty" "OKP" "crv" "Ed25519"})
+      p (jose/public-parts k)]
+  (honey/format {:insert-into :jwk
+                 :columns [:kid :public_key :full_key]
+                 :values [[[:cast (get k "kid") :uuid] [:lift p] [:lift k]]]}))
+
+
+[[:kid :uuid :primary-key]
+ [:public_key :jsonb]
+ [:full_key :jsonb]
+ [:is_default :boolean]
+ [:revoked_at :timestamptz]]
