@@ -7,21 +7,19 @@
 (defn execute! [db qry]
   (jdbc/execute! db (honey/format qry)))
 
-(def GET-jwks
-  {:handler
-   (fn [{:keys [db] :as req}]
-     (log/warn :JWKS true)
-     {:body
-      {:keys
-       (map :jwk/public_key
-            (execute!
-             db
-             {:select [:public_key] :from [:jwk]}))}})})
+(defn GET-jwks
+  [{:keys [db] :as req}]
+  {:body
+   {:keys
+    (map :jwk/public_key
+         (execute!
+          db
+          {:select [:public_key] :from [:jwk]}))}})
 
 (defn component [opts]
   (log/info :message "Starting OAuth API")
   {:routes
-   ["/.well-known/jwks.json" {:get GET-jwks}]})
+   ["/.well-known/jwks.json" {:get #'GET-jwks}]})
 
 (comment
   (user/restart! :apis/jwks))

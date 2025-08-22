@@ -2,12 +2,16 @@
   "PostgreSQL connection pool + JSONB setup"
   (:require
    [charred.api :as json]
+   [co.gaiwan.oak.app.schema :as schema]
+   [co.gaiwan.oak.util.log :as log]
+   [honey.sql :as sql]
+   [next.jdbc :as jdbc]
    [next.jdbc.prepare :as prepare]
    [next.jdbc.result-set :as result-set])
   (:import
    (clojure.lang Keyword)
    (com.zaxxer.hikari HikariConfig HikariDataSource)
-   (java.sql PreparedStatement Timestamp)
+   (java.sql Connection PreparedStatement Timestamp)
    (java.time Instant)))
 
 (set! *warn-on-reflection* true)
@@ -109,12 +113,54 @@
     (doseq [[k v] opts
             :when (not (#{:url} k))]
       (set-hikari-option! config k v))
-    (let [ds (HikariDataSource. config)]
-      (assoc opts
-             :data-source ds
-             :http/request-filter (fn [req] (assoc req :db ds))))))
+    (HikariDataSource. config)))
+
+(defn- non-empty-result-set? [rs]
+  (reduce
+   (fn [acc o] (reduced true))
+   false
+   (result-set/reducible-result-set rs)))
+
+(defn- table-exists? [^Connection db table-name]
+  (non-empty-result-set?
+   (.getTables (.getMetaData db) nil nil table-name nil)))
+
+(defn- column-exists? [^Connection db table-name column-name]
+  (non-empty-result-set?
+   (.getColumns (.getMetaData db) nil nil table-name column-name)))
+
+(defn- create-table! [db table-name column-defs]
+  (log/info :db/creating-table {:table table-name :columns (map first column-defs)})
+  (jdbc/execute!
+   db
+   (sql/format {:create-table table-name
+                :with-columns column-defs})))
+
+(defn- add-columns! [db table-name columns]
+  (log/info :db/adding-columns {:table table-name :columns (map first columns)})
+  (jdbc/execute!
+   db
+   (sql/format {:alter-table table-name
+                :add-column columns})))
+
+(defn evolve-schema! [jdbc-conn schema-defs]
+  (with-open [conn (jdbc/get-connection jdbc-conn)]
+    (doseq [[table-kw columns] schema-defs]
+      (let [table-name (name table-kw)]
+        (if-not (table-exists? conn table-name)
+          (create-table! conn table-name columns)
+          (when-let [cols (seq
+                           (for [[col col-type] columns
+                                 :when (not (column-exists? conn table-name (name col)))]
+                             [col col-type]))]
+            (add-columns! conn table-name cols)))))))
 
 (def component
-  {:start (fn [{:keys [config]}] (hikari-data-source config))
+  {:start (fn [{:keys [config]}]
+            (let [ds (hikari-data-source config)]
+              (evolve-schema! ds schema/schema)
+              (assoc config
+                     :data-source ds
+                     :http/request-filter (fn [req] (assoc req :db ds)))))
    :stop #(when-let [ ^HikariDataSource ds (:data-source %)]
             (.close ds))})

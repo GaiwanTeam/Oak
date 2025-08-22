@@ -62,12 +62,6 @@
                                                   (map #(vec (take 2 %)) cols)
                                                   meta)})))
 
-(let [k (jose/new-jwk {"kty" "OKP" "crv" "Ed25519"})
-      p (jose/public-parts k)]
-  (honey/format {:insert-into :jwk
-                 :columns [:kid :public_key :full_key]
-                 :values [[[:cast (get k "kid") :uuid] [:lift p] [:lift k]]]}))
-
 
 [[:kid :uuid :primary-key]
  [:public_key :jsonb]

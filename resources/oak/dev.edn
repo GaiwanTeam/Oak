@@ -1,3 +1,4 @@
-{:db/config {:url "jdbc:postgresql://localhost:5432/oak"
+{:dev/route-var-handlers true
+ :db/config {:url "jdbc:postgresql://localhost:5432/oak"
              :username "oak"
              :password "oak"}}
