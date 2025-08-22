@@ -22,24 +22,36 @@
 (def entries (partial config/entries config))
 (def reload! (partial config/reload! config))
 
-(def system
+(defonce system
   (app/create
    {:prefix prefix
-    :ns-prefix "co.gaiwan.oak.system"
+    :ns-prefix "co.gaiwan.oak"
     :data-readers {'config get}}))
 
 (def load! (partial app/load! system))
 (def start! (partial app/start! system))
 (def stop! (partial app/stop! system))
+(def restart! (partial app/restart! system))
 (def refresh (partial app/refresh `system))
 (def refresh-all (partial app/refresh-all `system))
+(def component (partial app/component system))
+(def error (partial app/error system))
+(def print-table (partial app/print-table system))
+
 
 (comment
-  system
+  (swap!
+   system
+   assoc-in
+   [:makina/handlers :default :stop] :identity)
   (load!)
   (start!)
   (stop!)
-  (refresh))
+  (refresh)
+  (start! [:http])
+  (print-table)
+  (restart! [:system/router])
+  )
 
 (defn reload-full! []
   (log/info :message "Configuration changed, reloading config and restarting app")

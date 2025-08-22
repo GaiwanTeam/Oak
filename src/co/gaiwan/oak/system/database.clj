@@ -109,7 +109,10 @@
     (doseq [[k v] opts
             :when (not (#{:url} k))]
       (set-hikari-option! config k v))
-    (assoc opts :data-source (HikariDataSource. config))))
+    (let [ds (HikariDataSource. config)]
+      (assoc opts
+             :data-source ds
+             :http/request-filter (fn [req] (assoc req :db ds))))))
 
 (def component
   {:start (fn [{:keys [config]}] (hikari-data-source config))

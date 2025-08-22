@@ -1,0 +1,11 @@
+services:
+  oak-postgres:
+    image: postgres:17
+    container_name: oak-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_PASSWORD=oak
+    volumes:
+      - ./data/pg-data:/var/lib/postgresql/data
+      - ./dev/init_postgres.sql:/docker-entrypoint-initdb.d/init.sql

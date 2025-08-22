@@ -1,6 +1,19 @@
-{:http   {:port   #config :http/port
-          :router #makina/ref :router}
- :router {}
- :database {:config #config :db/config}
- :security-providers {:prepend #config :java.security.provider/prepend
-                      :append #config :java.security.provider/append}}
+{:system/http
+ {:port   #config :http/port
+  :router #makina/ref :system/router}
+
+ :system/router
+ {:routes #makina/refset :http/api
+  :request-filters [#makina/ref :system/database]}
+
+ :system/database
+ {:config #config :db/config}
+
+ :system/security-providers
+ {:prepend #config :java.security.provider/prepend
+  :append #config :java.security.provider/append}
+
+ :apis/jwks {:makina/type :http/api}
+ :apis/oauth {:makina/type :http/api}
+ :apis/openapi {:makina/type :http/api}
+ }

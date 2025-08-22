@@ -16,7 +16,8 @@
         {"name": "org.eclipse.aether", "level": "info"},
         {"name": "org.apache.http", "level": "info"},
         {"name": "sun.net.www", "level": "info"},
-        {"name": "jdk.event.security", "level": "info"}
+        {"name": "jdk.event.security", "level": "info"},
+        {"name": "com.zaxxer.hikari", "level": "info"}
       ],
       "root": {
         "level": "debug",

@@ -105,6 +105,12 @@ The following example demonstrates how to prepend the BouncyCastle provider (giv
  :java.security.provider/append  ["org.conscrypt.Conscrypt/newProvider"]}
 ```
 
+# API docs
+
+```
+npx @redocly/cli build-docs 'http://127.0.0.1:4800/openapi.json'
+```
+
 # License
 
 Copyright &copy; 2025 Arne Brasseur
