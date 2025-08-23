@@ -1,7 +1,7 @@
 {:paths ["src" "resources"]
  :deps
  {;; Application setup
-  com.lambdaisland/config {:local/root "/home/arne/lambdaisland/config/"} #_{:mvn/version "0.9.34"}
+  com.lambdaisland/config {:local/root "/home/arne/lambdaisland/config/"} #_ {:mvn/version "0.9.34"}
   com.lambdaisland/makina {:local/root "/home/arne/lambdaisland/makina"}
   com.lambdaisland/cli    {:mvn/version "0.24.97"}
 
@@ -30,14 +30,16 @@
   com.zaxxer/HikariCP               {:mvn/version "7.0.2"}
 
   ;; Formats and utilities
-  com.cnuernber/charred {:mvn/version "1.037"}
-  danlentz/clj-uuid     {:mvn/version "0.2.0"}
+  com.cnuernber/charred   {:mvn/version "1.037"}
+  danlentz/clj-uuid       {:mvn/version "0.2.0"}
+  org.clj-commons/pretty  {:mvn/version "3.6.3"}
+  com.lambdaisland/hiccup {:mvn/version "0.14.67"}
 
-  ;; Crypt
+  ;; Cryptography
   com.nimbusds/nimbus-jose-jwt                 {:mvn/version "10.4.2"}
   com.google.crypto.tink/tink                  {:mvn/version "1.18.0"}
   org.conscrypt/conscrypt-openjdk$linux-x86_64 {:mvn/version "2.5.2"}
-  com.lambdaisland/hiccup {:mvn/version "0.14.67"}
+  com.password4j/password4j                    {:mvn/version "1.8.4"}
   }
 
  :aliases

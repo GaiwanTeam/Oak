@@ -150,9 +150,10 @@
         (if-not (table-exists? conn table-name)
           (create-table! conn table-name columns)
           (when-let [cols (seq
-                           (for [[col col-type] columns
+                           (for [col-def columns
+                                 :let [col (first col-def)]
                                  :when (not (column-exists? conn table-name (name col)))]
-                             [col col-type]))]
+                             col-def))]
             (add-columns! conn table-name cols)))))))
 
 (def component

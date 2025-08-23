@@ -1,11 +1,20 @@
 (ns co.gaiwan.oak.app.admin-cli
+  "Implementation of the oakadm CLI
+
+  Command line interface for various administrative tasks.
+  "
   (:require
+   [camel-snake-kebab.core :as csk]
    [charred.api :as json]
+   [clj-commons.format.exceptions :as pretty]
+   [clojure.pprint :as pprint]
+   [clojure.string :as str]
    [co.gaiwan.oak.app.config :as config]
    [co.gaiwan.oak.domain.jwk :as jwk]
-   [lambdaisland.cli :as cli]
-   [clojure.pprint :as pprint])
-  (:import java.io.StringWriter))
+   [co.gaiwan.oak.domain.oauth-client :as oauth-client]
+   [lambdaisland.cli :as cli])
+  (:import
+   (java.io StringWriter)))
 
 (def init {})
 
@@ -13,6 +22,60 @@
   ;; placeholder, eventually this needs to be tenant-aware
   (config/start! [:system/database])
   (:data-source (config/component :system/database)))
+
+(def oauth-client-cols
+  [["client_id" :oauth-client/client-id]
+   ["client_secret" :oauth-client/client-secret]
+   ["client_name" :oauth-client/client-name]
+   ["redirect_uris" :oauth-client/redirect-uris]
+   ["token_endpoint_auth_method" :oauth-client/token-endpoint-auth-method]
+   ["grant_types" :oauth-client/grant-types]
+   ["response_types" :oauth-client/response-types]
+   ["scope" :oauth-client/scope]])
+
+(defn create-oauth-client
+  "Create a new OAuth client"
+  {:flags ["--client-name <name>" {:doc "The name of the client"
+                                   :required true}
+           "--redirect-uri <uri>" {:doc "Redirect URI, can be passed multiple times"
+                                   :coll? true
+                                   :key :redirect-uris}
+           "--token-endpoint-auth-method <method>" {:doc "Token endpoint authentication method"
+                                                    :key :token-endpoint-auth-method}
+           "--grant-type <type>" {:doc "Grant type, can be passed multiple times"
+                                  :coll? true
+                                  :key :grant-types}
+           "--response-type <type>" {:doc "Response type, can be passed multiple times"
+                                     :coll? true
+                                     :key :response-types}
+           "--scope <scope>" {:doc "Scope"
+                              :coll? true}]}
+  [opts]
+  {:columns oauth-client-cols
+   :data [(oauth-client/create! (db) (cond-> opts
+                                       (:scope opts)
+                                       (update :scope #(str/join " " %))))]})
+
+(defn list-oauth-clients
+  "List OAuth clients"
+  [opts]
+  {:columns oauth-client-cols
+   :data (oauth-client/list-all (db))})
+
+(def oauth-client-commands
+  {:doc "Read and manipulate OAuth clients"
+   :commands ["create" #'create-oauth-client
+              "list" #'list-oauth-clients]})
+
+(defn create-user
+  "Create a new user identity"
+  {}
+  [opts]
+  )
+
+(def user-commands
+  {:doc "Read and manipulate users"
+   :commands ["create" #'create-user]})
 
 (defn create-jwk
   "Create a new JWK"
@@ -37,12 +100,15 @@
                    :commands ["create" #'create-jwk
                               "list" #'list-jwk]})
 
-(def commands ["jwk" jwk-commands])
+(def commands ["jwk" jwk-commands
+               "oauth-client" oauth-client-commands
+               "user" user-commands])
 
 (def flags
-  ["-v, --verbose" "Increase verbosity"
-   "-h, --help" "Show help text for a (sub-)command"
-   "--format <json|csv>" "Output JSON/CSV rather than human-readable data"])
+  ["--format <json|csv>" "Output JSON/CSV rather than human-readable data"
+   "--show-trace" "Show full stack trace in errors"
+   "-v, --verbose" "Increase verbosity"
+   "-h, --help" "Show help text for a (sub-)command"])
 
 (defn wrap-stop-system [handler]
   (fn [opts]
@@ -56,7 +122,7 @@
       (when data
         (cond
           (= "json" (:format opts))
-          (println (json/write-json-str data))
+          (println (json/write-json-str (map #(update-keys % (comp csk/->snake_case name)) data)))
 
           (= "csv" (:format opts))
           (let [w (StringWriter.)
@@ -70,8 +136,26 @@
           (pprint/print-table (map first columns)
                               (map (fn [row]
                                      (into {} (map (fn [[h k]] [h (get row k)])) columns)) data))))
-      res)
-    ))
+      res)))
+
+(defn print-error [opts e]
+  (if (:show-trace opts)
+    (pretty/print-exception e)
+    (do
+      (println "Error:" (ex-message e))
+      (println "Use --show-trace to see the full error trace."))))
+
+(defn wrap-error [handler]
+  (fn [opts]
+    (try
+      (handler opts)
+      (catch clojure.lang.ExceptionInfo e
+        (let [d (ex-data e)]
+          (if (= :lambdaisland.cli/parse-error (:type d))
+            (println (ex-message e))
+            (print-error opts e))))
+      (catch Throwable t
+        (print-error opts t)))))
 
 (defn -main [& args]
   (cli/dispatch*
@@ -79,7 +163,9 @@
     :init init
     :flags flags
     :commands commands
-    :middleware [wrap-stop-system wrap-print-output]}
+    :middleware [wrap-stop-system
+                 wrap-print-output
+                 wrap-error]}
    args))
 
 ;; Local Variables:

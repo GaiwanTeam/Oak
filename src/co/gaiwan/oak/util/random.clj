@@ -20,6 +20,6 @@
            sb  (StringBuilder.)]
       (if (pos? (.compareTo num BigInteger/ZERO))
         (let [[div rem] (.divideAndRemainder num base62-base)]
-          (.append sb (.charAt base62-chars (.intValue rem)))
+          (.append sb (.charAt ^String base62-chars (.intValue ^BigInteger rem)))
           (recur div sb))
         (.toString sb)))))

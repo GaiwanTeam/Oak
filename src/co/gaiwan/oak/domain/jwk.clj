@@ -1,14 +1,14 @@
 (ns co.gaiwan.oak.domain.jwk
+  "Domain layer for working with JWKs"
   (:require
    [co.gaiwan.oak.util.jose :as jose]
-   [honey.sql :as honey]
-   [next.jdbc :as jdbc]))
+   [co.gaiwan.oak.lib.db :as db]))
 
 (def attributes
   [[:kid :uuid :primary-key]
-   [:public_key :jsonb]
-   [:full_key :jsonb]
-   [:is_default :boolean]
+   [:public_key :jsonb [:not nil]]
+   [:full_key :jsonb [:not nil]]
+   [:is_default :boolean [:default false]]
    [:revoked_at :timestamptz]])
 
 (def key-defaults
@@ -24,16 +24,16 @@
   (let [k (jose/new-jwk (merge (get key-defaults (get opts "kty"))
                                opts))
         p (jose/public-parts k)]
-    (jdbc/execute!
+    (db/execute-honey!
      db
-     (honey/format {:insert-into :jwk
-                    :columns [:kid :public_key :full_key]
-                    :values [[[:cast (get k "kid") :uuid] [:lift p] [:lift k]]]}))
+     {:insert-into :jwk
+      :columns [:kid :public_key :full_key]
+      :values [[[:cast (get k "kid") :uuid] [:lift p] [:lift k]]]})
     k))
 
 (defn list-all [db]
-  (map :jwk/public_key
-       (jdbc/execute!
+  (map :jwk/public-key
+       (db/execute-honey!
         db
-        (honey/format {:select [:public_key]
-                       :from :jwk}))))
+        {:select [:public_key]
+         :from :jwk})))
