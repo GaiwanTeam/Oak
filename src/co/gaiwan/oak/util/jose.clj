@@ -3,7 +3,7 @@
 
   Works with string-string maps."
   (:require
-   [clj-uuid :as uuid])
+   [co.gaiwan.oak.util.uuid :as uuid])
   (:import
    (com.nimbusds.jose JWSAlgorithm JWSHeader JWSHeader$Builder JWSSigner JWSVerifier)
    (com.nimbusds.jose.crypto ECDSASigner ECDSAVerifier Ed25519Signer Ed25519Verifier RSASSASigner RSASSAVerifier)
@@ -43,20 +43,20 @@
 (defmethod new-jwk "RSA" [{:strs [kid size alg]}]
   (-> (RSAKeyGenerator. ^int size)
       (.algorithm (JWSAlgorithm/parse ^String alg))
-      (.keyID (or kid (str (uuid/v7))))
+      (.keyID (or kid (uuid/random-compacted-uuid)))
       (.generate)
       (jwk->map)))
 
 (defmethod new-jwk "EC" [{:strs [kid crv alg]}]
   (-> (ECKeyGenerator. (com.nimbusds.jose.jwk.Curve/parse crv))
       (.algorithm (JWSAlgorithm/parse ^String alg))
-      (.keyID (or kid (str (uuid/v7))))
+      (.keyID (or kid (uuid/random-compacted-uuid)))
       (.generate)
       (jwk->map)))
 
 (defmethod new-jwk "OKP" [{:strs [kid crv]}]
   (-> (OctetKeyPairGenerator. (com.nimbusds.jose.jwk.Curve/parse crv))
-      (.keyID (or kid (str (uuid/v7))))
+      (.keyID (or kid (uuid/random-compacted-uuid)))
       (.generate)
       (jwk->map)))
 

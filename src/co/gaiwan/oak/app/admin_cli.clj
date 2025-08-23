@@ -16,6 +16,8 @@
   (:import
    (java.io StringWriter)))
 
+(set! *print-namespace-maps* false)
+
 (def init {})
 
 (defn db []
@@ -77,6 +79,14 @@
   {:doc "Read and manipulate users"
    :commands ["create" #'create-user]})
 
+(def jwk-cols
+  [["kid" :jwk/kid]
+   ["key-type" [:jwk/public-key "kty"]]
+   ["alg" [:jwk/public-key "alg"]]
+   ["crv" [:jwk/public-key "crv"]]
+   ["default" :jwk/is-default]
+   ["created-at" :jwk/created-at]])
+
 (defn create-jwk
   "Create a new JWK"
   {:flags ["--kty <kty>" {:doc "Key type, e.g. RSA, OKP, EC"
@@ -84,16 +94,16 @@
            "--alg <alg>" {:doc "Algorithm used, must match key type."}
            "--crv <crv>" {:doc "Curve used, for EC or OKP keys"}
            "--size <size>" {:doc "Key size, for RSA keys"
-                            :parse parse-long}]}
+                            :parse parse-long}
+           "--[no-]default" {:doc "Make this the default key"}]}
   [opts]
-  (jwk/create! (db) (update-keys opts name))
-  )
+  {:columns jwk-cols
+   :data [(jwk/create! (db) (update-keys opts name))]})
 
 (defn list-jwk
   "List JWKs"
   [opts]
-  {:columns [["Type" "kty"]
-             ["Id" "kid"]]
+  {:columns jwk-cols
    :data (jwk/list-all (db))})
 
 (def jwk-commands {:doc      "Read and manipulate JWKs"
@@ -116,6 +126,11 @@
       (config/stop!)
       res)))
 
+(defn get-col [data col]
+  (if (vector? col)
+    (get-in data col)
+    (get data col)))
+
 (defn wrap-print-output [handler]
   (fn [opts]
     (let [{:keys [data columns] :as res} (handler opts)]
@@ -128,14 +143,14 @@
           (let [w (StringWriter.)
                 ks (distinct (mapcat keys data))]
             (json/write-csv w (cons ks
-                                    (map (apply juxt (map (fn [col] #(get % col)) ks)) data))
+                                    (map (apply juxt (map (fn [col] #(get-col % col)) ks)) data))
                             {:close-writer? true})
             (println (.toString w)))
 
           :else
           (pprint/print-table (map first columns)
                               (map (fn [row]
-                                     (into {} (map (fn [[h k]] [h (get row k)])) columns)) data))))
+                                     (into {} (map (fn [[h k]] [h (get-col row k)])) columns)) data))))
       res)))
 
 (defn print-error [opts e]

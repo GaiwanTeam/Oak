@@ -146,7 +146,8 @@
 (defn evolve-schema! [jdbc-conn schema-defs]
   (with-open [conn (jdbc/get-connection jdbc-conn)]
     (doseq [[table-kw columns] schema-defs]
-      (let [table-name (name table-kw)]
+      (let [columns (conj columns [:created_at :timestamptz [:default :CURRENT_TIMESTAMP]])
+            table-name (name table-kw)]
         (if-not (table-exists? conn table-name)
           (create-table! conn table-name columns)
           (when-let [cols (seq

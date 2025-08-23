@@ -23,3 +23,8 @@
 (defn insert! [ds table key-map]
   (sql/insert! ds table key-map
                {:builder-fn rs/as-kebab-maps}))
+
+(defmacro with-transaction
+  {:doc (:doc (meta #'jdbc/with-transaction))}
+  [[sym transactable opts] & body]
+  `(jdbc/with-transaction [~sym ~transactable ~opts] ~@body))
