@@ -10,6 +10,7 @@
    [clojure.pprint :as pprint]
    [clojure.string :as str]
    [co.gaiwan.oak.app.config :as config]
+   [co.gaiwan.oak.domain.identity :as identity]
    [co.gaiwan.oak.domain.jwk :as jwk]
    [co.gaiwan.oak.domain.oauth-client :as oauth-client]
    [lambdaisland.cli :as cli])
@@ -69,15 +70,18 @@
    :commands ["create" #'create-oauth-client
               "list" #'list-oauth-clients]})
 
-(defn create-user
+(defn create-identity
   "Create a new user identity"
-  {}
+  {:flags ["--email <email>" "Email address"
+           "--password <password>" "User password"
+           "--type <identity-type>" {:doc "The type of identity created"
+                                     :default "user"}]}
   [opts]
-  )
+  {:data (identity/create! opts)})
 
-(def user-commands
-  {:doc "Read and manipulate users"
-   :commands ["create" #'create-user]})
+(def identity-commands
+  {:doc "Read and manipulate identitys"
+   :commands ["create" #'create-identity]})
 
 (def jwk-cols
   [["kid" :jwk/kid]
@@ -112,7 +116,7 @@
 
 (def commands ["jwk" jwk-commands
                "oauth-client" oauth-client-commands
-               "user" user-commands])
+               "identity" identity-commands])
 
 (def flags
   ["--format <json|csv>" "Output JSON/CSV rather than human-readable data"
@@ -135,22 +139,23 @@
   (fn [opts]
     (let [{:keys [data columns] :as res} (handler opts)]
       (when data
-        (cond
-          (= "json" (:format opts))
-          (println (json/write-json-str (map #(update-keys % (comp csk/->snake_case name)) data)))
+        (let [columns (or columns (distinct (mapcat #(for [k (keys %)] [(name k) k]) data)))]
+          (cond
+            (= "json" (:format opts))
+            (println (json/write-json-str (map #(update-keys % (comp csk/->snake_case name)) data)))
 
-          (= "csv" (:format opts))
-          (let [w (StringWriter.)
-                ks (distinct (mapcat keys data))]
-            (json/write-csv w (cons ks
-                                    (map (apply juxt (map (fn [col] #(get-col % col)) ks)) data))
-                            {:close-writer? true})
-            (println (.toString w)))
+            (= "csv" (:format opts))
+            (let [w (StringWriter.)
+                  ks (distinct (mapcat keys data))]
+              (json/write-csv w (cons ks
+                                      (map (apply juxt (map (fn [col] #(get-col % col)) ks)) data))
+                              {:close-writer? true})
+              (println (.toString w)))
 
-          :else
-          (pprint/print-table (map first columns)
-                              (map (fn [row]
-                                     (into {} (map (fn [[h k]] [h (get-col row k)])) columns)) data))))
+            :else
+            (pprint/print-table (map first columns)
+                                (map (fn [row]
+                                       (into {} (map (fn [[h k]] [h (get-col row k)])) columns)) data)))))
       res)))
 
 (defn print-error [opts e]

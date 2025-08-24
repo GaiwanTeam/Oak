@@ -161,6 +161,7 @@
   {:start (fn [{:keys [config]}]
             (let [ds (hikari-data-source config)]
               (evolve-schema! ds schema/schema)
+              (run! #(jdbc/execute! ds (sql/format %)) schema/indices)
               (assoc config
                      :data-source ds
                      :http/request-filter (fn [req] (assoc req :db ds)))))

@@ -1,1 +1,3 @@
-{:http/port 4800}
+{:http/port 4800
+ :password/hash-type "argon2" ;; "bcrypt", "scrypt"
+ }

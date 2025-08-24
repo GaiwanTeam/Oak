@@ -11,8 +11,13 @@
    [:oauth_client oauth-client/attributes]
    [:identity identity/attributes]
    [:identifier identifier/attributes]
-   [:credential credential/attributes]
-   ])
+   [:credential credential/attributes]])
+
+(def indices
+  [;; Only one JWK can be default at a time
+   {:create-index [[:unique :one_active_row_idx :if-not-exists]
+                   [:jwk :is_default] [] ]
+    :where [[:raw "is_default"]]}])
 
 (comment
   (user/restart! :system/database))
