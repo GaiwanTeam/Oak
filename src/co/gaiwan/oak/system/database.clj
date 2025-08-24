@@ -165,5 +165,5 @@
               (assoc config
                      :data-source ds
                      :http/request-filter (fn [req] (assoc req :db ds)))))
-   :stop #(when-let [ ^HikariDataSource ds (:data-source %)]
+   :stop #(when-let [^HikariDataSource ds (:data-source %)]
             (.close ds))})

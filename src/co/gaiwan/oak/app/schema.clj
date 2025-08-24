@@ -16,8 +16,13 @@
 (def indices
   [;; Only one JWK can be default at a time
    {:create-index [[:unique :one_active_row_idx :if-not-exists]
-                   [:jwk :is_default] [] ]
-    :where [[:raw "is_default"]]}])
+                   [:jwk :is_default]]
+    :where [[:raw "is_default"]]}
+
+   ;; Ensures each identifier is linked to a single identity
+   {:create-index [[:unique :unique_identifier_idx :if-not-exists]
+                   [:identifier :type :value]]
+    }])
 
 (comment
   (user/restart! :system/database))

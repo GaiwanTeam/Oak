@@ -10,7 +10,7 @@
 
 (def attributes
   [[:id :uuid [:primary-key]]
-   [:identity_id :uuid [:references [:identity :id]]]
+   [:identity_id :uuid [:references [:identity :id]] [:not nil]]
    [:type :text [:not nil]]
    [:value :text [:not nil]]])
 
@@ -31,7 +31,10 @@
                                          [:= :identity_id identity-id]
                                          [:= :type "password"]]}))))
 
-(defn set-password-hash! [db identity-id password-hash]
+(defn set-password-hash!
+  "Set the password hash for a identity/user, creating a new credential, or
+  updating the existing one."
+  [db {:keys [identity-id password-hash]}]
   (db/with-transaction [conn db]
     (db/execute-honey!
      conn
@@ -44,10 +47,10 @@
        {:insert-into [:credential],
         :columns [:id :identity_id :type :value],
         :values
-        [(uuid/v7)
-         identity-id
-         "password"
-         password-hash]}))))
+        [[(uuid/v7)
+          identity-id
+          "password"
+          password-hash]]}))))
 
 
 (comment

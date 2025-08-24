@@ -70,18 +70,16 @@
    :commands ["create" #'create-oauth-client
               "list" #'list-oauth-clients]})
 
-(defn create-identity
-  "Create a new user identity"
+(defn create-user
+  "Create a new user user"
   {:flags ["--email <email>" "Email address"
-           "--password <password>" "User password"
-           "--type <identity-type>" {:doc "The type of identity created"
-                                     :default "user"}]}
+           "--password <password>" "User password"]}
   [opts]
-  {:data (identity/create! opts)})
+  {:data [(identity/create-user! (db) opts)]})
 
-(def identity-commands
-  {:doc "Read and manipulate identitys"
-   :commands ["create" #'create-identity]})
+(def user-commands
+  {:doc "Read and manipulate users"
+   :commands ["create" #'create-user]})
 
 (def jwk-cols
   [["kid" :jwk/kid]
@@ -116,7 +114,7 @@
 
 (def commands ["jwk" jwk-commands
                "oauth-client" oauth-client-commands
-               "identity" identity-commands])
+               "user" user-commands])
 
 (def flags
   ["--format <json|csv>" "Output JSON/CSV rather than human-readable data"
