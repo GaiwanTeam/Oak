@@ -35,12 +35,14 @@
         :password-hash hsh})
       ident)))
 
-(defn validate-login [db {:keys [identifier password]}]
-  (when-let [hsh
+(defn validate-login
+  "Return identity id if password matches, nil otherwise"
+  [db {:keys [identifier password]}]
+  (when-let [identity
              (some->
               (db/execute-honey!
                db
-               {:select [:credential.value]
+               {:select [:identity.id :credential.value]
                 :from [:identity]
                 :join [:identifier [:= :identity.id :identifier.identity_id]
                        :credential [:= :identity.id :credential.identity_id]]
@@ -48,9 +50,11 @@
                         (identifier/where-sql {:type #{"email" "username"}
                                                :value identifier})
                         [:= :credential.type "password"]]})
-              first
-              :credential/value)]
-    (password4j/check-password password hsh)))
+              first)]
+    (let [hsh (:credential/value identity)
+          id (:identity/id identity)]
+      (when (password4j/check-password password hsh)
+        id))))
 
 (comment
   (create! (user/db) {})

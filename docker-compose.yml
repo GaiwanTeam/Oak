@@ -9,3 +9,13 @@ services:
     volumes:
       - ./data/pg-data:/var/lib/postgresql/data
       - ./dev/init_postgres.sql:/docker-entrypoint-initdb.d/init.sql
+    restart: always
+
+  redis:
+    image: redis:8.2.1-alpine
+    container_name: oak-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./data/redis:/data
+    restart: always

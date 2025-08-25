@@ -1,1 +1,3 @@
-{}
+{;; Set the secure flag on the cookie, making it exclusive to https requests
+ :http-session/secure-cookie true
+ }

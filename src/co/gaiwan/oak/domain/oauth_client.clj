@@ -11,7 +11,7 @@
 (def attributes
   ;; https://datatracker.ietf.org/doc/html/rfc7591
   [[:id :uuid :primary-key]
-   [:client_id :text :unique]
+   [:client_id :text :unique [:not nil]]
    [:client_secret :text]
    [:client_name :text]
    [:redirect_uris :jsonb]
@@ -102,6 +102,14 @@
    db
    {:select [:*]
     :from :oauth_client}))
+
+(defn find-by-client-id [db client-id]
+  (first
+   (db/execute-honey!
+    db
+    {:select [:*]
+     :from :oauth_client
+     :where [:= :client_id client-id]})))
 
 (comment
   (create! (user/db) {:client-name "My client"

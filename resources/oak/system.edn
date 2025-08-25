@@ -3,17 +3,24 @@
   :router #makina/ref :system/router}
 
  :system/router
- {:routes #makina/refset :http/api
+ {:routes          #makina/refset :http/api
+  :session-store   #makina/ref :system/redis-store
   :request-filters [#makina/ref :system/database]}
 
  :system/database
  {:config #config :db/config}
 
+ :system/redis-store
+ {:host       #config :redis/host
+  :port       #config :redis/port
+  :timeout-ms #config :redis/timeout-ms}
+
  :system/security-providers
  {:prepend #config :java.security.provider/prepend
-  :append #config :java.security.provider/append}
+  :append  #config :java.security.provider/append}
 
- :apis/jwks {:makina/type :http/api}
- :apis/oauth {:makina/type :http/api}
+ :apis/jwks    {:makina/type :http/api}
+ :apis/oauth   {:makina/type :http/api}
  :apis/openapi {:makina/type :http/api}
+ :apis/auth    {:makina/type :http/api}
  }

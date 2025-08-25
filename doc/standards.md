@@ -25,9 +25,10 @@ Standard Documents:
 - RFC 7009: OAuth 2.0 Token Revocation
 - RFC 7591: OAuth 2.0 Dynamic Client Registration Protocol
 - RFC 7636: Proof Key for Code Exchange (PKCE) by OAuth Public Clients
-- RFC 7662: OAuth 2.0 Token Introspection specification, detailed in 
+- RFC 7662: OAuth 2.0 Token Introspection specification 
 - RFC 8414: OAuth 2.0 Authorization Server Metadata
 - RFC 8628: OAuth 2.0 Device Authorization Grant
+- RFC 8693: OAuth 2.0 Token Exchange
 - RFC 8705: OAuth 2.0 Mutual-TLS Client Authentication and Certificate-Bound Access Tokens (mTLS)
 - RFC 8252: OAuth 2.0 for Native Apps
 - RFC 9068: JSON Web Token (JWT) Profile for OAuth 2.0 Access Tokens

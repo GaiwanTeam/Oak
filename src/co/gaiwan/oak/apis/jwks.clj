@@ -17,7 +17,6 @@
           {:select [:public_key] :from [:jwk]}))}})
 
 (defn component [opts]
-  (log/info :message "Starting OAuth API")
   {:routes
    ["/.well-known/jwks.json" {:get #'GET-jwks}]})
 

@@ -1,8 +1,8 @@
 (ns co.gaiwan.oak.system.router
   "HTTP router and middleware setup"
   (:require
-   [co.gaiwan.oak.util.log :as log]
    [co.gaiwan.oak.app.config :as config]
+   [co.gaiwan.oak.util.log :as log]
    [muuntaja.core :as muuntaja]
    [muuntaja.format.charred :as muuntaja-charred]
    [reitit.coercion.malli]
@@ -10,7 +10,9 @@
    [reitit.ring :as ring]
    [reitit.ring.coercion :as ring-coercion]
    [reitit.ring.middleware.muuntaja :as reitit-muuntaja]
-   [reitit.ring.middleware.parameters :as reitit-params]))
+   [reitit.ring.middleware.parameters :as reitit-params]
+   [ring.middleware.session :as ring-session]
+   [ring.redis.session :as ring-redis]))
 
 (def malli-coercion-options
   {:error-keys #{:type :coercion :in :schema :value :errors :humanized :transformed}})
@@ -55,7 +57,7 @@
   [[path data] opts]
   (ring/compile-result [path (compile-var-meta data)] opts))
 
-(defn component [{:keys [routes request-filters]}]
+(defn component [{:keys [routes request-filters session-store]}]
   (let [request-filter (apply comp (keep :http/request-filter request-filters))
         routes         (into ["" {}
                               ["/ping" {:get (constantly {:status 200 :body "pong"})}]]
@@ -75,7 +77,15 @@
                     ring-coercion/coerce-exceptions-middleware
                     ring-coercion/coerce-response-middleware
                     ring-coercion/coerce-request-middleware
-                    [wrap-request-filter request-filter]]}})))
+                    [wrap-request-filter request-filter]
+                    [ring-session/wrap-session
+                     {:store session-store
+                      :cookie-name (config/get :http-session/cookie-name)
+                      :cookie-attrs
+                      (cond-> {:http-only true
+                               :same-site :strict}
+                        (config/get :http-session/secure-cookie)
+                        (assoc :secure true))}]]}})))
 
 (comment
   (user/restart!)
