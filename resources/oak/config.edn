@@ -4,4 +4,5 @@
  :redis/host "localhost"
  :redis/port 6379
  :redis/timeout-ms 1000
+ :http/csp-policy "default-src 'self'; script-src 'self' 'nonce-random_value';"
  }

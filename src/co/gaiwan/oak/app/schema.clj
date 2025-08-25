@@ -5,10 +5,12 @@
   connection pool boots base on what's here."
   (:require
    [co.gaiwan.oak.domain.credential :as credential]
-   [co.gaiwan.oak.domain.identity :as identity]
    [co.gaiwan.oak.domain.identifier :as identifier]
+   [co.gaiwan.oak.domain.identity :as identity]
    [co.gaiwan.oak.domain.jwk :as jwk]
-   [co.gaiwan.oak.domain.oauth-client :as oauth-client]))
+   [co.gaiwan.oak.domain.oauth-authorization :as oauth-authorization]
+   [co.gaiwan.oak.domain.oauth-client :as oauth-client]
+   [co.gaiwan.oak.domain.oauth-code :as oauth-code]))
 
 (def schema
   "Table defitions, order matters because of foreign key constraints"
@@ -16,7 +18,9 @@
    [:oauth_client oauth-client/attributes]
    [:identity identity/attributes]
    [:identifier identifier/attributes]
-   [:credential credential/attributes]])
+   [:credential credential/attributes]
+   [:oauth_authorization oauth-authorization/attributes]
+   [:oauth_code oauth-code/attributes]])
 
 (def indices
   "Index definitions, make sure to add :if-not-exists"

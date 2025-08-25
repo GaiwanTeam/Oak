@@ -2,10 +2,11 @@
   "Authentication endpoints. Login, logout, etc."
   (:require
    [co.gaiwan.oak.domain.identity :as identity]
+   [co.gaiwan.oak.lib.form :as form]
    [lambdaisland.hiccup.middleware :as hiccup-mw]))
 
 (defn login-html []
-  [:form {:method "POST"}
+  [form/form {:method "POST"}
    [:label {:for "email"} "Email"
     [:input {:id "email" :name "email" :type "text"}]]
    [:label {:for "password"} "Password"

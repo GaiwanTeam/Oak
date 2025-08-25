@@ -2,6 +2,7 @@
   "HTTP router and middleware setup"
   (:require
    [co.gaiwan.oak.app.config :as config]
+   [co.gaiwan.oak.lib.ring-csp :as ring-csp]
    [co.gaiwan.oak.util.log :as log]
    [muuntaja.core :as muuntaja]
    [muuntaja.format.charred :as muuntaja-charred]
@@ -11,6 +12,7 @@
    [reitit.ring.coercion :as ring-coercion]
    [reitit.ring.middleware.muuntaja :as reitit-muuntaja]
    [reitit.ring.middleware.parameters :as reitit-params]
+   [ring.middleware.anti-forgery :as ring-csrf]
    [ring.middleware.session :as ring-session]
    [ring.redis.session :as ring-redis]))
 
@@ -85,7 +87,9 @@
                       (cond-> {:http-only true
                                :same-site :strict}
                         (config/get :http-session/secure-cookie)
-                        (assoc :secure true))}]]}})))
+                        (assoc :secure true))}]
+                    ring-csrf/wrap-anti-forgery
+                    ring-csp/wrap-content-security-policy]}})))
 
 (comment
   (user/restart!)
