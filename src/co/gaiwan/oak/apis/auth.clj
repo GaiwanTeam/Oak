@@ -23,7 +23,6 @@
     {:email string?
      :password string?}}}
   [{:keys [db parameters session] :as req}]
-  (def req req)
   (if-let [id (identity/validate-login db (:form parameters))]
     (if-let [url (:redirect-after-login session)]
       {:status 302
@@ -34,9 +33,6 @@
        :session {:identity id}})
     {:status 403
      :html/body [:p "Invalid credentials"]}))
-
-(type
- (:session req))
 
 (defn component [opts]
   {:routes

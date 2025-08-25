@@ -83,7 +83,7 @@
     (throw (ex-info (str "Invalid oauth-client options: " (me/humanize errors))
                     {:category     :invalid
                      :malli/errors errors}))
-    (let [coerced-opts                                                                                    (m/coerce ClientOpts opts (mt/default-value-transformer {::mt/add-optional-keys true}))
+    (let [coerced-opts (m/coerce ClientOpts opts (mt/default-value-transformer {::mt/add-optional-keys true}))
           {:keys [client-name redirect-uris token-endpoint-auth-method grant-types response-types scope]} coerced-opts]
       (db/insert!
        db
