@@ -1,8 +1,8 @@
 {:paths ["src" "resources"]
  :deps
  {;; Application setup
-  com.lambdaisland/config {:local/root "/home/arne/lambdaisland/config/"} #_ {:mvn/version "0.9.34"}
-  com.lambdaisland/makina {:local/root "/home/arne/lambdaisland/makina"}
+  com.lambdaisland/config {:mvn/version "0.10.37"}
+  com.lambdaisland/makina {:mvn/version "0.2.12"}
   com.lambdaisland/cli    {:mvn/version "0.24.97"}
 
   ;; Logging
