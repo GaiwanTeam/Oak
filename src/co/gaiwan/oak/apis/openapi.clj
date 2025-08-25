@@ -1,4 +1,5 @@
 (ns co.gaiwan.oak.apis.openapi
+  "Standard API description"
   (:require [reitit.openapi :as openapi]))
 
 (defn component [opts]

@@ -1,4 +1,5 @@
 (ns co.gaiwan.oak.apis.auth
+  "Authentication endpoints. Login, logout, etc."
   (:require
    [co.gaiwan.oak.domain.identity :as identity]
    [lambdaisland.hiccup.middleware :as hiccup-mw]))
@@ -33,6 +34,9 @@
        :session {:identity id}})
     {:status 403
      :html/body [:p "Invalid credentials"]}))
+
+(type
+ (:session req))
 
 (defn component [opts]
   {:routes

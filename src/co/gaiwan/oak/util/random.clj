@@ -1,4 +1,5 @@
 (ns co.gaiwan.oak.util.random
+  "Generate (secure) random things"
   (:require
    [co.gaiwan.oak.util.bigint :as bigint])
   (:import

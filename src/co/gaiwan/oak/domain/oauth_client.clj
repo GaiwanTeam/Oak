@@ -9,7 +9,6 @@
    [co.gaiwan.oak.lib.db :as db]))
 
 (def attributes
-  ;; https://datatracker.ietf.org/doc/html/rfc7591
   [[:id :uuid :primary-key]
    [:client_id :text :unique [:not nil]]
    [:client_secret :text]
@@ -19,6 +18,8 @@
    [:grant_types :jsonb]
    [:response_types :jsonb]
    [:scope :text]
+
+   ;; https://datatracker.ietf.org/doc/html/rfc7591 - OAuth 2.0 Dynamic Client Registration Protocol
    ;; [:client_uri :text]
    ;; [:logo_uri :text]
    ;; [:contacts :jsonb]

@@ -1,4 +1,7 @@
 (ns co.gaiwan.oak.domain.identifier
+  "An identifier identifies an identity
+
+  Email, phone number, etc"
   (:require
    [clj-uuid :as uuid]
    [co.gaiwan.oak.lib.db :as db]))
@@ -8,6 +11,7 @@
    [:identity_id :uuid [:references [:identity :id]] [:not nil]]
    [:type :text [:not nil]]
    [:value :text [:not nil]]
+   [:is_verified :boolean [:default false]]
    [:is_primary :boolean [:default false]]])
 
 (defn create! [db opts]

@@ -1,4 +1,5 @@
 (ns co.gaiwan.oak.util.uuid
+  "UUID conversion functions"
   (:require
    [clj-uuid :as uuid]
    [co.gaiwan.oak.util.bigint :as bigint])

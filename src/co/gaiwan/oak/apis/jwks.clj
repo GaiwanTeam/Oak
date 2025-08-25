@@ -1,4 +1,7 @@
 (ns co.gaiwan.oak.apis.jwks
+  "JSON Web Key Set
+
+  Standard discoverable endpoint so third parties can validate our JWT tokens."
   (:require
    [co.gaiwan.oak.util.log :as log]
    [honey.sql :as honey]

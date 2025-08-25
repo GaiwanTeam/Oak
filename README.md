@@ -5,25 +5,52 @@ Rooted in Standards, Built to Last
 
 ## Dev
 
-PostgreSQL container:
+PostgreSQL and Redis containers:
 
 ```
-docker run -i -p 5432:5432 --name=oak-postgres \
-  -v ./pg-data:/var/lib/postgresql/data 
-  -v ./dev/init_postgres.sql:/docker-entrypoint-initdb.d/init.sql \
-  postgres:17
+docker compose up
 ```
+
+Start the application
+
+```
+echo '{:launchpad/aliases [:dev :test]}' > deps.local.edn
+bin/launchpad
+```
+
+Initial setup
+
+```
+bin/oakadm jwt create
+bin/oakadm oauth-client create 
+bin/oakadm oauth-client create --client-name "foo" --redirect-uri 'https://example.com/redirect' --scope email --scope openid --scope offline_access
+bin/oakadm user create --email foo@bar.com --password abc
+```
+
+## Running in prod mode
+
+When running from source, Oak assumes it runs in a dev environment, when
+deploying in production you want to make sure it uses the `prod` environment
+instead, which will affect configuration defaults. You can do this by setting
+the `OAK__ENV=prod` environment variable, or the `oak.env=prod` java system
+property. (`-J-Doak.env=prod`).
+
+Future docker containers instead will default to `prod`, so they use sensible
+defaults for a production scenario.
 
 ## Configuring the Database Connection
 
-To connect to your database, you need to provide a configuration map under the `:db/config` key. At a minimum, this includes the JDBC URL, username, and password.
+To connect to your database, you need to provide a configuration map under the
+`:db/config` key. At a minimum, this includes the JDBC URL, username, and
+password.
 
-A basic configuration looks like this:
+A basic configuration looks like this (this is the default configuration in dev,
+which matches the docker-compose setup):
 
 ```clj
 {:db/config {:url "jdbc:postgresql://localhost:5432/oak"
- :username "oak"
- :password "oak"}}
+             :username "oak"
+             :password "oak"}}
 ```
 
 ### Advanced Configuration

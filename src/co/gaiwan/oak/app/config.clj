@@ -1,4 +1,6 @@
 (ns co.gaiwan.oak.app.config
+  "Configuration and system setup, mostly wrappers around lambdaisland.config and
+  makina."
   (:refer-clojure :exclude [get])
   (:require
    [clojure.java.io :as io]

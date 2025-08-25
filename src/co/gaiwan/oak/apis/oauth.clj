@@ -1,4 +1,5 @@
 (ns co.gaiwan.oak.apis.oauth
+  "OAuth 2.1 authorization and token exchange"
   (:require
    [co.gaiwan.oak.domain.oauth-client :as oauth-client]
    [co.gaiwan.oak.util.log :as log]

@@ -12,6 +12,12 @@ and presents operations over those entities, including CRUD into the postgres
 DB. This is the main policy layer, used by API and command line implementations.
 It should expose meaningful operations in the domain.
 
+# lib
+
+The messy middle between util (pure mechanism) and domain (pure policy),
+everything that should be extracted from domain, but doesn't seem general and
+unopinionated enough for util.
+
 # app
 
 Application harness and configuration
