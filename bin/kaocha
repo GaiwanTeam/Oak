@@ -1,0 +1,3 @@
+#!/bin/sh
+
+exec clojure -J-Dclojure.main.report=stderr -J-Dlog4j.configurationFile=resources/log4j2.test.json -M:test -m kaocha.runner "$@"

@@ -2,6 +2,7 @@
   "OAuth 2.1 authorization and token exchange"
   (:require
    [clojure.string :as str]
+   [co.gaiwan.oak.domain.jwk :as jwk]
    [co.gaiwan.oak.domain.oauth-authorization :as oauth-authorization]
    [co.gaiwan.oak.domain.oauth-client :as oauth-client]
    [co.gaiwan.oak.domain.oauth-code :as oauth-code]
@@ -294,7 +295,7 @@
                   (error-response "invalid_grant" "Invalid code verifier"))
 
                 ;; Get default JWK for signing
-                (if-let [default-jwk (:full_key (co.gaiwan.oak.domain.jwk/default-key db))]
+                (if-let [default-jwk (:jwk/full-key (jwk/default-key db))]
                   ;; Generate access token (JWT)
                   (let [access-token (jose/build-jwt
                                       default-jwk
