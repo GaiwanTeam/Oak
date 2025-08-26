@@ -3,6 +3,7 @@
    [clojure.string :as str]
    [co.gaiwan.oak.app.schema :as schema]
    [co.gaiwan.oak.lib.automatic-schema :as automatic-schema]
+   [co.gaiwan.oak.lib.pg-jsonb :as pg-jsonb]
    [honey.sql :as sql]
    [lambdaisland.config :as config]
    [next.jdbc :as jdbc]))
