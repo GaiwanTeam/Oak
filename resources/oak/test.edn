@@ -1,1 +1,3 @@
-{}
+{:db/config {:url "jdbc:postgresql://localhost:5432/oak_test"
+             :username "postgres"
+             :password "oak"}}

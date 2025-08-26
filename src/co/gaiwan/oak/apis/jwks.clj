@@ -21,7 +21,8 @@
 
 (defn component [opts]
   {:routes
-   ["/.well-known/jwks.json" {:get #'GET-jwks}]})
+   ["/.well-known/jwks.json" {:name :jwks/jwks
+                              :get #'GET-jwks}]})
 
 (comment
   (user/restart! :apis/jwks))

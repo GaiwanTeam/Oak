@@ -34,3 +34,17 @@
                    :code_challenge code-challenge
                    :code_challenge_method code-challenge-method}))
     code))
+
+(defn find-by-code [db code]
+  (first
+   (db/execute-honey!
+    db
+    {:select [:*]
+     :from :oauth_code
+     :where [:= :code code]})))
+
+(defn delete-by-code! [db code]
+  (db/execute-honey!
+   db
+   {:delete-from :oauth_code
+    :where [:= :code code]}))

@@ -52,6 +52,9 @@
 
 (def valid-response-types ["code"])
 
+(def valid-code-challenge-methods
+  ["S256" "plain"])
+
 (def ClientOpts
   [:map
    [:client-name :string]

@@ -16,7 +16,7 @@
 (def key-defaults
   {"RSA" {"size" 2048
           "alg" "RS256"}
-   "EC"  {"alg" "ES256" "crv" "P-256"}
+   "EC" {"alg" "ES256" "crv" "P-256"}
    "OKP" {"crv" "Ed25519"}})
 
 (defn create!
@@ -29,10 +29,10 @@
         p (jose/public-parts k)
         default (get opts "default")]
     (db/with-transaction [conn db]
-      (let [jwk-count  (-> (db/execute-honey!
-                            conn
-                            {:select [[[:count :*]]] :from :jwk})
-                           first :count)
+      (let [jwk-count (-> (db/execute-honey!
+                           conn
+                           {:select [[[:count :*]]] :from :jwk})
+                          first :count)
             default (if (some? default)
                       default
                       (= 0 jwk-count))]
@@ -61,3 +61,12 @@
    db
    {:delete-from :jwk
     :where [:= :kid kid]}))
+
+(defn default-key [db]
+  (first
+   (db/execute-honey!
+    db
+    {:select [:full_key]
+     :from :jwk
+     :where [:= :is_default true]
+     :limit 1})))
