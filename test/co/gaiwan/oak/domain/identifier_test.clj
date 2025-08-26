@@ -1,4 +1,4 @@
-(ns co.gaiwan.oak.identifier-test
+(ns co.gaiwan.oak.domain.identifier-test
   (:require
    [clojure.test :refer :all]
    [co.gaiwan.oak.domain.identifier :as identifier]
