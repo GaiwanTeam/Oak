@@ -11,6 +11,7 @@ Standard Documents:
 - RFC 7517: JSON Web Key (JWK)
 - RFC 7518: JSON Web Algorithms (JWA)
 - RFC 7519: JSON Web Token (JWT)
+- RFC 7638: JSON Web Key (JWK) Thumbprint
 
 ## OAuth 2.0
 
@@ -24,6 +25,7 @@ Standard Documents:
 - RFC 6750: The OAuth 2.0 Authorization Framework: Bearer Token Usage
 - RFC 6819: OAuth 2.0 Threat Model and Security Considerations
 - RFC 7009: OAuth 2.0 Token Revocation
+- RFC 7522: Security Assertion Markup Language (SAML) 2.0 Profile for OAuth 2.0 Client Authentication and Authorization Grants
 - RFC 7591: OAuth 2.0 Dynamic Client Registration Protocol
 - RFC 7592: OAuth 2.0 Dynamic Client Management Protocol 
 - RFC 7636: Proof Key for Code Exchange (PKCE) by OAuth Public Clients
@@ -107,6 +109,10 @@ Standard Documents:
 ## DID (Distributed ID) and VC (Verifiable Credentials)
 
 - [Decentralized Identifiers (DIDs) v1.1](https://www.w3.org/TR/did-1.1/)
+- [DID Implementation Guide v1.0](https://www.w3.org/TR/did-imp-guide/)
+- [DID Method Rubric v1.0](https://www.w3.org/TR/did-rubric/)
+- [DID Methods](https://www.w3.org/TR/did-extensions-methods/)
+- [Use Cases and Requirements for Decentralized Identifiers](https://www.w3.org/TR/did-use-cases/)
 - [Verifiable Credentials Data Model v2.0](https://www.w3.org/TR/vc-data-model-2.0/)
 - [SD-JWT-based Verifiable Credentials (SD-JWT VC)](https://datatracker.ietf.org/doc/draft-ietf-oauth-sd-jwt-vc/)
 
@@ -182,3 +188,7 @@ History: XACML was developed by the OASIS XACML Technical Committee. Version 1.0
 Standard Documents:
 
 * OASIS Standard: eXtensible Access Control Markup Language (XACML) V3.0
+
+## Observability and conveying context
+
+- [Trace Context (W3C Recommendation)](https://www.w3.org/TR/trace-context/)
