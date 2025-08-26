@@ -229,10 +229,10 @@
 
 (defn token-claims [identity-id client-id scope]
   "Generate JWT claims for an access token"
-  {:sub (str identity-id)
-   :aud client-id
-   :scope scope
-   :exp (+ (System/currentTimeMillis) (* 3600 1000))})
+  {"sub" (str identity-id)
+   "aud" client-id
+   "scope" scope
+   "exp" (+ (System/currentTimeMillis) (* 3600 1000))})
 
 (defn POST-exchange-token
   {:summary "Exchange an authorization code for an access token"
