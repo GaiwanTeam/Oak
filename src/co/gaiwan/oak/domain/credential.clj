@@ -14,14 +14,14 @@
    [:type :text [:not nil]]
    [:value :text [:not nil]]])
 
-(defn create! [db opts]
+(defn create! [db {:keys [id identity-id type value] :as opts}]
   (db/insert!
    db
    :credential
    {:id (uuid/v7)
-    :identity_id (:identity-id opts)
-    :type (:type opts)
-    :value (:value opts)}))
+    :identity_id identity-id
+    :type type
+    :value value}))
 
 (defn get-password-hash [db identity-id]
   (:credential/value
@@ -41,9 +41,9 @@
      (if (get-password-hash conn identity-id)
        {:update :credential
         :set {:value password-hash}
-        :where  [:and
-                 [:= :identity_id identity-id]
-                 [:= :type "password"]]}
+        :where [:and
+                [:= :identity_id identity-id]
+                [:= :type "password"]]}
        {:insert-into [:credential],
         :columns [:id :identity_id :type :value],
         :values

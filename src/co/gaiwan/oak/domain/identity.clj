@@ -12,9 +12,9 @@
   [[:id :uuid :primary-key]
    [:type :text [:not nil]]])
 
-(defn create! [db opts]
-  (db/insert! db :identity {:id (or (:id opts) (uuid/v7))
-                            :type (or (:type opts) "user")}))
+(defn create! [db {:keys [id type]}]
+  (db/insert! db :identity {:id (or id (uuid/v7))
+                            :type (or type "user")}))
 
 (defn create-user! [db {:keys [email password]}]
   (db/with-transaction [conn db]
