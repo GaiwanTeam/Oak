@@ -10,7 +10,8 @@
    [co.gaiwan.oak.domain.jwk :as jwk]
    [co.gaiwan.oak.domain.oauth-authorization :as oauth-authorization]
    [co.gaiwan.oak.domain.oauth-client :as oauth-client]
-   [co.gaiwan.oak.domain.oauth-code :as oauth-code]))
+   [co.gaiwan.oak.domain.oauth-code :as oauth-code]
+   [co.gaiwan.oak.domain.refresh-token :as refresh-token]))
 
 (def schema
   "Table defitions, order matters because of foreign key constraints"
@@ -20,7 +21,8 @@
    [:identifier identifier/attributes]
    [:credential credential/attributes]
    [:oauth_authorization oauth-authorization/attributes]
-   [:oauth_code oauth-code/attributes]])
+   [:oauth_code oauth-code/attributes]
+   [:refresh_token refresh-token/attributes]])
 
 (def indices
   "Index definitions, make sure to add :if-not-exists"

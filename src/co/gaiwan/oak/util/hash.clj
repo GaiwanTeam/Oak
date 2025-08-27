@@ -9,3 +9,9 @@
   (let [digest (MessageDigest/getInstance "SHA-256")]
     (.update digest (.getBytes string "UTF-8"))
     (base64/url-encode-no-pad (.digest digest))))
+
+(comment
+  (sha256-base64url "test-string")
+  ;; => "_-ZfHZj6_t6jUUrclWyK2lmAxsXSVS_WH0hAGu_VwA4"
+
+  )
