@@ -2,7 +2,7 @@
   (:require
    [clojure.test :refer :all]
    [co.gaiwan.oak.domain.identifier :as identifier]
-   [co.gaiwan.oak.lib.db :as db]
+   [co.gaiwan.oak.domain.identity :as identity]
    [co.gaiwan.oak.test-harness :as harness]))
 
 (use-fixtures :once harness/with-test-database)
@@ -19,14 +19,11 @@
                             :value "+1234567890"
                             :primary false}]
 
-      ;; First create the identity
-      (db/insert! harness/*db* :identity {:id identity-id :type "person"})
+      (identity/create! harness/*db* {:id identity-id})
 
-      ;; Create identifiers
       (identifier/create! harness/*db* email-identifier)
       (identifier/create! harness/*db* phone-identifier)
 
-      ;; Test finding by type and value
       (let [found-email (identifier/find-one harness/*db* {:type "email" :value "test@example.com"})
             found-phone (identifier/find-one harness/*db* {:type "phone" :value "+1234567890"})
             all-for-identity (identifier/find-one harness/*db* {:identity-id identity-id})]

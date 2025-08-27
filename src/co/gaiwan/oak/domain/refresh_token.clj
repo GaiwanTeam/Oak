@@ -31,7 +31,8 @@
      :from :refresh_token
      :where [:and
              [:= :token token]
-             [:= :client_id client-id]]})))
+             [:= :client_id client-id]]
+     :limit 1})))
 
 (defn delete! [db token client-id]
   (db/execute-honey!
@@ -46,6 +47,6 @@
     (co.gaiwan.oak.domain.oauth-client/create! (user/db) {:client-name "test-client"}))
 
   (def client-id  (:oauth-client/id client))
-  (def token   (create! (user/db) {:client-id :jwt-claims {:sub "user123" :iat 123456789}}))
+  (def token   (create! (user/db) {:client-id client-id :jwt-claims {:sub "user123" :iat 123456789}}))
   (find-one (user/db) token client-id)
   (delete! (user/db) token client-id))

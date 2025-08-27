@@ -35,16 +35,21 @@
                    :code_challenge_method code-challenge-method}))
     code))
 
-(defn find-by-code [db code]
+(defn find-one [db code client-id]
   (first
    (db/execute-honey!
     db
     {:select [:*]
      :from :oauth_code
-     :where [:= :code code]})))
+     :where [:and
+             [:= :code code]
+             [:= :client_id client-id]]
+     :limit 1})))
 
-(defn delete-by-code! [db code]
+(defn delete! [db code client-id]
   (db/execute-honey!
    db
    {:delete-from :oauth_code
-    :where [:= :code code]}))
+    :where [:and
+            [:= :code code]
+            [:= :client_id client-id]]}))

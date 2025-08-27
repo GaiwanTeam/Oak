@@ -1,12 +1,13 @@
 (ns co.gaiwan.oak.test-harness
   (:require
-   [clojure.string :as str]
    [co.gaiwan.oak.app.schema :as schema]
+   [co.gaiwan.oak.domain.jwk :as jwk]
    [co.gaiwan.oak.lib.automatic-schema :as automatic-schema]
-   [co.gaiwan.oak.lib.pg-jsonb :as pg-jsonb]
    [honey.sql :as sql]
    [lambdaisland.config :as config]
    [next.jdbc :as jdbc]))
+
+(require 'co.gaiwan.oak.lib.pg-jsonb)
 
 (defonce config
   (config/create {:env :test :prefix "oak"}))
@@ -64,6 +65,10 @@
   (with-open [conn (jdbc/get-connection db-config)]
     (automatic-schema/evolve-schema! conn schema/schema)
     (run! #(jdbc/execute! conn (sql/format %)) schema/indices)))
+
+(defn ensure-jwk! []
+  (when-not (jwk/default-key *db*)
+    (jwk/create! *db* {"kty" "OKP"})))
 
 (defn with-test-database
   "Test fixture that creates a test database, sets up schema, and cleans up afterwards.

@@ -2,15 +2,16 @@
   "OAuth 2.1 authorization and token exchange"
   (:require
    [clojure.string :as str]
+   [co.gaiwan.oak.app.config :as config]
    [co.gaiwan.oak.domain.jwk :as jwk]
    [co.gaiwan.oak.domain.oauth-authorization :as oauth-authorization]
    [co.gaiwan.oak.domain.oauth-client :as oauth-client]
    [co.gaiwan.oak.domain.oauth-code :as oauth-code]
+   [co.gaiwan.oak.domain.refresh-token :as refresh-token]
    [co.gaiwan.oak.domain.scope :as scope]
    [co.gaiwan.oak.lib.form :as form]
-   [co.gaiwan.oak.util.base64 :as base64]
+   [co.gaiwan.oak.util.hash :as hash]
    [co.gaiwan.oak.util.jose :as jose]
-   [co.gaiwan.oak.util.log :as log]
    [co.gaiwan.oak.util.routing :as routing]
    [lambdaisland.hiccup.middleware :as hiccup-mw]
    [lambdaisland.uri :as uri]))
@@ -227,40 +228,36 @@
       :code_challenge_methods_supported oauth-client/valid-code-challenge-methods
       :jwks_uri (str base-url (routing/path-for req :jwks/jwks))}}))
 
-(defn token-claims [identity-id client-id scope]
+(defn new-exp-time
+  "JWT expiration time"
+  []
+  (+ (System/currentTimeMillis)
+     (* (config/get :jwt/exp-time-seconds) 1000)))
+
+(defn token-claims
   "Generate JWT claims for an access token"
+  [identity-id client-id scope]
+  {:pre [identity-id client-id scope]}
   {"sub" (str identity-id)
    "aud" client-id
    "scope" scope
-   "exp" (+ (System/currentTimeMillis) (* 3600 1000))})
+   "exp" (new-exp-time)})
 
-(defn POST-exchange-token
-  {:summary "Exchange an authorization code for an access token"
-   :description "OAuth 2.1 token endpoint for authorization code grant with PKCE"
-   :parameters
-   {:form
-    [:map
-     [:grant_type {:optional true} string?]
-     [:code {:optional true} string?]
-     [:redirect_uri {:optional true} string?]
-     [:client_id {:optional true} string?]
-     [:client_secret {:optional true} string?]
-     [:code_verifier {:optional true} string?]]}}
-  [{:keys [db parameters]}]
-  (let [{:keys [grant_type code redirect_uri client_id client_secret code_verifier]} (:form parameters)
-        error-response (fn [error error-description]
-                         {:status 400
-                          :body {:error error
-                                 :error_description error-description}})]
+(defn update-exp
+  "Reset the expiration claim to a new future timestamp based on :jwt/exp-time"
+  [claims]
+  (assoc claims "exp" (new-exp-time)))
 
-    ;; Validate required parameters
+(defn error-response [error error-description]
+  {:status 400
+   :body {:error error
+          :error_description error-description}})
+
+(defn handle-authorization-code-grant
+  "Token exchange: handle `code` grant type"
+  [db params]
+  (let [{:keys [client_id client_secret code code_verifier]} params]
     (cond
-      (not grant_type)
-      (error-response "invalid_request" "Missing grant_type parameter")
-
-      (not= grant_type "authorization_code")
-      (error-response "unsupported_grant_type" "Only authorization_code grant type is supported")
-
       (not code)
       (error-response "invalid_request" "Missing code parameter")
 
@@ -271,7 +268,8 @@
       (if-let [oauth-client (oauth-client/find-by-client-id db client_id)]
         ;; Validate client authentication
         (let [stored-client-secret (:oauth-client/client-secret oauth-client)
-              auth-method (:oauth-client/token-endpoint-auth-method oauth-client)]
+              auth-method (:oauth-client/token-endpoint-auth-method oauth-client)
+              client-uuid (:oauth-client/id oauth-client)]
           (cond
             (and (= auth-method "client_secret_basic") (not client_secret))
             (error-response "invalid_client" "Client authentication required")
@@ -281,41 +279,130 @@
 
             :else
             ;; Look up the authorization code
-            (if-let [code-record (oauth-code/find-by-code db code)]
-              (let [{:keys [client_id identity_id scope code_challenge code_challenge_method]} code-record
-                    code-verifier-valid? (when (= code_challenge_method "S256")
+            (if-let [code-entity (oauth-code/find-one db code client-uuid)]
+              (let [{:oauth-code/keys [identity-id scope code-challenge code-challenge-method]} code-entity
+                    code-verifier-valid? (when (= code-challenge-method "S256")
                                            (and code_verifier
-                                                (= code_challenge
-                                                   (let [digest (java.security.MessageDigest/getInstance "SHA-256")]
-                                                     (.update digest (.getBytes code_verifier "UTF-8"))
-                                                     (base64/url-encode-no-pad (.digest digest))))))]
+                                                (= code-challenge (hash/sha256-base64url code_verifier))))]
 
-                ;; Validate code verifier for PKCE
-                (when (and code_challenge (not code-verifier-valid?))
+                (when (and code-challenge (not code-verifier-valid?))
                   (error-response "invalid_grant" "Invalid code verifier"))
-
-                ;; Get default JWK for signing
                 (if-let [default-jwk (:jwk/full-key (jwk/default-key db))]
-                  ;; Generate access token (JWT)
-                  (let [access-token (jose/build-jwt
-                                      default-jwk
-                                      (token-claims identity_id client_id scope))]
+                  (let [claims (token-claims identity-id client_id scope)
+                        access-token (jose/build-jwt default-jwk claims)
+                        refresh-token (refresh-token/create! db {:client-id client-uuid :jwt-claims (dissoc claims "exp")})]
 
                     ;; Delete the used code
-                    (oauth-code/delete-by-code! db code)
+                    (oauth-code/delete! db code client-uuid)
 
-                    ;; Return token response
+                    ;; Return token response with refresh token
                     {:status 200
                      :body {:access_token access-token
                             :token_type "Bearer"
                             :expires_in 3600
+                            :refresh_token refresh-token
                             :scope scope}})
+                  (error-response "server_error" "No default JWK configured")))
+              (error-response "invalid_grant" "Invalid authorization code"))))
+        (error-response "invalid_client" "Client not found")))))
+
+(defn handle-refresh-token-grant
+  "Token exchange: handle `refresh_token` grant type"
+  [db params]
+  (let [{:keys [client_id client_secret refresh_token]} params]
+    (cond
+      (not refresh_token)
+      (error-response "invalid_request" "Missing refresh_token parameter")
+
+      (not client_id)
+      (error-response "invalid_request" "Missing client_id parameter")
+
+      :else
+      (if-let [oauth-client (oauth-client/find-by-client-id db client_id)]
+        ;; Validate client authentication
+        (let [stored-client-secret (:oauth-client/client-secret oauth-client)
+              auth-method (:oauth-client/token-endpoint-auth-method oauth-client)
+              client-uuid (:oauth-client/id oauth-client)]
+          (cond
+            (and (= auth-method "client_secret_basic") (not client_secret))
+            (error-response "invalid_client" "Client authentication required")
+
+            (and client_secret (not= client_secret stored-client-secret))
+            (error-response "invalid_client" "Invalid client credentials")
+
+            :else
+            (if-let [refresh-token-entity (refresh-token/find-one db refresh_token client-uuid)]
+              (let [jwt-claims (:refresh-token/jwt-claims refresh-token-entity)]
+                (if-let [default-jwk (:jwk/full-key (jwk/default-key db))]
+                  (let [access-token (jose/build-jwt default-jwk (update-exp jwt-claims))
+                        new-refresh-token (refresh-token/create! db
+                                                                 {:client-id client-uuid
+                                                                  :jwt-claims jwt-claims})]
+
+                    ;; Delete the used refresh token
+                    (refresh-token/delete! db refresh_token client-uuid)
+
+                    ;; Return token response with new refresh token
+                    {:status 200
+                     :body {:access_token access-token
+                            :token_type "Bearer"
+                            :expires_in 3600
+                            :refresh_token new-refresh-token
+                            :scope (get jwt-claims "scope")}})
 
                   (error-response "server_error" "No default JWK configured")))
-
-              (error-response "invalid_grant" "Invalid authorization code"))))
-
+              (error-response "invalid_grant" "Invalid refresh token"))))
         (error-response "invalid_client" "Client not found")))))
+
+(defn POST-exchange-token
+  {:summary "Exchange an authorization code or refresh token for access tokens"
+   :description "OAuth 2.1 token endpoint for authorization code and refresh token grants with PKCE"
+   :parameters
+   {:form
+    [:map
+     [:grant_type {:optional true} string?]
+     [:code {:optional true} string?]
+     [:redirect_uri {:optional true} string?]
+     [:client_id {:optional true} string?]
+     [:client_secret {:optional true} string?]
+     [:code_verifier {:optional true} string?]
+     [:refresh_token {:optional true} string?]]}}
+  [{:keys [db parameters]}]
+  (let [{:keys [grant_type] :as params} (:form parameters)]
+
+    ;; Validate required parameters
+    (cond
+      (not grant_type)
+      (error-response "invalid_request" "Missing grant_type parameter")
+
+      (= grant_type "authorization_code")
+      (handle-authorization-code-grant db params)
+
+      (= grant_type "refresh_token")
+      (handle-refresh-token-grant db params)
+
+      :else
+      (error-response "unsupported_grant_type" "Only authorization_code and refresh_token grant types are supported"))))
+
+(comment
+  ;; Test token claims generation
+  (token-claims "user123" "client456" "read write")
+
+  ;; Test error response function
+  (let [error-response (fn [error error-description]
+                         {:status 400
+                          :body {:error error
+                                 :error_description error-description}})]
+    (error-response "invalid_request" "Missing parameter")))
+
+  ;; Test refresh token creation (requires proper DB connection)
+  ;; (refresh-token/create! db {:client-id "client123" :jwt-claims {"sub" "user123" "scope" "read"}})
+
+  ;; Test refresh token lookup (requires proper DB connection)
+  ;; (refresh-token/find-one db "token123" "client123")
+
+  ;; Test refresh token deletion (requires proper DB connection)
+  ;; (refresh-token/delete! db "token123" "client123"))
 
 (defn component [opts]
   {:routes
