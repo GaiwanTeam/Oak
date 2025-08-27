@@ -28,5 +28,6 @@ Components that make up the system, and that are started by Makina
 
 # apis
 
-Individual API implementations, e.g. OAuth, JWKS, SCIM, OData, etc. 
-
+Individual API implementations, e.g. OAuth, JWKS, SCIM, OData, etc. Mostly
+delegates its work to the domain layer. Do not do direct database calls from
+here.
