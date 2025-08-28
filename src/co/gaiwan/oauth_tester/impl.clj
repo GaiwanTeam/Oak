@@ -73,8 +73,8 @@
       {:result :fail
        :message (str "Expected 302 with error param, got " status)})))
 
-(defn validate-bad-client-id-or-request-uri
-  "Helper to validate authorization endpoint error responses according to OAuth 2.0 spec"
+(defn validate-bad-client-id-response
+  "Helper to validate authorization endpoint error responses for invalid client_id"
   [{:keys [status headers body] :as response}]
   (cond
     (<= 400 status 499)
@@ -94,7 +94,7 @@
 
     (= 302 status)
     {:result :fail
-     :message "Server incorrectly returned 302 redirect for client error - cannot redirect without valid client_id"
+     :message "Server incorrectly returned 302 redirect for invalid client_id - cannot redirect without valid client_id"
      :http/status status
      :http/headers headers}
 
@@ -104,14 +104,52 @@
      :http/status status
      :http/headers headers}))
 
+(defn validate-bad-redirect-uri-response
+  "Helper to validate authorization endpoint responses for invalid redirect_uri"
+  [{:keys [status headers body] :as response} expected-redirect-uri]
+  (cond
+    (<= 400 status 499)
+    (if (and (get headers "content-type")
+             (str/includes? (get headers "content-type") "text/html"))
+      {:result :ok
+       :message (str "Correctly returned " status " with text/html content type")}
+      {:result :fail
+       :message (str "Expected text/html content type for " status " response, got " (get headers "content-type"))
+       :http/headers headers})
+
+    (= 200 status)
+    {:result :warn
+     :message "Server returned 200 OK for redirect_uri error - should return 4xx client error instead"
+     :http/status status
+     :http/headers headers}
+
+    (= 302 status)
+    (let [location (uri/uri (get headers "location"))
+          actual-query (:query location)]
+      (if (= (str location) expected-redirect-uri)
+        {:result :ok
+         :message (str "Correctly redirected to " expected-redirect-uri
+                       (when actual-query (str " with query params: " actual-query)))}
+        {:result :fail
+         :message (str "Redirect location " (str location)
+                       " does not match expected " expected-redirect-uri)
+         :http/headers headers}))
+
+    :else
+    {:result :fail
+     :message (str "Expected 4xx client error or 302 redirect, got " status)
+     :http/status status
+     :http/headers headers}))
+
 (defn authorization-endpoint-requires-client-id
   {:doc "The server rejects requests with missing client_id parameter"
    :description "Authorization requests must include a valid client_id parameter. According to OAuth 2.0 spec, this should return a 4xx client error with text/html content."
    :categories #{:authorization-endpoint}
-   :references ["https://datatracker.ietf.org/doc/html/rfc6749#section-4.1.1"]
+   :references ["https://datatracker.ietf.org/doc/html/rfc6749#section-4.1.1"
+                "https://datatracker.ietf.org/doc/html/rfc6749#section-4.1.2.1"]
    :severity :error}
   [ctx]
-  (validate-bad-client-id-or-request-uri
+  (validate-bad-client-id-response
    (fetch ctx {:path (:authorization-endpoint ctx)
                :query-params
                {:redirect_uri (:redirect-uri ctx)
@@ -125,10 +163,11 @@
   {:doc "The server rejects requests with invalid client_id parameter"
    :description "Authorization requests with non-existent client_id should be rejected with a 4xx client error and text/html content."
    :categories #{:authorization-endpoint}
-   :references ["https://datatracker.ietf.org/doc/html/rfc6749#section-4.1.2.1"]
+   :references ["https://datatracker.ietf.org/doc/html/rfc6749#section-4.1.1"
+                "https://datatracker.ietf.org/doc/html/rfc6749#section-4.1.2.1"]
    :severity :error}
   [ctx]
-  (validate-bad-client-id-or-request-uri
+  (validate-bad-client-id-response
    (fetch ctx {:path (:authorization-endpoint ctx)
                :query-params
                {:client_id "invalid-client-id-that-does-not-exist"
@@ -139,10 +178,72 @@
                 :code_challenge "xxx"
                 :code_challenge_method "S256"}})))
 
+(defn authorization-endpoint-requires-redirect-uri
+  {:doc "The server rejects requests with missing redirect_uri parameter"
+   :description "Authorization requests must include a redirect_uri parameter. Server may return 4xx error or 302 redirect to the registered redirect_uri."
+   :categories #{:authorization-endpoint}
+   :references ["https://datatracker.ietf.org/doc/html/rfc6749#section-4.1.1"
+                "https://datatracker.ietf.org/doc/html/rfc6749#section-4.1.2.1"]
+   :severity :error}
+  [ctx]
+  (validate-bad-redirect-uri-response
+   (fetch ctx {:path (:authorization-endpoint ctx)
+               :query-params
+               {:client_id (:client-id ctx)
+                :response_type "code"
+                :scope ""
+                :state "123"
+                :code_challenge "xxx"
+                :code_challenge_method "S256"}})
+   (:redirect-uri ctx)))
+
+(defn authorization-endpoint-rejects-redirect-uri-with-suffix
+  {:doc "The server rejects requests with redirect_uri that has additional suffix"
+   :description "Authorization requests must use exact redirect_uri match. Additional suffixes should be rejected with 4xx error or redirect to registered URI."
+   :categories #{:authorization-endpoint}
+   :references ["https://datatracker.ietf.org/doc/html/rfc6749#section-4.1.1"
+                "https://datatracker.ietf.org/doc/html/rfc6749#section-4.1.2.1"]
+   :severity :error}
+  [ctx]
+  (validate-bad-redirect-uri-response
+   (fetch ctx {:path (:authorization-endpoint ctx)
+               :query-params
+               {:client_id (:client-id ctx)
+                :redirect_uri (str (:redirect-uri ctx) "/extra/path")
+                :response_type "code"
+                :scope ""
+                :state "123"
+                :code_challenge "xxx"
+                :code_challenge_method "S256"}})
+   (:redirect-uri ctx)))
+
+(defn authorization-endpoint-rejects-non-matching-redirect-uri
+  {:doc "The server rejects requests with non-matching redirect_uri parameter"
+   :description "Authorization requests must use a registered redirect_uri. Non-matching URIs should be rejected with 4xx error or redirect to registered URI."
+   :categories #{:authorization-endpoint}
+   :references ["https://datatracker.ietf.org/doc/html/rfc6749#section-4.1.1"
+                "https://datatracker.ietf.org/doc/html/rfc6749#section-4.1.2.1"]
+   :severity :error}
+  [ctx]
+  (validate-bad-redirect-uri-response
+   (fetch ctx {:path (:authorization-endpoint ctx)
+               :query-params
+               {:client_id (:client-id ctx)
+                :redirect_uri "https://malicious-site.com/callback"
+                :response_type "code"
+                :scope ""
+                :state "123"
+                :code_challenge "xxx"
+                :code_challenge_method "S256"}})
+   (:redirect-uri ctx)))
+
 (def all-checks
   [#'authorization-endpoint-rejects-implicit-grant
    #'authorization-endpoint-requires-client-id
-   #'authorization-endpoint-rejects-invalid-client-id])
+   #'authorization-endpoint-rejects-invalid-client-id
+   #'authorization-endpoint-requires-redirect-uri
+   #'authorization-endpoint-rejects-redirect-uri-with-suffix
+   #'authorization-endpoint-rejects-non-matching-redirect-uri])
 
 (defn run-check [ctx check]
   (let [res (check ctx)]
