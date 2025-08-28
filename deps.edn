@@ -24,6 +24,7 @@
   fi.metosin/reitit-openapi           {:mvn/version "0.9.1"}
   com.lambdaisland/ring-redis-session {:mvn/version "3.4.126"}
   ring/ring-anti-forgery              {:mvn/version "1.4.0"}
+  hato/hato                           {:mvn/version "1.0.0"}
 
   ;; Database
   org.postgresql/postgresql         {:mvn/version "42.7.7"}

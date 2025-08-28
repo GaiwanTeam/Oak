@@ -213,8 +213,9 @@
                 [:scopes_supported {:optional true} [:vector string?]]
                 [:jwks_uri {:optional true} string?]
                 [:code_challenge_methods_supported {:optional true} [:vector string?]]]}}}}}
-  [{:keys [request-method uri scheme headers] :as req}]
-  (let [host (get headers "host")
+  [{:keys [request-method uri scheme headers authority] :as req}]
+  (let [host (or (get headers "host") ;; HTTP 1.1
+                 authority) ;; HTTP 2.0
         base-url (str (name scheme) "://" host)
         issuer base-url]
     {:status 200
@@ -406,8 +407,9 @@
 
 (defn component [opts]
   {:routes
-   [["/.well-known/oauth-authorization-server" {:name :oauth/authorization-server-metadata
-                                                :get #'GET-authorization-server-metadata}]
+   [["/.well-known/oauth-authorization-server"
+     {:name :oauth/authorization-server-metadata
+      :get #'GET-authorization-server-metadata}]
     ["/oauth" {:openapi {:tags ["oauth"]}}
      ["/authorize" {:name :oauth/authorize
                     :middleware [hiccup-mw/wrap-render]

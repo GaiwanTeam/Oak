@@ -42,6 +42,8 @@ Standard Documents:
 - RFC 9396: OAuth 2.0 Rich Authorization Requests
 - RFC 9449: OAuth 2.0 Demonstrating Proof of Possession (DPoP)
 - RFC 9700: Best Current Practice for OAuth 2.0 Security
+- RFC 9728: OAuth 2.0 Protected Resource Metadata
+
 
 Drafts:
 
