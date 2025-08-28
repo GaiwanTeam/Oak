@@ -30,11 +30,17 @@
   (tester/run-full-suite
    opts
    (fn [ctx res]
-     (if (:pass res)
+     (case (:result res)
+       :ok
        (println "- ✅" (:doc res))
+       :warn
+       (do
+         (println "- ⚠" (:doc res))
+         (println "    " (:message res)))
+       :fail
        (do
          (println "- ❌" (:doc res))
-         (println "    " (:result res))
+         (println "    " (:message res))
          (println "    " (:description res)))))))
 
 (def commands ["test" #'test-oauth-server])

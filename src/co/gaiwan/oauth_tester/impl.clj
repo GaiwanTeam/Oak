@@ -46,7 +46,7 @@
    :references ["hatos://datatracker.ietf.org/doc/html/rfc9700#name-implicit-grant"]
    :severity :warn}
   [ctx]
-  (let [{:keys [status headers]}
+  (let [{:keys [status headers body]}
         (fetch ctx {:path (:authorization-endpoint ctx)
                     :query-params
                     {:client_id (:client-id ctx)
@@ -58,14 +58,21 @@
                      :code_challenge "xxx"
                      :code_challenge_method "S256"}})]
     (if (= 302 status)
-      (let [location (get headers "location")
-            error (:error (uri/query-map location))]
-        (if (= "unsupported_response_type" error)
-          {:pass true}
-          {:pass false
-           :result (str "Expected error=unsupported_response_type, got " (:query (uri/uri location)))}))
-      {:pass false
-       :result (str "Expected 302 with error param, got " status)})))
+      (let [location (uri/uri (get headers "location"))
+            query-map  (uri/query-map location)
+            fragment-map (uri/query-string->map (:fragment location))
+            error (or (:error query-map) (:error fragment-map))]
+        (cond
+          (#{"unauthorized_client" "unsupported_response_type"} error)
+          {:result :ok}
+          error
+          {:result :warn
+           :message (str "Expected error=unauthorized_client or error=unauthorized_client, got" error)}
+          :else
+          {:result :fail
+           :message (str "Expected error in query or fragment, got " location)}))
+      {:result :fail
+       :message (str "Expected 302 with error param, got " status)})))
 
 (def all-checks
   [#'authorization-endpoint-rejects-implicit-grant])
