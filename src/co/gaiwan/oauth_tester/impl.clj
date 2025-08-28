@@ -42,7 +42,7 @@
   {:doc "The server rejects requests with `response_type=token`"
    :description "The Implicit Grant is no longer considered secure, and is being removed in OAuth 2.1."
    :categories #{:authorization-endpoint}
-   :references ["hatos://datatracker.ietf.org/doc/html/rfc9700#name-implicit-grant"]
+   :references ["http://datatracker.ietf.org/doc/html/rfc9700#name-implicit-grant"]
    :severity :warn}
   [ctx]
   (let [{:keys [status headers body]}
@@ -52,7 +52,7 @@
                      :client_secret (:client-secret ctx)
                      :redirect_uri (:redirect-uri ctx)
                      :response_type "token"
-                     :scope ""
+                     :scope (:scope ctx)
                      :state "123"
                      :code_challenge "xxx"
                      :code_challenge_method "S256"}})]
@@ -154,7 +154,7 @@
                :query-params
                {:redirect_uri (:redirect-uri ctx)
                 :response_type "code"
-                :scope ""
+                :scope (:scope ctx)
                 :state "123"
                 :code_challenge "xxx"
                 :code_challenge_method "S256"}})))
@@ -173,7 +173,7 @@
                {:client_id "invalid-client-id-that-does-not-exist"
                 :redirect_uri (:redirect-uri ctx)
                 :response_type "code"
-                :scope ""
+                :scope (:scope ctx)
                 :state "123"
                 :code_challenge "xxx"
                 :code_challenge_method "S256"}})))
@@ -191,7 +191,7 @@
                :query-params
                {:client_id (:client-id ctx)
                 :response_type "code"
-                :scope ""
+                :scope (:scope ctx)
                 :state "123"
                 :code_challenge "xxx"
                 :code_challenge_method "S256"}})
@@ -211,7 +211,7 @@
                {:client_id (:client-id ctx)
                 :redirect_uri (str (:redirect-uri ctx) "/extra/path")
                 :response_type "code"
-                :scope ""
+                :scope (:scope ctx)
                 :state "123"
                 :code_challenge "xxx"
                 :code_challenge_method "S256"}})
@@ -231,7 +231,7 @@
                {:client_id (:client-id ctx)
                 :redirect_uri "https://malicious-site.com/callback"
                 :response_type "code"
-                :scope ""
+                :scope (:scope ctx)
                 :state "123"
                 :code_challenge "xxx"
                 :code_challenge_method "S256"}})
@@ -269,4 +269,4 @@
                    :client-secret "2BFTnYcb8FYmDBhCurZ0o25dhD6oaSQy6"
                    :authorization-endpoint "/oauth/authorize"
                    :redirect-uri "https://example.com/redirect"
-                   :scope ""}))
+                   :scope "openid"}))
