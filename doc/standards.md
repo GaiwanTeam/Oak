@@ -26,6 +26,7 @@ Standard Documents:
 - RFC 6819: OAuth 2.0 Threat Model and Security Considerations
 - RFC 7009: OAuth 2.0 Token Revocation
 - RFC 7522: Security Assertion Markup Language (SAML) 2.0 Profile for OAuth 2.0 Client Authentication and Authorization Grants
+- RFC 7523: JSON Web Token (JWT) Profile for OAuth 2.0 Client Authentication and Authorization Grants
 - RFC 7591: OAuth 2.0 Dynamic Client Registration Protocol
 - RFC 7592: OAuth 2.0 Dynamic Client Management Protocol 
 - RFC 7636: Proof Key for Code Exchange (PKCE) by OAuth Public Clients

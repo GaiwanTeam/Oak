@@ -33,8 +33,7 @@
 
    ;; Ensures each identifier is linked to a single identity
    {:create-index [[:unique :unique_identifier_idx :if-not-exists]
-                   [:identifier :type :value]]
-    }])
+                   [:identifier :type :value]]}])
 
 (comment
   (user/restart! :system/database))

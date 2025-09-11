@@ -1,5 +1,6 @@
 (ns repl-session.system
-  (:require [co.gaiwan.oak.app.config :as config]))
+  (:require
+   [co.gaiwan.oak.app.config :as config]))
 
 
 (lambdaisland.makina.system/error
@@ -14,3 +15,13 @@
 (config/error)
 
 (config/print-table)
+(require '[hato.client :as http])
+
+(try
+  (let [response (http/request {:url "http://localhost:4800/.well-known/scim-configuration"
+                                :method :get
+                                :headers {"Accept" "application/scim+json"}
+                                :throw-exceptions false})]
+    (:status response))
+  (catch Exception e
+    (.getMessage e)))

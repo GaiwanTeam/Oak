@@ -11,6 +11,3 @@
 
 (intern 'hato.middleware 'json-enabled? true)
 (intern 'hato.middleware 'json-encode charred.api/write-json-str)
-(intern 'hato.middleware 'json-decode-stream-strict
-        (fn [stream keyword?]
-          ))

@@ -6,13 +6,8 @@
   com.lambdaisland/cli    {:mvn/version "0.24.97"}
 
   ;; Logging
-  org.apache.logging.log4j/log4j-api                  {:mvn/version "2.25.1"}
-  org.apache.logging.log4j/log4j-core                 {:mvn/version "2.25.1"}
-  org.apache.logging.log4j/log4j-slf4j2-impl          {:mvn/version "2.25.1"}
-  io.helidon.logging/helidon-logging-log4j            {:mvn/version "4.3.0-M1"}
-  org.apache.logging.log4j/log4j-layout-template-json {:mvn/version "2.25.1"}
-  com.fasterxml.jackson.core/jackson-core             {:mvn/version "2.19.2"}
-  com.fasterxml.jackson.core/jackson-databind         {:mvn/version "2.19.2"}
+  com.lambdaisland/log4j2                  {:mvn/version "0.2.6"}
+  io.helidon.logging/helidon-logging-log4j {:mvn/version "4.3.0-M1"}
 
   ;; HTTP
   com.s-exp/hirundo                   {:mvn/version "0.1.43"}
@@ -54,7 +49,7 @@
   :test
   {:extra-paths ["test"]
    :extra-deps  {org.clojure/tools.gitlibs {:mvn/version "2.6.206"}
-                 lambdaisland/kaocha {:mvn/version "1.91.1392"}}}
+                 lambdaisland/kaocha       {:mvn/version "1.91.1392"}}}
 
   :bouncycastle
   {:extra-deps {org.bouncycastle/bcprov-jdk18on {:mvn/version "1.81"}}}}}
