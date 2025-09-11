@@ -19,10 +19,10 @@
                                   #_(uri/assoc-query* (:query-params req))
                                   str))
                   #_#_:->
-                    (assoc-in [:headers "host"]
-                              (str
-                               (assoc (uri/uri (:server-url ctx))
-                                      :path nil :query nil))))))
+                  (assoc-in [:headers "host"]
+                            (str
+                             (assoc (uri/uri (:server-url ctx))
+                                    :path nil :query nil))))))
 
 (defn fetch-rfc8414-metadata
   "Retrieve OAuth server configuration using .well-known endpoint
@@ -237,13 +237,42 @@
                 :code_challenge_method "S256"}})
    (:redirect-uri ctx)))
 
+(defn token-endpoint-supports-client-credentials-grant
+  {:doc "The server supports client_credentials grant type"
+   :description "The client_credentials grant allows clients to obtain access tokens for their own use, without user involvement."
+   :categories #{:token-endpoint}
+   :references ["https://datatracker.ietf.org/doc/html/rfc6749#section-4.4"]
+   :severity :info}
+  [ctx]
+  (let [{:keys [status headers body]}
+        (fetch ctx {:path "/oauth/token"
+                    :request-method :post
+                    :headers {"Accept" "application/json"}
+                    :as :auto
+                    :form-params
+                    {:grant_type "client_credentials"
+                     :client_id (:client-id ctx)
+                     :client_secret (:client-secret ctx)
+                     :scope (:scope ctx)}})]
+    (if (= 200 status)
+      (if (and (contains? body :access_token)
+               (contains? body :token_type)
+               (= "Bearer" (get body :token_type)))
+        {:result :ok
+         :message "Client credentials grant successfully returned access token"}
+        {:result :fail
+         :message (str "Token response missing required fields: " body)})
+      {:result :fail
+       :message (str "Expected 200 OK response, got " status ": " body)})))
+
 (def all-checks
   [#'authorization-endpoint-rejects-implicit-grant
    #'authorization-endpoint-requires-client-id
    #'authorization-endpoint-rejects-invalid-client-id
    #'authorization-endpoint-requires-redirect-uri
    #'authorization-endpoint-rejects-redirect-uri-with-suffix
-   #'authorization-endpoint-rejects-non-matching-redirect-uri])
+   #'authorization-endpoint-rejects-non-matching-redirect-uri
+   #'token-endpoint-supports-client-credentials-grant])
 
 (defn run-check [ctx check]
   (let [res (check ctx)]

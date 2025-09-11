@@ -12,7 +12,6 @@
    [reitit.ring.coercion :as ring-coercion]
    [reitit.ring.middleware.muuntaja :as reitit-muuntaja]
    [reitit.ring.middleware.parameters :as reitit-params]
-   [ring.middleware.anti-forgery :as ring-csrf]
    [ring.middleware.session :as ring-session]
    [ring.redis.session :as ring-redis]))
 
@@ -88,7 +87,6 @@
                                :same-site :strict}
                         (config/get :http-session/secure-cookie)
                         (assoc :secure true))}]
-                    ring-csrf/wrap-anti-forgery
                     ring-csp/wrap-content-security-policy]}})))
 
 (comment

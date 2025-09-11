@@ -140,6 +140,53 @@
               (is (= 400 (:status invalid-client-response)) "Invalid client secret should be rejected")
               (is (= "invalid_client" (:error (:body invalid-client-response))) "Should return invalid_client error"))))))))
 
+(deftest post-exchange-token-client-credentials-test
+  (harness/ensure-jwk!)
+  (testing "POST /token exchange - client_credentials grant"
+    (let [scope "openid profile"]
+      (let [oauth-client        (oauth-client/create! harness/*db* {:client-name "Client Credentials Client"
+                                                                    :grant-types ["client_credentials"]})
+            oauth-client-id     (:oauth-client/client-id oauth-client)
+            oauth-client-secret (:oauth-client/client-secret oauth-client)
+            response            (oauth/POST-exchange-token
+                                 {:db         harness/*db*
+                                  :parameters {:form {:grant_type    "client_credentials"
+                                                      :client_id     oauth-client-id
+                                                      :client_secret oauth-client-secret
+                                                      :scope         scope}}})]
+
+        (is (= 200 (:status response)) "Should return 200 OK")
+        (is (contains? (:body response) :access_token) "Should contain access_token")
+        (is (= "Bearer" (:token_type (:body response))) "Token type should be Bearer")
+        (is (= 3600 (:expires_in (:body response))) "Should expire in 3600 seconds")
+        (is (= scope (:scope (:body response))) "Should return the requested scope")
+
+        ;; Client credentials grant should NOT return refresh_token
+        (is (not (contains? (:body response) :refresh_token)) "Should not contain refresh_token"))))
+
+  (testing "POST /token exchange - client_credentials grant with invalid client"
+    (let [response (oauth/POST-exchange-token
+                    {:db         harness/*db*
+                     :parameters {:form {:grant_type    "client_credentials"
+                                         :client_id     "invalid-client-id"
+                                         :client_secret "invalid-secret"
+                                         :scope         "openid"}}})]
+      (is (= 400 (:status response)) "Should return 400 Bad Request")
+      (is (= "invalid_client" (:error (:body response))) "Should return invalid_client error")))
+
+  (testing "POST /token exchange - client_credentials grant with wrong secret"
+    (let [oauth-client    (oauth-client/create! harness/*db* {:client-name "Test Client"
+                                                              :grant-types ["client_credentials"]})
+          oauth-client-id (:oauth-client/client-id oauth-client)
+          response        (oauth/POST-exchange-token
+                           {:db         harness/*db*
+                            :parameters {:form {:grant_type    "client_credentials"
+                                                :client_id     oauth-client-id
+                                                :client_secret "wrong-secret"
+                                                :scope         "openid"}}})]
+      (is (= 400 (:status response)) "Should return 400 Bad Request")
+      (is (= "invalid_client" (:error (:body response))) "Should return invalid_client error"))))
+
 (comment
   (require 'kaocha.repl)
-  (kaocha.repl/run #'post-exchange-token-refresh-token-test))
+  (kaocha.repl/run))

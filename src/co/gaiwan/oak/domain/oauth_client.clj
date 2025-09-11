@@ -45,8 +45,8 @@
   ["authorization_code"
    "refresh_token"
    "password"
+   "client_credentials"
    ;; "implicit" ;; no longer supported in OAuth 2.1, not planning to implement this
-   ;; "client_credentials" ;; get a key for the client itself, not for a specific user (machine to machine)
    ;; "urn:ietf:params:oauth:grant-type:jwt-bearer" ;; see RFC 7523 JWT Bearer Exchange
    ])
 

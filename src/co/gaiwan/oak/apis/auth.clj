@@ -3,7 +3,8 @@
   (:require
    [co.gaiwan.oak.domain.identity :as identity]
    [co.gaiwan.oak.lib.form :as form]
-   [lambdaisland.hiccup.middleware :as hiccup-mw]))
+   [lambdaisland.hiccup.middleware :as hiccup-mw]
+   [ring.middleware.anti-forgery :as ring-csrf]))
 
 (defn login-html []
   [form/form {:method "POST"}
@@ -22,7 +23,8 @@
   {:parameters
    {:form
     {:email string?
-     :password string?}}}
+     :password string?}}
+   :middleware [ring-csrf/wrap-anti-forgery]}
   [{:keys [db parameters session] :as req}]
   (if-let [id (identity/validate-login db (:form parameters))]
     (if-let [url (:redirect-after-login session)]
