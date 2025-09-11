@@ -2,12 +2,12 @@
  :deps
  {;; Application setup
   com.lambdaisland/config {:mvn/version "0.10.37"}
-  com.lambdaisland/makina {:mvn/version "0.2.12"}
+  com.lambdaisland/makina {:mvn/version "0.3.16"}
   com.lambdaisland/cli    {:mvn/version "0.24.97"}
 
   ;; Logging
   com.lambdaisland/log4j2                  {:mvn/version "0.2.6"}
-  io.helidon.logging/helidon-logging-log4j {:mvn/version "4.3.0-M1"}
+  io.helidon.logging/helidon-logging-log4j {:mvn/version "4.3.0-M3"}
 
   ;; HTTP
   com.s-exp/hirundo                   {:mvn/version "0.1.43"}
@@ -23,12 +23,12 @@
 
   ;; Database
   org.postgresql/postgresql         {:mvn/version "42.7.7"}
-  com.github.seancorfield/next.jdbc {:mvn/version "1.3.1048"}
-  com.github.seancorfield/honeysql  {:mvn/version "2.7.1340"}
+  com.github.seancorfield/next.jdbc {:mvn/version "1.3.1070"}
+  com.github.seancorfield/honeysql  {:mvn/version "2.7.1350"}
   com.zaxxer/HikariCP               {:mvn/version "7.0.2"}
 
   ;; Cryptography
-  com.nimbusds/nimbus-jose-jwt                 {:mvn/version "10.4.2"}
+  com.nimbusds/nimbus-jose-jwt                 {:mvn/version "10.5"}
   com.google.crypto.tink/tink                  {:mvn/version "1.18.0"}
   org.conscrypt/conscrypt-openjdk$linux-x86_64 {:mvn/version "2.5.2"}
   com.password4j/password4j                    {:mvn/version "1.8.4"}
@@ -36,7 +36,7 @@
   ;; Formats and utilities
   com.cnuernber/charred   {:mvn/version "1.037"}
   danlentz/clj-uuid       {:mvn/version "0.2.0"}
-  org.clj-commons/pretty  {:mvn/version "3.6.3"}
+  org.clj-commons/pretty  {:mvn/version "3.6.4"}
   com.lambdaisland/hiccup {:mvn/version "0.14.67"}
   lambdaisland/uri        {:mvn/version "1.19.155"}
   }
