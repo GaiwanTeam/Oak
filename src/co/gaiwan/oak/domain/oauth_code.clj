@@ -12,11 +12,12 @@
    [:identity_id :uuid [:references [:identity :id]] [:not nil]]
    [:scope :text [:not nil]]
    [:code_challenge :text]
-   [:code_challenge_method :text]])
+   [:code_challenge_method :text]
+   [:auth_time :bigint]])
 
 (defn create!
   "Create a new oauth-code, store the parameters, returns the code (string)"
-  [db {:keys [client-id identity-id scope code-challenge code-challenge-method]}]
+  [db {:keys [client-id identity-id scope code-challenge code-challenge-method auth-time]}]
   (let [code (random/secure-base62-str 128)]
     (db/with-transaction [conn db]
       (db/execute-honey! conn
@@ -32,24 +33,31 @@
                    :identity_id identity-id
                    :scope scope
                    :code_challenge code-challenge
-                   :code_challenge_method code-challenge-method}))
+                   :code_challenge_method code-challenge-method
+                   :auth_time auth-time}))
     code))
 
-(defn find-one [db code client-id]
+(defn where-sql [{:keys [identity-id code client-uuid]}]
+  (cond-> [:and]
+    identity-id
+    (conj [:= :oauth_code.identity_id identity-id])
+    code
+    (conj [:= :oauth_code.code code])
+    client-uuid
+    (conj [:= :oauth_code.client_id client-uuid])
+    ))
+
+(defn find-one [db {:keys [identity-id code client-uuid] :as opts}]
   (first
    (db/execute-honey!
     db
     {:select [:*]
      :from :oauth_code
-     :where [:and
-             [:= :code code]
-             [:= :client_id client-id]]
+     :where (where-sql opts)
      :limit 1})))
 
-(defn delete! [db code client-id]
+(defn delete! [db {:keys [identity-id code client-uuid] :as opts}]
   (db/execute-honey!
    db
    {:delete-from :oauth_code
-    :where [:and
-            [:= :code code]
-            [:= :client_id client-id]]}))
+    :where (where-sql opts)}))

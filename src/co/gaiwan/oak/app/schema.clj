@@ -31,6 +31,9 @@
                    [:jwk :is_default]]
     :where [[:raw "is_default"]]}
 
+   ;; We do lookups by kid, so provide an index
+   {:create-index [[:unique :unique_kid :if-not-exists] [:jwk :kid]]}
+
    ;; Ensures each identifier is linked to a single identity
    {:create-index [[:unique :unique_identifier_idx :if-not-exists]
                    [:identifier :type :value]]}])

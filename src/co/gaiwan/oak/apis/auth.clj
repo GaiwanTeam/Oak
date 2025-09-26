@@ -2,7 +2,9 @@
   "Authentication endpoints. Login, logout, etc."
   (:require
    [co.gaiwan.oak.domain.identity :as identity]
+   [co.gaiwan.oak.lib.auth-middleware :as auth-mw]
    [co.gaiwan.oak.lib.form :as form]
+   [co.gaiwan.oak.util.routing :as routing]
    [lambdaisland.hiccup.middleware :as hiccup-mw]
    [ring.middleware.anti-forgery :as ring-csrf]))
 
@@ -23,24 +25,34 @@
   {:parameters
    {:form
     {:email string?
-     :password string?}}
-   :middleware [ring-csrf/wrap-anti-forgery]}
+     :password string?}}}
   [{:keys [db parameters session] :as req}]
   (if-let [id (identity/validate-login db (:form parameters))]
     (if-let [url (:redirect-after-login session)]
       {:status 302
        :headers {"Location" url}
-       :session {:identity id}}
+       :session {:identity id
+                 :auth-time (System/currentTimeMillis)}}
       {:status 200
        :html/body [:p "Successfully authenticated"]
-       :session {:identity id}})
+       :session {:identity id
+                 :auth-time (System/currentTimeMillis)}})
     {:status 403
      :html/body [:p "Invalid credentials"]}))
+
+(defn GET-logout [req]
+  {:status 302
+   :headers {"Location" (routing/path-for req :auth/login)}
+   :session ^:replace {}})
 
 (defn component [opts]
   {:routes
    ["/auth" {}
     ["/login" {:name :auth/login
-               :middleware [hiccup-mw/wrap-render]
+               :middleware [ring-csrf/wrap-anti-forgery
+                            auth-mw/wrap-session-auth
+                            hiccup-mw/wrap-render]
                :get #'GET-login
-               :post #'POST-login}]]})
+               :post #'POST-login}]
+    ["/logout" {:name :auth/logout
+                :get #'GET-logout}]]})

@@ -5,5 +5,6 @@
  :redis/port 6379
  :redis/timeout-ms 1000
  :http/csp-policy "default-src 'self'; script-src 'self' 'nonce-random_value';"
- :jwt/exp-time-seconds 3600
+ :oauth/access-token-exp-time-seconds 1800
+ :openid/id-token-exp-time-seconds 300
  }

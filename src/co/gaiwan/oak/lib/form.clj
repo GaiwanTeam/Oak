@@ -13,7 +13,7 @@
              :id "__anti-forgery-token"
              :name "__anti-forgery-token"
              :value
-             (-> (force *anti-forgery-token*)
+             (-> *anti-forgery-token*
                  (str/replace "&" "&amp;")
                  (str/replace "\"" "&quot;")
                  (str/replace "<" "&lt;"))}]]

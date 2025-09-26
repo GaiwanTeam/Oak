@@ -53,7 +53,7 @@
         (is (= scope (:scope (:body response))) "Should return the same scope")
 
         ;; Verify the authorization code was deleted
-        (is (nil? (oauth-code/find-one harness/*db* created-code client-uuid))
+        (is (nil? (oauth-code/find-one harness/*db* {:code created-code :client-uuid client-uuid}))
             "Authorization code should be deleted after use")))))
 
 (deftest post-exchange-token-refresh-token-test

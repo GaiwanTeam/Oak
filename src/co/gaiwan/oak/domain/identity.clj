@@ -5,6 +5,8 @@
    [co.gaiwan.oak.app.config :as config]
    [co.gaiwan.oak.domain.credential :as credential]
    [co.gaiwan.oak.domain.identifier :as identifier]
+   [co.gaiwan.oak.domain.oauth-authorization :as oauth-authorization]
+   [co.gaiwan.oak.domain.oauth-code :as oauth-code]
    [co.gaiwan.oak.lib.db :as db]
    [co.gaiwan.oak.lib.password4j :as password4j]))
 
@@ -35,6 +37,17 @@
         :password-hash hsh})
       ident)))
 
+(defn list-all [db]
+  (doall
+   (for [i (db/execute-honey! db {:select [:*] :from :identity})]
+     (reduce
+      (fn [i {:identifier/keys [type value]}]
+        (update i (keyword type) (fnil conj []) value))
+      i
+      (db/execute-honey! db {:select [:*]
+                             :from :identifier
+                             :where [:= (:identity/id i) :identifier.identity_id]})))))
+
 (defn validate-login
   "Return identity id if password matches, nil otherwise"
   [db {:keys [identifier password]}]
@@ -56,12 +69,35 @@
       (when (password4j/check-password password hsh)
         id))))
 
+(defn delete! [db id]
+  (db/with-transaction [conn db]
+    (let [sel {:identity-id id}]
+      (identifier/delete! conn sel)
+      (credential/delete! conn sel)
+      (oauth-authorization/delete! conn sel)
+      (oauth-code/delete! conn sel)
+      (db/execute-honey! conn {:delete-from :identity :where [:= id :id]}))))
+
+(defn find-one [db {:keys [id]}]
+  (when-let [identity (first (db/execute-honey! db {:select [:*]
+                                                    :from :identity
+                                                    :where [:= :id id]}))]
+    identity
+    #_(reduce
+       (fn [identity {:identifier/keys [type] :as identifier}]
+         (update identity (keyword "identity" type) (fnil conj []) identifier))
+       identity
+       (identifier/find-all db {:identity-id id}))))
+
 (comment
   (create! (user/db) {})
 
   (create-user! (user/db)
                 {:email "foo@gaiwan.co"
                  :password "hello"})
+
+
+  (find-one (user/db) {:id #uuid "0199853b-13f8-7014-b0ab-e48de68eaaab"})
 
   (validate-login (user/db)
                   {:email "foo@gaiwan.co"

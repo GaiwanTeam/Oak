@@ -23,7 +23,7 @@
     :value (:value opts)
     :is_primary (boolean (:primary opts))}))
 
-(defn where-sql [{:keys [identity-id type value primary]}]
+(defn where-sql [{:keys [identity-id type value primary verified]}]
   (cond-> [:and]
     identity-id
     (conj [:= :identifier.identity_id identity-id])
@@ -34,7 +34,9 @@
     value
     (conj [:= :identifier.value value])
     primary
-    (conj [:= :identifier.primary value])))
+    (conj [:= :identifier.is_primary primary])
+    verified
+    (conj [:= :identifier.is_verified verified])))
 
 (defn find-sql [{:keys [identity-id type value primary] :as opts}]
   {:select [:*]
@@ -44,6 +46,12 @@
 (defn find-one [db {:keys [identity-id type value primary] :as opts}]
   (first
    (db/execute-honey! db (find-sql opts))))
+
+(defn find-all [db {:keys [identity-id type value primary] :as opts}]
+  (db/execute-honey! db (find-sql opts)))
+
+(defn delete! [db opts]
+  (db/execute-honey! db {:delete-from :identifier :where (where-sql opts)}))
 
 (comment
   (find-one (user/db) {:type "email" :value "foo@bar.com"}))

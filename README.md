@@ -21,7 +21,7 @@ bin/launchpad
 Initial setup
 
 ```
-bin/oakadm jwt create
+bin/oakadm jwk create
 bin/oakadm oauth-client create 
 bin/oakadm oauth-client create --client-name "foo" --redirect-uri 'https://example.com/redirect' --scope email --scope openid --scope offline_access
 bin/oakadm user create --email foo@bar.com --password abc

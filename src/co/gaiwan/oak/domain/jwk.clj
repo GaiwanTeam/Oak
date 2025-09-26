@@ -2,8 +2,11 @@
   "Domain layer for working with JWKs"
   (:require
    [clj-uuid :as uuid]
+   [clojure.zip :as str]
    [co.gaiwan.oak.lib.db :as db]
-   [co.gaiwan.oak.util.jose :as jose]))
+   [co.gaiwan.oak.util.jose :as jose])
+  (:import
+   (java.security NoSuchAlgorithmException)))
 
 (def attributes
   [[:id :uuid :primary-key]
@@ -50,10 +53,17 @@
           :full_key k
           :is_default default})))))
 
+(defn where-sql [{:keys [kid include-revoked]}]
+  (cond-> [:and]
+    kid
+    (conj [:= :jwk.kid kid])
+    (not include-revoked) ;; default to not including revoked keys
+    (conj [:= :jwk.revoked_at nil])))
+
 (defn list-all [db]
   (db/execute-honey!
    db
-   {:select [:id :kid :is_default :public_key :created_at]
+   {:select [:id :kid :is_default :public_key :created_at] ;; don't select full_key by default
     :from :jwk}))
 
 (defn delete! [db kid]
@@ -70,3 +80,18 @@
      :from :jwk
      :where [:= :is_default true]
      :limit 1})))
+
+(defn hash-alg [{:strs [kty crv alg]}]
+  (cond
+    (#{"RSA" "EC"} kty)
+    (str "SHA-" (str/replace alg #"^\D*" ""))
+    (= "OKP" kty)
+    (if (= "Ed25519" crv)
+      "SHA-512"
+      (throw (NoSuchAlgorithmException. "Ed448/SHAKE256 Not Implemented")))))
+
+(defn find-one [db opts]
+  (first
+   (db/execute-honey! db {:select [:*]
+                          :from :jwk
+                          :where (where-sql opts)})))

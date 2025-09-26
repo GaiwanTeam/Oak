@@ -9,5 +9,5 @@
   (fn [req]
     (let [res (h req)]
       (assoc-in res
-                {:headers "content-security-policy"}
+                [:headers "content-security-policy"]
                 (config/get :http/csp-policy)))))

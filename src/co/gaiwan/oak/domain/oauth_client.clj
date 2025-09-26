@@ -107,6 +107,14 @@
    {:select [:*]
     :from :oauth_client}))
 
+(defn where-sql [{:keys [id client-id] :as opts}]
+  (cond-> [:and]
+    id
+    (conj [:= :oauth_client.id id])
+    client-id
+    (conj [:= :oauth_client.client-id client-id])
+    ))
+
 (defn find-by-client-id [db client-id]
   (first
    (db/execute-honey!
@@ -114,6 +122,12 @@
     {:select [:*]
      :from :oauth_client
      :where [:= :client_id client-id]})))
+
+(defn delete! [db opts]
+  (db/execute-honey!
+   db
+   {:delete-from :oauth_client
+    :where (where-sql opts)}))
 
 (comment
   (create! (user/db) {:client-name "My client"

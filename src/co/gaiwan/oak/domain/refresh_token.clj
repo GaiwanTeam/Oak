@@ -9,18 +9,20 @@
   [[:id :uuid :primary-key]
    [:token :text [:not nil]]
    [:client_id :uuid [:references [:oauth_client :id]] [:not nil]]
-   [:jwt_claims :jsonb [:not nil]]])
+   [:access_token_claims :jsonb [:not nil]]
+   [:id_token_claims :jsonb]])
 
 (defn create!
   "Create a new refresh token with JWT claims"
-  [db {:keys [client-id jwt-claims]}]
+  [db {:keys [client-id access-token-claims id-token-claims]}]
   (let [token (random/secure-base62-str 128)]
     (db/insert! db
                 :refresh_token
                 {:id (uuid/v7)
                  :token token
                  :client_id client-id
-                 :jwt_claims jwt-claims})
+                 :access_token_claims access-token-claims
+                 :id_token_claims id-token-claims})
     token))
 
 (defn find-one [db token client-id]

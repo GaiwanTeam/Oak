@@ -1,7 +1,9 @@
 (ns co.gaiwan.oak.system.router
   "HTTP router and middleware setup"
   (:require
+   [clojure.string :as str]
    [co.gaiwan.oak.app.config :as config]
+   [co.gaiwan.oak.lib.auth-middleware :as auth-mw]
    [co.gaiwan.oak.lib.ring-csp :as ring-csp]
    [co.gaiwan.oak.util.log :as log]
    [muuntaja.core :as muuntaja]
@@ -13,7 +15,7 @@
    [reitit.ring.middleware.muuntaja :as reitit-muuntaja]
    [reitit.ring.middleware.parameters :as reitit-params]
    [ring.middleware.session :as ring-session]
-   [ring.redis.session :as ring-redis]))
+   [ring.util.response :as res]))
 
 (def malli-coercion-options
   {:error-keys #{:type :coercion :in :schema :value :errors :humanized :transformed}})
@@ -58,6 +60,30 @@
   [[path data] opts]
   (ring/compile-result [path (compile-var-meta data)] opts))
 
+(defn wrap-log-request [h]
+  (fn [req]
+    (let [start (System/currentTimeMillis)
+          res (h req)
+          delta (- (System/currentTimeMillis) start)
+          type (res/get-header res "content-type")
+          location (res/get-header res "location")]
+      (log/debug :http/request (cond-> {(keyword (str/upper-case (name (:request-method req))))
+                                        (:uri req)
+                                        :status (:status res)
+                                        :t delta}
+                                 type (assoc :type type)
+                                 location (assoc :location location)))
+      res)))
+
+(defn wrap-404 [h]
+  (fn [req]
+    (let [res (h req)]
+      (if (nil? res)
+        {:status 404
+         :headers {"Content-Type" "text/plain"}
+         :body "404 Not Found"}
+        res))))
+
 (defn component [{:keys [routes request-filters session-store]}]
   (let [request-filter (apply comp (keep :http/request-filter request-filters))
         routes         (into ["" {}
@@ -70,7 +96,8 @@
       :data
       {:coercion   (reitit.coercion.malli/create malli-coercion-options)
        :muuntaja   (muuntaja-instance)
-       :middleware [reitit-openapi/openapi-feature
+       :middleware [wrap-log-request
+                    reitit-openapi/openapi-feature
                     reitit-params/parameters-middleware
                     reitit-muuntaja/format-negotiate-middleware
                     reitit-muuntaja/format-response-middleware
@@ -87,7 +114,8 @@
                                :same-site :strict}
                         (config/get :http-session/secure-cookie)
                         (assoc :secure true))}]
-                    ring-csp/wrap-content-security-policy]}})))
+                    ring-csp/wrap-content-security-policy
+                    wrap-404]}})))
 
 (comment
   (user/restart!)

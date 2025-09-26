@@ -39,3 +39,9 @@
                                                [:= :identity_id identity-id]
                                                [:= :client_id client-id]]}))]
     (scope/subset? scope (:oauth-authorization/scope auth))))
+
+(defn delete! [db {:keys [identity-id]}]
+  (db/execute-honey!
+   db
+   {:delete-from :oauth-authorization
+    :where [:= identity-id :identity_id]}))

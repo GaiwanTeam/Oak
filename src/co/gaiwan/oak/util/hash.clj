@@ -5,10 +5,22 @@
   (:import
    (java.security MessageDigest)))
 
-(defn sha256-base64url [string]
-  (let [digest (MessageDigest/getInstance "SHA-256")]
-    (.update digest (.getBytes string "UTF-8"))
-    (base64/url-encode-no-pad (.digest digest))))
+(set! *warn-on-reflection* true)
+
+(defn hash-bytes ^bytes [alg o]
+  (let [digest (MessageDigest/getInstance ^String alg)
+        ^bytes bytes (cond
+                       (string? o)
+                       (.getBytes ^String o "UTF-8")
+                       (bytes? o)
+                       o
+                       :else
+                       (throw (IllegalArgumentException. (str "Unexpected " (class o) ", expected String or byte-array."))))]
+    (.update digest bytes)
+    (.digest digest)))
+
+(defn sha256-base64url [o]
+  (base64/url-encode-no-pad (hash-bytes "SHA-256" o)))
 
 (comment
   (sha256-base64url "test-string")

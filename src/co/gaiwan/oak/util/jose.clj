@@ -64,6 +64,7 @@
   (new-jwk {"kty" "RSA" "alg" "RS256" "size" 2048})
   (new-jwk {"kty" "EC" "alg" "ES256" "crv" "P-256"})
   (new-jwk {"kty" "OKP" "crv" "Ed25519"})
+  (JWSAlgorithm/parse "EdDSA")
   )
 
 (defn build-jwt
@@ -88,7 +89,7 @@
     (.serialize signed-jwt)))
 
 (comment
-  (def rsa-key (new-jwk {"kty" "RSA" "alg" "RS256" "size" 2048}))
+  (def rsa-key (new-jwk {"kty" "RSA" "alg" "HS384" "size" 2048}))
   (def claims {"sub" "1234567890"
                "name" "John Doe"
                "iss" "https://my-app.com"
@@ -119,7 +120,8 @@
     (if (.verify signed-jwt verifier)
       (claims->map (.getJWTClaimsSet signed-jwt))
       (throw (ex-info "JWT Signature verification failed."
-                      {:jwt jwt-string
+                      {:type :jwt-verification/failed
+                       :jwt jwt-string
                        :jwk public-jwk-map})))))
 
 (defn public-parts

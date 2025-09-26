@@ -52,6 +52,8 @@
           "password"
           password-hash]]}))))
 
+(defn delete! [db {:keys [identity-id]}]
+  (db/execute-honey! db {:delete-from :credential :where [:= identity-id :identity_id]}))
 
 (comment
   (create! (user/db)
