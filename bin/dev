@@ -1,6 +1,9 @@
-#!/usr/bin/env bb
+#!/usr/bin/env -S clojure -A:tools.build -J-Dclojure.main.report=stderr -M
 
-(require '[lambdaisland.cli :as cli])
+(require
+ '[lambdaisland.cli :as cli]
+ '[clojure.tools.build.api :as build]
+ '[org.corfield.log4j2-conflict-handler :refer [log4j2-conflict-handler]])
 
 (def init {})
 
@@ -9,7 +12,26 @@
   [_]
   (spit "deps.local.edn" "{:launchpad/aliases [:dev]}"))
 
-(def commands ["init" #'initialize-local-files])
+(defn uberjar
+  "Build uberjar"
+  {:flags ["--target-dir" {:doc "Target directory" :default "target"}]}
+  [{:keys [target-dir]}]
+  (let [basis (build/create-basis {:project "deps.edn"})]
+    (build/copy-dir {:src-dirs   ["resources"]
+                     :target-dir target-dir})
+    (build/compile-clj {:basis     basis
+                        :src-dirs  ["src"]
+                        :class-dir target-dir
+                        :compile-opts {:elide-meta [:doc]}})
+    (build/uber {:class-dir target-dir
+                 :uber-file (str target-dir "/oak-uberjar.jar")
+                 :basis     basis
+                 :main      'co.gaiwan.oak
+                 :conflict-handlers log4j2-conflict-handler})))
+
+(def commands
+  ["init" #'initialize-local-files
+   "uberjar" #'uberjar])
 
 (def flags
   ["-v, --verbose"
