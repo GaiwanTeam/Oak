@@ -1,4 +1,5 @@
 (ns co.gaiwan.oak.html.tokens
+  {:ornament/prefix ""}
   (:require
    [garden.stylesheet :as gs]
    [lambdaisland.ornament :as o]))
@@ -94,6 +95,22 @@
 (o/defprop --size-14 "20rem")
 (o/defprop --size-15 "30rem")
 
+(o/defprop --size-fluid-1 "max(.5rem,min(1vw,1rem))")
+(o/defprop --size-fluid-2 "max(1rem,min(2vw,1.5rem))")
+(o/defprop --size-fluid-3 "max(1.5rem,min(3vw,2rem))")
+(o/defprop --size-fluid-4 "max(2rem,min(4vw,3rem))")
+(o/defprop --size-fluid-5 "max(4rem,min(5vw,5rem))")
+(o/defprop --size-fluid-6 "max(5rem,min(7vw,7.5rem))")
+(o/defprop --size-fluid-7 "max(7.5rem,min(10vw,10rem))")
+(o/defprop --size-fluid-8 "max(10rem,min(20vw,15rem))")
+(o/defprop --size-fluid-9 "max(15rem,min(30vw,20rem))")
+(o/defprop --size-fluid-10 "max(20rem,min(40vw,30rem))")
+(o/defprop --size-fluid-11 "max(25rem,min(50vw,35rem))")
+(o/defprop --size-fluid-12 "max(30rem,min(60vw,45rem))")
+(o/defprop --size-fluid-13 "max(35rem,min(70vw,55rem))")
+(o/defprop --size-fluid-14 "max(40rem,min(80vw,65rem))")
+(o/defprop --size-fluid-15 "max(45rem,min(90vw,75rem))")
+
 (o/defprop --radius-1 "2px")
 (o/defprop --radius-2 "5px")
 (o/defprop --radius-3 "1rem")
@@ -101,15 +118,55 @@
 (o/defprop --radius-5 "4rem")
 (o/defprop --radius-6 "8rem")
 
-(o/defprop --surface-bg "The main background of the page/app." --gray-2)
-(o/defprop --panel-bg "Background for layered elements (e.g., cards, panels)." --white)
-(o/defprop --interactive-bg "Background for hover/active states on backgrounds." --gray-2)
-(o/defprop --border-subtle "Faint lines, dividers, or subtle separators." --gray-4)
+;; Shadows
 
-(o/defprop --surface-text "Default text color for the main surface background." --gray-12)
-(o/defprop --panel-text "Text color used in layered panels; slightly less dominant than surface-text." --gray-8)
+(o/defprop --shadow-color
+  "Base color and opacity for all shadows in the system."
+  "rgba(0, 0, 0, 0.1)")
+
+(o/defprop --shadow-color-strong
+  "A higher opacity shadow color for deeper, more pronounced effects."
+  "rgba(0, 0, 0, 0.25)")
+
+(o/defprop --shadow-1
+  "Subtle elevation; ideal for small interactive elements or faint borders."
+  "0 1px 3px 0 var(--shadow-color)")
+
+(o/defprop --shadow-2
+  "General purpose lift; recommended for cards, standard containers, and panels."
+  "0 4px 6px -1px var(--shadow-color)")
+
+(o/defprop --shadow-3
+  "Clear elevation; best for layered elements like modals, popovers, or floating menus."
+  "0 10px 15px -3px var(--shadow-color)")
+
+(o/defprop --shadow-4
+  "Stronger, pronounced elevation; used for components that need deep visual separation."
+  "0 20px 25px -5px var(--shadow-color-strong)")
+
+(o/defprop --shadow-5
+  "Deepest shadow; reserved for maximum elevation, such as full-screen overlays or sticky headers."
+  "0 25px 50px -12px var(--shadow-color-strong)")
+
+;; Inner Shadow
+(o/defprop --shadow-6-inner "Creates an inset/pressed look, often used for input fields or toggled states." "inset 0 2px 4px 0 rgba(0, 0, 0, 0.06)")
+
+;; Semantic tokens
+
+(o/defprop --bg-surface "The main background of the page/app." --gray-2)
+(o/defprop --bg-panel "Background for layered elements (e.g., cards, panels)." --white)
+(o/defprop --bg-interactive "Background for hover/active states on backgrounds." --gray-2)
+(o/defprop --bg-call-to-action "Call to action button background" --oak-green-10)
+(o/defprop --bg-call-to-action-hover "Call to action button hover state background" --oak-green-11)
+
+(o/defprop --border-subtle "Faint lines, dividers, or subtle separators." --gray-4)
+(o/defprop --border-input "Border for form inputs" --gray-4)
+
+(o/defprop --text-surface "Default text color for the main surface background." --gray-12)
+(o/defprop --text-panel "Text color used in layered panels; slightly less dominant than surface-text." --gray-8)
 (o/defprop --text-subtle "Secondary text, captions, or placeholder text." --gray-6)
 (o/defprop --text-inverted "Text color used on dark or accent backgrounds (e.g., buttons)." --gray-0)
+(o/defprop --text-call-to-action "Text color for call-to-action elements" --white)
 
 (o/defprop --action-primary "Main button/link color." --blue-6)
 (o/defprop --status-success "Background/icon for positive feedback." --oak-green-6)
@@ -122,14 +179,14 @@
    {:prefers-color-scheme 'dark}
    [":where(html)"
     {;; Interface & Backgrounds (Inverted Grays)
-     --surface-bg     --gray-10
-     --panel-bg       --gray-12
-     --interactive-bg --gray-11
+     --bg-surface     --gray-11
+     --bg-panel       --gray-8
+     --bg-interactive --gray-11
      --border-subtle  --gray-7
 
      ;; Text & Icons (Inverted Grays)
-     --surface-text  --gray-1
-     --panel-text    --gray-4
+     --text-surface  --gray-2
+     --text-panel    --gray-1
      --text-subtle   --gray-6
      --text-inverted --gray-12
 
@@ -138,4 +195,9 @@
      --status-success --oak-green-4
      --status-error   --red-4
      --status-warning --yellow-4
-     --status-info    --blue-4}]))
+     --status-info    --blue-4
+
+     --shadow-color "rgba(255, 255, 255, 0.05)"
+     --shadow-color-strong "rgba(255, 255, 255, 0.1)"
+
+     }]))

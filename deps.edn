@@ -34,12 +34,12 @@
   com.password4j/password4j                    {:mvn/version "1.8.4"}
 
   ;; Formats and utilities
-  com.cnuernber/charred   {:mvn/version "1.037"}
-  danlentz/clj-uuid       {:mvn/version "0.2.0"}
-  org.clj-commons/pretty  {:mvn/version "3.6.5"}
-  com.lambdaisland/hiccup {:mvn/version "0.14.67"}
-  lambdaisland/uri        {:mvn/version "1.19.155"}
-  }
+  com.cnuernber/charred     {:mvn/version "1.037"}
+  danlentz/clj-uuid         {:mvn/version "0.2.0"}
+  org.clj-commons/pretty    {:mvn/version "3.6.5"}
+  com.lambdaisland/hiccup   {:mvn/version "0.14.67"}
+  lambdaisland/uri          {:mvn/version "1.19.155"}
+  com.lambdaisland/ornament {:mvn/version "1.16.141"}}
 
  :aliases
  {:dev
@@ -56,5 +56,5 @@
 
   :tools.build
   {:extra-deps
-   {io.github.clojure/tools.build {:mvn/version "0.10.10"}
+   {io.github.clojure/tools.build                    {:mvn/version "0.10.10"}
     io.github.seancorfield/build-uber-log4j2-handler {:git/tag "v2.25.1" :git/sha "946daa402a865e9ed92d7c668285a78045b3d027"}}}}}
