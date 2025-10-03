@@ -4,10 +4,9 @@
   Command line interface for testing OAuth server implementations.
   "
   (:require
-   [clojure.string :as str]
-   [clojure.pprint :as pprint]
-   [lambdaisland.cli :as cli]
-   [co.gaiwan.oauth-tester.impl :as tester]))
+   [co.gaiwan.oak.lib.cli-error-mw :as cli-error-mw]
+   [co.gaiwan.oauth-tester.impl :as tester]
+   [lambdaisland.cli :as cli]))
 
 (set! *print-namespace-maps* false)
 
@@ -50,28 +49,13 @@
    "-v, --verbose" "Increase verbosity"
    "-h, --help" "Show help text for a (sub-)command"])
 
-(defn wrap-error [handler]
-  (fn [opts]
-    (try
-      (handler opts)
-      (catch clojure.lang.ExceptionInfo e
-        (let [d (ex-data e)]
-          (if (= :lambdaisland.cli/parse-error (:type d))
-            (println (ex-message e))
-            (do
-              (println "Error:" (ex-message e))
-              (println "Use --show-trace to see the full error trace.")))))
-      (catch Throwable t
-        (println "Error:" (ex-message t))
-        (println "Use --show-trace to see the full error trace.")))))
-
 (defn -main [& args]
   (cli/dispatch*
    {:name "oauth-tester"
     :init init
     :flags flags
     :commands commands
-    :middleware [wrap-error]}
+    :middleware [cli-error-mw/wrap-error]}
    args))
 
 (comment

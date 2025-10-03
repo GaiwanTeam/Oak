@@ -1,24 +1,18 @@
 (ns co.gaiwan.oak.apis.auth
   "Authentication endpoints. Login, logout, etc."
   (:require
+   [clojure.java.io :as io]
    [co.gaiwan.oak.domain.identity :as identity]
+   [co.gaiwan.oak.html.layout :as layout]
+   [co.gaiwan.oak.html.login-page :as login-form]
    [co.gaiwan.oak.lib.auth-middleware :as auth-mw]
-   [co.gaiwan.oak.lib.form :as form]
    [co.gaiwan.oak.util.routing :as routing]
    [lambdaisland.hiccup.middleware :as hiccup-mw]
    [ring.middleware.anti-forgery :as ring-csrf]))
 
-(defn login-html []
-  [form/form {:method "POST"}
-   [:label {:for "email"} "Email"
-    [:input {:id "email" :name "email" :type "text"}]]
-   [:label {:for "password"} "Password"
-    [:input {:id "password" :name "password" :type "password"}]]
-   [:input {:type "submit"}]])
-
 (defn GET-login [req]
   {:status 200
-   :html/body [login-html]
+   :html/body [login-form/login-html]
    :html/head [:title "Oak Login"]})
 
 (defn POST-login
@@ -47,12 +41,21 @@
 
 (defn component [opts]
   {:routes
-   ["/auth" {}
-    ["/login" {:name :auth/login
-               :middleware [ring-csrf/wrap-anti-forgery
-                            auth-mw/wrap-session-auth
-                            hiccup-mw/wrap-render]
-               :get #'GET-login
-               :post #'POST-login}]
-    ["/logout" {:name :auth/logout
-                :get #'GET-logout}]]})
+   ["" {}
+    ["/styles.css"
+     {:get
+      {:handler
+       (fn [_]
+         {:status 200
+          :headers {"Content-Type" "text/css"}
+          :body (slurp (io/resource "oak/styles.css"))})}}]
+    ["/auth" {}
+     ["/login" {:name :auth/login
+                :html/layout layout/layout
+                :middleware [ring-csrf/wrap-anti-forgery
+                             auth-mw/wrap-session-auth
+                             hiccup-mw/wrap-render]
+                :get #'GET-login
+                :post #'POST-login}]
+     ["/logout" {:name :auth/logout
+                 :get #'GET-logout}]]]})

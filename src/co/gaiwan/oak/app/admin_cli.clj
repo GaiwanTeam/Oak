@@ -6,16 +6,16 @@
   (:require
    [camel-snake-kebab.core :as csk]
    [charred.api :as json]
-   [clj-commons.format.exceptions :as pretty]
    [clojure.pprint :as pprint]
    [clojure.string :as str]
+   [co.gaiwan.oak.app.admin-cli :as cli-error-mw]
    [co.gaiwan.oak.app.config :as config]
    [co.gaiwan.oak.domain.identity :as identity]
    [co.gaiwan.oak.domain.jwk :as jwk]
-   [co.gaiwan.oak.domain.oauth-client :as oauth-client]
-   [lambdaisland.cli :as cli]
    [co.gaiwan.oak.domain.jwt :as jwt]
-   [co.gaiwan.oak.util.jose :as jose])
+   [co.gaiwan.oak.domain.oauth-client :as oauth-client]
+   [co.gaiwan.oak.util.jose :as jose]
+   [lambdaisland.cli :as cli])
   (:import
    (java.io StringWriter)))
 
@@ -199,27 +199,6 @@
                                        (into {} (map (fn [[h k]] [h (get-col row k)])) columns)) data)))))
       res)))
 
-(defn print-error [opts e]
-  (if (:show-trace opts)
-    (pretty/print-exception e)
-    (do
-      (println "Error:" (ex-message e))
-      (when-let [d (ex-data e)]
-        (pprint/pprint d))
-      (println "Use --show-trace to see the full error trace."))))
-
-(defn wrap-error [handler]
-  (fn [opts]
-    (try
-      (handler opts)
-      (catch clojure.lang.ExceptionInfo e
-        (let [d (ex-data e)]
-          (if (= :lambdaisland.cli/parse-error (:type d))
-            (println (ex-message e))
-            (print-error opts e))))
-      (catch Throwable t
-        (print-error opts t)))))
-
 (def commands
   ["jwk" jwk-commands
    "oauth-client" oauth-client-commands
@@ -240,7 +219,7 @@
     :commands commands
     :middleware [wrap-stop-system
                  wrap-print-output
-                 wrap-error]}
+                 cli-error-mw/wrap-error]}
    args))
 
 ;; Local Variables:
