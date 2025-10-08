@@ -99,6 +99,20 @@
   [opts]
   {:data (identity/list-all (db))})
 
+(defn enable-mfa
+  "Enable the MFA for user"
+  [opts]
+  (if-let [id (parse-uuid (:id opts))]
+    (identity/set-mfa-attr! (db) id true)
+    (throw (ex-info "Invalid UUID" {:id (:id opts)}))))
+
+(defn disable-mfa
+  "Disable the MFA for user"
+  [opts]
+  (if-let [id (parse-uuid (:id opts))]
+    (identity/set-mfa-attr! (db) id false)
+    (throw (ex-info "Invalid UUID" {:id (:id opts)}))))
+
 (defn delete-user
   "Delete user and associated identifiers/credentials"
   [opts]
@@ -111,6 +125,8 @@
    :commands
    ["create" #'create-user
     "list" #'list-users
+    "enable-mfa <id>" #'enable-mfa
+    "disable-mfa <id>" #'disable-mfa
     "delete <id>" #'delete-user]})
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
