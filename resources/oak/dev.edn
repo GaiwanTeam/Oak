@@ -3,5 +3,5 @@
  :db/username "oak"
  :db/password "oak"
 
- :http/csp-policy "default-src 'self'; script-src 'self' 'nonce-random_value'; style-src 'self' 'unsafe-inline';"
+ :http/csp-policy "default-src 'self'; script-src 'self' 'nonce-random_value'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;"
  }

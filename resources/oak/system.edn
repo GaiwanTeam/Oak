@@ -28,4 +28,5 @@
  :apis/openapi {:makina/type :http/api}
  :apis/auth    {:makina/type :http/api}
  :apis/oidc    {:makina/type :http/api}
+ :apis/totp    {:makina/type :http/api}
  }
