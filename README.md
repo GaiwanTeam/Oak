@@ -42,7 +42,7 @@ A basic configuration looks like this (this is the default configuration in dev,
 which matches the docker-compose setup):
 
 ```clj
-{:db/url "jdbc:postgresql://localhost:5432/oak"
+{:db/url "jdbc:postgresql://localhost:15432/oak"
  :db/username "oak"
  :db/password "oak"}
 ```
