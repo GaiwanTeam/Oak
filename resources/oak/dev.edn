@@ -1,8 +1,7 @@
 {:dev/route-var-handlers true
- :db/config
- {:url "jdbc:postgresql://localhost:15432/oak"
-  :username "oak"
-  :password "oak"}
+ :db/url "jdbc:postgresql://localhost:15432/oak"
+ :db/username "oak"
+ :db/password "oak"
 
  :http/csp-policy "default-src 'self'; script-src 'self' 'nonce-random_value'; style-src 'self' 'unsafe-inline';"
  }

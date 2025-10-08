@@ -18,3 +18,4 @@ COPY --from=builder /app/target/oak-uberjar.jar /
 EXPOSE 4800
 
 ENTRYPOINT ["java", "-jar", "/oak-uberjar.jar"]
+CMD ["run"]

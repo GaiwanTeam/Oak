@@ -17,10 +17,9 @@
 (defn db-config
   "Get database config in next.jdbc format"
   []
-  (let [cfg (config/get config :db/config)]
-    {:jdbcUrl (:url cfg)
-     :user (:username cfg)
-     :password (:password cfg)}))
+  {:jdbcUrl (config/get config :db/url)
+   :user  (config/get config :db/username)
+   :password (config/get config :db/password)})
 
 (defn db-admin-config
   "Get admin database config in next.jdbc format"
@@ -38,10 +37,9 @@
 (defn- create-test-database!
   "Create the test database if it doesn't exist and make the regular user the owner"
   [db-config]
-  (let [orig-cfg (config/get config :db/config)
-        db-name (get-db-name (:url orig-cfg))
+  (let [db-name   (get-db-name (config/get config :db/url))
         admin-cfg (db-admin-config)
-        db-user (:user db-config)]
+        db-user   (config/get config :db/username)]
     (when db-name
       (with-open [conn (jdbc/get-connection admin-cfg)]
         (let [db-exists? (jdbc/execute! conn
@@ -52,9 +50,9 @@
 (defn- drop-test-database!
   "Drop the test database"
   [db-config]
-  (let [orig-cfg (config/get config :db/config)
-        db-name (get-db-name (:url orig-cfg))
-        admin-cfg (db-admin-config)]
+  (let [db-name   (get-db-name (config/get config :db/url))
+        admin-cfg (db-admin-config)
+        db-user   (config/get config :db/username)]
     (when db-name
       (with-open [conn (jdbc/get-connection admin-cfg)]
         (jdbc/execute! conn [(str "DROP DATABASE IF EXISTS " db-name)])))))

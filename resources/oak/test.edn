@@ -1,6 +1,7 @@
-{:db/admin-config {:url "jdbc:postgresql://localhost:5432/postgres"
+{:db/admin-config {:url "jdbc:postgresql://localhost:15432/postgres"
                    :username "postgres"
                    :password "oak"}
- :db/config {:url "jdbc:postgresql://localhost:5432/oak_test"
-             :username "oak"
-             :password "oak"}}
+ :db/url "jdbc:postgresql://localhost:15432/oak_test"
+ :db/username "oak"
+ :db/password "oak"
+ }

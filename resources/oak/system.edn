@@ -8,7 +8,9 @@
   :request-filters [#makina/ref :system/database]}
 
  :system/database
- {:config #config :db/config}
+ {:config {:url #config :db/url
+           :username #config :db/username
+           :password #config :db/password}}
 
  :system/redis-store
  {:host       #config :redis/host
