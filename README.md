@@ -8,7 +8,7 @@ Rooted in Standards, Built to Last
 Start the application
 
 ```
-echo '{:launchpad/aliases [:dev :test]}' > deps.local.edn
+echo '{:launchpad/aliases [:dev :test] :launchpad/options {:go true}' > deps.local.edn
 bin/launchpad
 ```
 
@@ -16,7 +16,8 @@ Initial setup
 
 ```
 bin/oakadm jwk create
-bin/oakadm oauth-client create 
+bin/oakadm oauth-client create --help
+bin/oakadm oauth-client create --client-name "my-first-client"
 bin/oakadm oauth-client create --client-name "foo" --redirect-uri 'https://example.com/redirect' --scope email --scope openid --scope offline_access
 bin/oakadm user create --email foo@bar.com --password abc
 ```
@@ -42,7 +43,7 @@ A basic configuration looks like this (this is the default configuration in dev,
 which matches the docker-compose setup):
 
 ```clj
-{:db/config {:url "jdbc:postgresql://localhost:5432/oak"
+{:db/config {:url "jdbc:postgresql://localhost:15432/oak"
              :username "oak"
              :password "oak"}}
 ```
