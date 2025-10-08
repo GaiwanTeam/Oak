@@ -3,7 +3,7 @@ services:
     image: postgres:17
     container_name: oak-postgres
     ports:
-      - "5432:5432"
+      - "15432:5432"
     environment:
       - POSTGRES_PASSWORD=oak
     volumes:
