@@ -5,12 +5,6 @@ Rooted in Standards, Built to Last
 
 ## Dev
 
-PostgreSQL and Redis containers:
-
-```
-docker compose up
-```
-
 Start the application
 
 ```

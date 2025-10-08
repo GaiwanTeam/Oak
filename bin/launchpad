@@ -2,10 +2,10 @@
 
 (require '[lambdaisland.launchpad :as launchpad])
 
-(launchpad/main
- {:java-args ["-Dclojure.main.report=stderr"]
-  :pre-steps
-  [(launchpad/run-process {:cmd '[docker compose up -d --no-recreate]})]})
+(def pre-steps
+  [(launchpad/run-process {:cmd '[docker compose up -d --no-recreate]})])
+
+(launchpad/main {:pre-steps pre-steps})
 
 ;; Local Variables:
 ;; mode:clojure
