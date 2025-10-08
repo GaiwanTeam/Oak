@@ -8,7 +8,7 @@
    [charred.api :as json]
    [clojure.pprint :as pprint]
    [clojure.string :as str]
-   [co.gaiwan.oak.app.admin-cli :as cli-error-mw]
+   [co.gaiwan.oak.lib.cli-error-mw :as cli-error-mw]
    [co.gaiwan.oak.app.config :as config]
    [co.gaiwan.oak.domain.identity :as identity]
    [co.gaiwan.oak.domain.jwk :as jwk]
