@@ -61,6 +61,11 @@
             :type "password"
             :value (hash-password "foo" (keyword (config/get :password/hash-type)))})
 
+  (create! (user/db)
+           {:identity-id #uuid "0198db50-efe7-70f2-a03a-08cf6d462c7b"
+            :type "totp_secret"
+            :value secret})
+
   (get-password-hash (user/db) #uuid "0198db50-efe7-70f2-a03a-08cf6d462c7b")
   (set-password-hash! (user/db) #uuid "0198db50-efe7-70f2-a03a-08cf6d462c7b"
                       (hash-password "bar" (keyword (config/get :password/hash-type)))))
