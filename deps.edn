@@ -33,6 +33,7 @@
   com.google.crypto.tink/tink                  {:mvn/version "1.18.0"}
   org.conscrypt/conscrypt-openjdk$linux-x86_64 {:mvn/version "2.5.2"}
   com.password4j/password4j                    {:mvn/version "1.8.4"}
+  dev.samstevens.totp/totp                     {:mvn/version "1.7.1"}
 
   ;; Formats and utilities
   com.cnuernber/charred     {:mvn/version "1.037"}
