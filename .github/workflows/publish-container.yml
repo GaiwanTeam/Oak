@@ -1,0 +1,30 @@
+name: 🏗 [gchr.io] Build + Deploy
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | podman login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Build and tag container image
+        run: |
+          IMAGE_TAG=$(echo "ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}" | tr '[:upper:]' '[:lower:]')
+          podman build --tag "${IMAGE_TAG}:${{ github.sha }}" --tag "${IMAGE_TAG}:latest" .
+
+      - name: Push image to GHCR
+        run: |
+          IMAGE_TAG=$(echo "ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}" | tr '[:upper:]' '[:lower:]')
+          podman push "${IMAGE_TAG}:${{ github.sha }}"
+          podman push "${IMAGE_TAG}:latest"
