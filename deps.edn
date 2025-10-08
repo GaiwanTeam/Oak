@@ -1,6 +1,8 @@
 {:paths ["src" "resources"]
  :deps
- {;; Application setup
+ {org.clojure/clojure {:mvn/version "1.12.3"}
+
+  ;; Application setup
   com.lambdaisland/config {:mvn/version "0.10.37"}
   com.lambdaisland/makina {:mvn/version "0.3.16"}
   com.lambdaisland/cli    {:mvn/version "0.24.97"}
