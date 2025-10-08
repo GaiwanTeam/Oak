@@ -11,6 +11,7 @@
    (hirundo/start!
     {:http-handler (reitit-ring/ring-handler (:router config)
                                              (reitit-ring/create-default-handler))
+     :host         (:host config)
      :port         (:port config)})})
 
 (def component

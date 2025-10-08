@@ -1,5 +1,6 @@
 {:system/http
  {:port   #config :http/port
+  :host   #config :http/host
   :router #makina/ref :system/router}
 
  :system/router
