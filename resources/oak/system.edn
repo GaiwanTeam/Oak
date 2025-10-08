@@ -15,7 +15,8 @@
  :system/redis-store
  {:host       #config :redis/host
   :port       #config :redis/port
-  :timeout-ms #config :redis/timeout-ms}
+  :timeout-ms #config :redis/timeout-ms
+  :password   #config :redis/password}
 
  :system/security-providers
  {:prepend #config :java.security.provider/prepend
