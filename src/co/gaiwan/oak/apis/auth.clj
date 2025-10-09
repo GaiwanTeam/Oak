@@ -42,13 +42,6 @@
 (defn component [opts]
   {:routes
    ["" {}
-    ["/styles.css"
-     {:get
-      {:handler
-       (fn [_]
-         {:status 200
-          :headers {"Content-Type" "text/css"}
-          :body (slurp (io/resource "oak/styles.css"))})}}]
     ["/auth" {}
      ["/login" {:name :auth/login
                 :html/layout layout/layout

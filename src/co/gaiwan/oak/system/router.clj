@@ -1,9 +1,9 @@
 (ns co.gaiwan.oak.system.router
   "HTTP router and middleware setup"
   (:require
+   [clojure.java.io :as io]
    [clojure.string :as str]
    [co.gaiwan.oak.app.config :as config]
-   [co.gaiwan.oak.lib.auth-middleware :as auth-mw]
    [co.gaiwan.oak.lib.ring-csp :as ring-csp]
    [co.gaiwan.oak.util.log :as log]
    [muuntaja.core :as muuntaja]
@@ -84,10 +84,16 @@
          :body "404 Not Found"}
         res))))
 
+(defn fixed-routes []
+  ["" {}
+   ["/ping" {:get (constantly {:status 200 :body "pong"})}]
+   ["/styles.css" {:get (constantly {:status 200
+                                     :body (slurp (io/resource "oak/styles.css"))
+                                     :headers {"Content-Type" "text/css;charset=utf-8"}})}]])
+
 (defn component [{:keys [routes request-filters session-store]}]
   (let [request-filter (apply comp (keep :http/request-filter request-filters))
-        routes         (into ["" {}
-                              ["/ping" {:get (constantly {:status 200 :body "pong"})}]]
+        routes         (into (fixed-routes)
                              (map :routes routes))]
     (log/info :routes routes)
     (ring/router

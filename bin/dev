@@ -1,9 +1,15 @@
 #!/usr/bin/env -S clojure -A:tools.build -J-Dclojure.main.report=stderr -M
 
-(require
- '[lambdaisland.cli :as cli]
- '[clojure.tools.build.api :as build]
- '[org.corfield.log4j2-conflict-handler :refer [log4j2-conflict-handler]])
+(ns oak.bin.dev
+  (:require
+   [clojure.java.io :as io]
+   [clojure.java.shell :as sh]
+   [clojure.tools.build.api :as build]
+   [lambdaisland.cli :as cli]
+   [lambdaisland.ornament :as o]
+   [co.gaiwan.oak.app.config :as config]
+   [org.corfield.log4j2-conflict-handler :refer [log4j2-conflict-handler]]
+   [clojure.java.shell :as sh]))
 
 (def init {})
 
@@ -12,26 +18,43 @@
   [_]
   (spit "deps.local.edn" "{:launchpad/aliases [:dev]}"))
 
+(defn write-styles
+  {:flags ["--target-dir" {:doc "Target directory" :default "target"}]}
+  [{:keys [target-dir]}]
+  (let [f (io/file target-dir "oak/styles.css")]
+    (.mkdirs (io/file (.getParent f)))
+    (config/load!)
+    (spit f (o/defined-styles))))
+
 (defn uberjar
   "Build uberjar"
   {:flags ["--target-dir" {:doc "Target directory" :default "target"}]}
-  [{:keys [target-dir]}]
+  [{:keys [target-dir] :as opts}]
   (let [basis (build/create-basis {:project "deps.edn"})]
+    (print "Clean target, ") (flush)
+    (sh/sh "rm" "-rf" (str target-dir "/*"))
+    (print "write styles, ") (flush)
+    (write-styles opts)
+    (print "copy resources, ") (flush)
     (build/copy-dir {:src-dirs   ["resources"]
                      :target-dir target-dir})
-    (build/compile-clj {:basis     basis
-                        :src-dirs  ["src"]
-                        :class-dir target-dir
+    (print "compile, ") (flush)
+    (build/compile-clj {:basis        basis
+                        :src-dirs     ["src"]
+                        :class-dir    target-dir
                         :compile-opts {:elide-meta [:doc]}})
-    (build/uber {:class-dir target-dir
-                 :uber-file (str target-dir "/oak-uberjar.jar")
-                 :basis     basis
-                 :main      'co.gaiwan.oak
-                 :conflict-handlers log4j2-conflict-handler})))
+    (print "build uberjar, ") (flush)
+    (build/uber {:class-dir         target-dir
+                 :uber-file         (str target-dir "/oak-uberjar.jar")
+                 :basis             basis
+                 :main              'co.gaiwan.oak
+                 :conflict-handlers log4j2-conflict-handler})
+    (println "done.")))
 
 (def commands
   ["init" #'initialize-local-files
-   "uberjar" #'uberjar])
+   "uberjar" #'uberjar
+   "write-styles" #'write-styles])
 
 (def flags
   ["-v, --verbose"

@@ -1,4 +1,5 @@
 (ns co.gaiwan.oak.html.styles
+  "Global CSS declarations"
   (:require
    [co.gaiwan.oak.html.tokens :refer :all]
    [lambdaisland.ornament :as o]))
@@ -12,6 +13,11 @@
     :background-color --bg-surface
     :color            --text-surface
     :min-height       "100vh"}]
+
+  [:footer
+   {:position :absolute
+    :bottom "1em"
+    :right "1em"}]
 
   [#{"input[type=\"email\"]"
      "input[type=\"password\"]"}
@@ -27,5 +33,4 @@
     :color            --text-call-to-action
     :transition       "background-color 0.2s ease"}
    [:&:hover
-    {:background-color --bg-call-to-action-hover}]]
-  )
+    {:background-color --bg-call-to-action-hover}]])
