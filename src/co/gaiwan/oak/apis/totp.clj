@@ -6,6 +6,7 @@
    [co.gaiwan.oak.lib.form :as form]
    [co.gaiwan.oak.lib.totp :as totp]
    [co.gaiwan.oak.util.routing :as routing]
+   [co.gaiwan.oak.domain.credential :as credential]
    [lambdaisland.hiccup.middleware :as hiccup-mw]
    [ring.middleware.anti-forgery :as ring-csrf]))
 
@@ -29,8 +30,7 @@
               {:secret secret
                ;; You can get user primary email identifier
                :label "..."
-               :issuer (config/get :application/name)})
-             }]
+               :issuer (config/get :application/name)})}]
       [:a {:href (routing/url-for req :totp/verify)} "Continue"]]}))
 
 (defn GET-verify [req]
@@ -38,17 +38,42 @@
    :html/body
    [form/form {:method "POST"}
     [:input {:type "text" :name "code"}]
-    [:input {:type "submit" :value "Verify 2FA Setup"}]
-    ]}  )
+    [:input {:type "submit" :value "Verify 2FA Setup"}]]})
+
+(defn verified-success
+  "Store secret as credential, remove the secret from the session"
+  [{:keys [db session]} secret]
+  (let [opts {:identity-id (:identity session)
+              :type "totp"
+              :value secret}
+        updated-session (dissoc session :totp/secret)]
+    (if (credential/create! db opts)
+
+      {:status 200
+       :session updated-session
+       :html/body
+       [:div "Your authenticator device has been successfully linked."]}
+      {:status 200
+       :html/body
+       [:div "Encountering error when recording credentials"]})))
+
+(defn verified-failed [req]
+  (tap> req)
+  {:status 200
+   :html/body
+   [:div "Invalid code. Please check and re-enter."
+    [:a {:href (routing/url-for req :totp/verify)} "Continue"]]})
 
 (defn POST-verify
   {:parameters {:form [:map
                        [:code string?]]}}
   [req]
-  (let [secret (-> req :session :totp/secret)]
+  (let [code (-> req :parameters :form :code)
+        secret (-> req :session :totp/secret)]
     ;; if valid, store as credential with type="totp"
-    )
-  )
+    (if (totp/verify-code secret code)
+      (verified-success req secret)
+      (verified-failed req))))
 
 (defn component [opts]
   {:routes
