@@ -1,4 +1,9 @@
 (ns co.gaiwan.oak.apis.totp
+  "2FA endpoints.
+      - generate secret, store in session, show QR code
+      - user adds it to their authenticator app
+      - ask user for code from authenticator
+      - if code is valid, store secret as credential, remove from session"
   (:require
    [co.gaiwan.oak.app.config :as config]
    [co.gaiwan.oak.html.layout :as layout]
@@ -10,11 +15,6 @@
    [co.gaiwan.oak.domain.identifier :as identifier]
    [lambdaisland.hiccup.middleware :as hiccup-mw]
    [ring.middleware.anti-forgery :as ring-csrf]))
-
-;; 1. generate secret, store in session, show QR code
-;; 2. user adds it to their authenticator app
-;; 3. ask user for code from authenticator
-;; 4. if code is valid, store secret as credential, remove from session
 
 (defn GET-setup
   [{:keys [db session] :as req}]
@@ -83,6 +83,7 @@
     ["/totp" {:html/layout layout/layout
               :middleware  [ring-csrf/wrap-anti-forgery
                             auth-mw/wrap-session-auth
+                            auth-mw/wrap-enforce-login
                             hiccup-mw/wrap-render]}
      ["/setup" {:name        :totp/setup
                 :get         #'GET-setup}]
