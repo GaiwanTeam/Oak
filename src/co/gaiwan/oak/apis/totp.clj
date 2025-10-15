@@ -7,6 +7,7 @@
    [co.gaiwan.oak.lib.totp :as totp]
    [co.gaiwan.oak.util.routing :as routing]
    [co.gaiwan.oak.domain.credential :as credential]
+   [co.gaiwan.oak.domain.identifier :as identifier]
    [lambdaisland.hiccup.middleware :as hiccup-mw]
    [ring.middleware.anti-forgery :as ring-csrf]))
 
@@ -16,20 +17,21 @@
 ;; 4. if code is valid, store secret as credential, remove from session
 
 (defn GET-setup
-  [req]
+  [{:keys [db session] :as req}]
   (let [secret (totp/secret
                 (config/get :totp/hash-alg)
-                (config/get :totp/secret-size))]
+                (config/get :totp/secret-size))
+        identifier (identifier/find-one db {:identity-id (:identity session)  :type "email"})
+        user-email (:identifier/value identifier)]
     {:status 200
-     :session (assoc (:session req) :totp/secret secret)
+     :session (assoc session :totp/secret secret)
      :html/body
      ;; move hiccup to co.gaiwan.oak.html.*
      [:p "Set up TOTP here!"
       [:img {:src
              (totp/qrcode-data-url
               {:secret secret
-               ;; You can get user primary email identifier
-               :label "..."
+               :label user-email
                :issuer (config/get :application/name)})}]
       [:a {:href (routing/url-for req :totp/verify)} "Continue"]]}))
 
