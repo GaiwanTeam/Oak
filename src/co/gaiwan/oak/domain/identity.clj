@@ -12,13 +12,11 @@
 
 (def attributes
   [[:id :uuid :primary-key]
-   [:type :text [:not nil]]
-   [:use_mfa :boolean [:default false]]])
+   [:type :text [:not nil]]])
 
-(defn create! [db {:keys [id type] :as opts}]
+(defn create! [db {:keys [id type]}]
   (db/insert! db :identity {:id (or id (uuid/v7))
-                            :type (or type "user")
-                            :use_mfa (boolean (:mfa opts))}))
+                            :type (or type "user")}))
 
 (defn create-user! [db {:keys [email password]}]
   (db/with-transaction [conn db]
@@ -71,8 +69,6 @@
       (when (password4j/check-password password hsh)
         id))))
 
-(defn set-mfa-attr! [db id])
-
 (defn delete! [db id]
   (db/with-transaction [conn db]
     (let [sel {:identity-id id}]
@@ -100,8 +96,10 @@
                 {:email "foo@gaiwan.co"
                  :password "hello"})
 
+
   (find-one (user/db) {:id #uuid "0199853b-13f8-7014-b0ab-e48de68eaaab"})
 
   (validate-login (user/db)
                   {:email "foo@gaiwan.co"
-                   :password "hello"}))
+                   :password "hello"})
+  )
