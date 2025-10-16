@@ -23,13 +23,16 @@
     :type type
     :value value}))
 
-(defn get-password-hash [db identity-id]
+(defn get-hash [db identity-id type]
   (:credential/value
    (first (db/execute-honey! db {:select [:value]
                                  :from :credential
                                  :where [:and
                                          [:= :identity_id identity-id]
-                                         [:= :type "password"]]}))))
+                                         [:= :type type]]}))))
+
+(defn get-password-hash [db identity-id]
+  (get-hash db identity-id "password"))
 
 (defn set-password-hash!
   "Set the password hash for a identity/user, creating a new credential, or
@@ -56,16 +59,19 @@
   (db/execute-honey! db {:delete-from :credential :where [:= identity-id :identity_id]}))
 
 (comment
+  (def tmp-uuid #uuid "0199c27f-5bbe-702a-9ea8-968f6873d88e")
   (create! (user/db)
-           {:identity-id #uuid "0198db50-efe7-70f2-a03a-08cf6d462c7b"
+           {:identity-id tmp-uuid
             :type "password"
             :value (hash-password "foo" (keyword (config/get :password/hash-type)))})
 
   (create! (user/db)
-           {:identity-id #uuid "0198db50-efe7-70f2-a03a-08cf6d462c7b"
+           {:identity-id tmp-uuid
             :type "totp_secret"
             :value secret})
 
-  (get-password-hash (user/db) #uuid "0198db50-efe7-70f2-a03a-08cf6d462c7b")
-  (set-password-hash! (user/db) #uuid "0198db50-efe7-70f2-a03a-08cf6d462c7b"
+  (get-hash (user/db) tmp-uuid "totp")
+  (get-hash (user/db) tmp-uuid "password")
+  (get-password-hash (user/db) tmp-uuid)
+  (set-password-hash! (user/db) tmp-uuid
                       (hash-password "bar" (keyword (config/get :password/hash-type)))))
