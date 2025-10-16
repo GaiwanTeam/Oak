@@ -51,7 +51,7 @@
               :type "totp"
               :value secret}
         updated-session (dissoc session :totp/secret)]
-    (if (credential/create! db opts)
+    (if (credential/create-or-update! db opts)
       {:status 200
        :session updated-session
        :html/body

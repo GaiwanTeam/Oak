@@ -58,8 +58,39 @@
 (defn delete! [db {:keys [identity-id]}]
   (db/execute-honey! db {:delete-from :credential :where [:= identity-id :identity_id]}))
 
+(defn find-one [db identity-id type]
+  (first (db/execute-honey! db {:select [:*]
+                                :from :credential
+                                :where [:and
+                                        [:= :identity_id identity-id]
+                                        [:= :type type]]})))
+
+(defn update! [db {:keys [id identity-id type value] :as opts}]
+  (db/execute-honey! db {:update :credential
+                         :set {:identity_id identity-id
+                               :type type
+                               :value value}
+                         :where [:= id :id]}))
+
+(defn create-or-update! [db {:keys [id identity-id type value] :as opts}]
+  (if-let [record (find-one db identity-id type)]
+    (update! db (assoc opts :id (:credential/id record)))
+    (create! db opts)))
+
 (comment
+  (def tmp-id #uuid "0199e255-d5e4-7010-b2c9-435a4593af49")
   (def tmp-uuid #uuid "0199c27f-5bbe-702a-9ea8-968f6873d88e")
+
+  (create-or-update! (user/db)
+                     {:id tmp-id
+                      :identity-id tmp-uuid
+                      :type "totp"
+                      :value "jjjj"})
+  (update! (user/db)
+           {:id tmp-id
+            :identity-id tmp-uuid
+            :type "totp"
+            :value "kkkk"})
   (create! (user/db)
            {:identity-id tmp-uuid
             :type "password"
