@@ -96,10 +96,10 @@
                 {:email "foo@gaiwan.co"
                  :password "hello"})
 
-
-  (find-one (user/db) {:id #uuid "0199853b-13f8-7014-b0ab-e48de68eaaab"})
+  (def tmp-uuid #uuid "0199c27f-5bbe-702a-9ea8-968f6873d88e")
+  (find-one (user/db) {:id tmp-uuid})
+  (:identity/id (find-one (user/db) {:id tmp-uuid}))
 
   (validate-login (user/db)
                   {:email "foo@gaiwan.co"
-                   :password "hello"})
-  )
+                   :password "hello"}))
