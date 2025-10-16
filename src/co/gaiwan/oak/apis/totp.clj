@@ -17,11 +17,12 @@
    [ring.middleware.anti-forgery :as ring-csrf]))
 
 (defn GET-setup
-  [{:keys [db session] :as req}]
+  [{:keys [identity db session] :as req}]
   (let [secret (totp/secret
                 (config/get :totp/hash-alg)
                 (config/get :totp/secret-size))
-        identifier (identifier/find-one db {:identity-id (:identity session)  :type "email"})
+        id (:identity/id identity)
+        identifier (identifier/find-one db {:identity-id id :type "email"})
         user-email (:identifier/value identifier)]
     {:status 200
      :session (assoc session :totp/secret secret)
@@ -43,14 +44,14 @@
     [:input {:type "submit" :value "Verify 2FA Setup"}]]})
 
 (defn verified-success
-  "Store secret as credential, remove the secret from the session"
-  [{:keys [db session]} secret]
-  (let [opts {:identity-id (:identity session)
+  "Tell success, store secret as credential (upsert the record), remove the secret from
+   the session"
+  [{:keys [identity db session]} secret]
+  (let [opts {:identity-id (:identity/id identity)
               :type "totp"
               :value secret}
         updated-session (dissoc session :totp/secret)]
     (if (credential/create! db opts)
-
       {:status 200
        :session updated-session
        :html/body
@@ -60,7 +61,6 @@
        [:div "Encountering error when recording credentials"]})))
 
 (defn verified-failed [req]
-  (tap> req)
   {:status 200
    :html/body
    [:div "Invalid code. Please check and re-enter."
@@ -69,10 +69,9 @@
 (defn POST-verify
   {:parameters {:form [:map
                        [:code string?]]}}
-  [req]
-  (let [code (-> req :parameters :form :code)
-        secret (-> req :session :totp/secret)]
-    ;; if valid, store as credential with type="totp"
+  [{:keys [identity db session parameters] :as req}]
+  (let [code (-> parameters :form :code)
+        secret (-> session :totp/secret)]
     (if (totp/verify-code secret code)
       (verified-success req secret)
       (verified-failed req))))
