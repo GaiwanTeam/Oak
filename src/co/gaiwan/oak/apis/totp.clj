@@ -10,6 +10,7 @@
    [co.gaiwan.oak.lib.auth-middleware :as auth-mw]
    [co.gaiwan.oak.lib.form :as form]
    [co.gaiwan.oak.lib.totp :as totp]
+   [co.gaiwan.oak.html.totp :as html]
    [co.gaiwan.oak.util.routing :as routing]
    [co.gaiwan.oak.domain.credential :as credential]
    [co.gaiwan.oak.domain.identifier :as identifier]
@@ -27,14 +28,11 @@
     {:status 200
      :session (assoc session :totp/secret secret)
      :html/body
-     ;; move hiccup to co.gaiwan.oak.html.*
-     [:p "Set up TOTP here!"
-      [:img {:src
-             (totp/qrcode-data-url
-              {:secret secret
-               :label user-email
-               :issuer (config/get :application/name)})}]
-      [:a {:href (routing/url-for req :totp/verify)} "Continue"]]}))
+     (html/setup-page {:data-uri (totp/qrcode-data-url
+                                  {:secret secret
+                                   :label user-email
+                                   :issuer (config/get :application/name)})
+                       :next-uri (routing/url-for req :totp/verify)})}))
 
 (defn GET-verify [req]
   {:status 200
@@ -55,16 +53,15 @@
       {:status 200
        :session updated-session
        :html/body
-       [:div "Your authenticator device has been successfully linked."]}
+       (html/verify-success-page {:cred-save-success? true})}
       {:status 200
        :html/body
-       [:div "Encountering error when recording credentials"]})))
+       (html/verify-success-page {:cred-save-success? false})})))
 
 (defn verified-failed [req]
   {:status 200
    :html/body
-   [:div "Invalid code. Please check and re-enter."
-    [:a {:href (routing/url-for req :totp/verify)} "Continue"]]})
+   (html/verify-failed-page {:next-uri (routing/url-for req :totp/verify)})})
 
 (defn POST-verify
   {:parameters {:form [:map
