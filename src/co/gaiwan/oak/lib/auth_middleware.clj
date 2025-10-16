@@ -45,7 +45,7 @@
           [scheme token] (when auth-header (str/split auth-header #"\s+"))]
       (h
        (if-let [id (and (:identity session)
-                        (:identity/id (identity/find-one db {:id (:identity session)})))]
+                        (identity/find-one db {:id (:identity session)}))]
          (assoc req
                 :identity id
                 :auth-time (:auth-time session))
