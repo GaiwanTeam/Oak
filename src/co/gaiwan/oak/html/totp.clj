@@ -4,15 +4,6 @@
    [co.gaiwan.oak.lib.form :as form]
    [lambdaisland.ornament :as o]))
 
-(defn verify-failed-page [{:keys [next-uri]}]
-  [:div "Invalid code. Please check and re-enter."
-   [:a {:href next-uri} "Continue"]])
-
-(defn verify-success-page [{:keys [cred-save-success?]}]
-  (if cred-save-success?
-    [:div "Your authenticator device has been successfully linked."]
-    [:div "Encountering error when recording credentials"]))
-
 (o/defstyled next-link :a.call-to-action
   {:width            "100%"
    :padding          --size-2
@@ -52,6 +43,15 @@
      :color            --text-panel}]]
   ([content]
    content))
+
+(defn verify-failed-page [{:keys [next-uri]}]
+  [main-layout [:div "Invalid code. Please check and re-enter."
+                [next-link {:href next-uri} "Continue"]]])
+
+(defn verify-success-page [{:keys [cred-save-success?]}]
+  [main-layout (if cred-save-success?
+                 [:div "Your authenticator device has been successfully linked."]
+                 [:div "Encountering error when recording credentials"])])
 
 (defn setup-page
   ([{:keys [data-uri next-uri]}]
