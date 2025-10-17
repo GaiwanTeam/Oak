@@ -6,6 +6,7 @@
    [co.gaiwan.oak.app.config :as config]
    [co.gaiwan.oak.lib.ring-csp :as ring-csp]
    [co.gaiwan.oak.util.log :as log]
+   [lambdaisland.ornament :as o]
    [muuntaja.core :as muuntaja]
    [muuntaja.format.charred :as muuntaja-charred]
    [reitit.coercion.malli]
@@ -88,7 +89,11 @@
   ["" {}
    ["/ping" {:get (constantly {:status 200 :body "pong"})}]
    ["/styles.css" {:get (constantly {:status 200
-                                     :body (slurp (io/resource "oak/styles.css"))
+                                     :body (try
+                                             (slurp (io/resource "oak/styles.css"))
+                                             (catch Exception e
+                                               (require 'co.gaiwan.oak.html.styles)
+                                               (o/defined-styles)))
                                      :headers {"Content-Type" "text/css;charset=utf-8"}})}]])
 
 (defn component [{:keys [routes request-filters session-store]}]

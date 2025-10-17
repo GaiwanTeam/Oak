@@ -1,3 +1,4 @@
 {;; Set the secure flag on the cookie, making it exclusive to https requests
  :http-session/secure-cookie true
- :http/csp-policy "default-src 'self'; script-src 'self' 'nonce-random_value';"}
+ :http/csp-policy "default-src 'self'; script-src 'self' 'nonce-random_value';"
+ :html/inline-css false}

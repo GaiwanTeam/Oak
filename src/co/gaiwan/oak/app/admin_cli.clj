@@ -3,23 +3,27 @@
 
   Command line interface for various administrative tasks.
   "
+  (:gen-class)
   (:require
    [camel-snake-kebab.core :as csk]
    [charred.api :as json]
    [clojure.pprint :as pprint]
    [clojure.string :as str]
-   [co.gaiwan.oak.lib.cli-error-mw :as cli-error-mw]
    [co.gaiwan.oak.app.config :as config]
    [co.gaiwan.oak.domain.identity :as identity]
    [co.gaiwan.oak.domain.jwk :as jwk]
    [co.gaiwan.oak.domain.jwt :as jwt]
    [co.gaiwan.oak.domain.oauth-client :as oauth-client]
+   [co.gaiwan.oak.lib.cli-error-mw :as cli-error-mw]
    [co.gaiwan.oak.util.jose :as jose]
    [lambdaisland.cli :as cli])
   (:import
    (java.io StringWriter)))
 
-(set! *print-namespace-maps* false)
+(try
+  (set! *print-namespace-maps* false)
+  (catch Exception e
+    (alter-var-root #'*print-namespace-maps* (constantly false))))
 
 (def init {})
 
@@ -199,8 +203,30 @@
                                        (into {} (map (fn [[h k]] [h (get-col row k)])) columns)) data)))))
       res)))
 
+(defn run-cmd
+  "Start the Oak IAM server"
+  {:flags
+   ["--port=<port>"
+    {:doc "Set the HTTP port"
+     :handler (fn [opts port]
+                (swap! config/cli-opts assoc :http/port port)
+                (config/reload!))}]}
+  [_]
+  (config/start!)
+  @(promise))
+
+(defn show-config-cmd
+  "Give an overview of all configuration entries"
+  [_]
+  (config/load!)
+  (pprint/print-table
+   (for [[k {:keys [val source]}] (config/entries)]
+     {"key" k "value" val "source" source})))
+
 (def commands
-  ["jwk" jwk-commands
+  ["run" #'run-cmd
+   "show-config" #'show-config-cmd
+   "jwk" jwk-commands
    "oauth-client" oauth-client-commands
    "user" user-commands
    "token" token-commands])
