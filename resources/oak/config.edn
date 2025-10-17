@@ -9,6 +9,6 @@
  :http/csp-policy "default-src 'self'; script-src 'self' 'nonce-random_value'; img-src 'self' data:;"
  :oauth/access-token-exp-time-seconds 1800
  :openid/id-token-exp-time-seconds 300
- :html/inline-css false
+ :html/inline-css true
  :totp/hash-alg "SHA-512"
  :totp/secret-size 64}
