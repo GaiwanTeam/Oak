@@ -11,6 +11,8 @@
    :border-radius    --radius-2
    :font-size        "1rem"
    :font-weight      :bold
+   :text-align       :center
+   :text-decoration  :none
    :cursor           :pointer})
 
 (o/defstyled next-button :input.call-to-action
