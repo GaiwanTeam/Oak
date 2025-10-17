@@ -5,14 +5,13 @@
   ;; Application setup
   com.lambdaisland/config {:mvn/version "0.10.37"}
   com.lambdaisland/makina {:mvn/version "0.3.16"}
-  com.lambdaisland/cli    {:mvn/version "0.24.97"}
+  com.lambdaisland/cli    {:mvn/version "1.25.107"}
 
   ;; Logging
   com.lambdaisland/log4j2                  {:mvn/version "0.2.6"}
-  io.helidon.logging/helidon-logging-log4j {:mvn/version "4.3.1"}
 
   ;; HTTP
-  com.s-exp/hirundo                   {:mvn/version "0.1.43"}
+  ring/ring-jetty-adapter             {:mvn/version "1.15.2"}
   metosin/reitit-ring                 {:mvn/version "0.9.1"}
   metosin/reitit-middleware           {:mvn/version "0.9.1"}
   metosin/muuntaja                    {:mvn/version "0.6.11"}

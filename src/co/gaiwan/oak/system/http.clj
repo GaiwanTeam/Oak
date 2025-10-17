@@ -3,20 +3,21 @@
   (:require
    [co.gaiwan.oak.util.log :as log]
    [reitit.ring :as reitit-ring]
-   [s-exp.hirundo :as hirundo]))
+   [ring.adapter.jetty :as jetty]))
 
 (defn start [config]
   (log/info :http/starting {:port (:port config)})
   {:server
-   (hirundo/start!
-    {:http-handler (reitit-ring/ring-handler (:router config)
-                                             (reitit-ring/create-default-handler))
-     :host         (:host config)
-     :port         (:port config)})})
+   (jetty/run-jetty
+    (reitit-ring/ring-handler (:router config)
+                              (reitit-ring/create-default-handler))
+    {:host  (:host config)
+     :port  (:port config)
+     :join? false})})
 
 (def component
   {:start start
-   :stop (fn [o] (prn o) (hirundo/stop! (:server o)))})
+   :stop (fn [o] (prn o) (.stop (:server o)))})
 
 (comment
   (user/restart! :system/http))
