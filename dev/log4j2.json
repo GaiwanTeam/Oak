@@ -11,7 +11,7 @@
     },
     "loggers": {
       "logger": [
-        {"name": "io.helidon", "level": "info"},
+        {"name": "org.eclipse.jetty", "level": "info"},
         {"name": "io.methvin.watcher", "level": "info"},
         {"name": "org.eclipse.aether", "level": "info"},
         {"name": "org.apache.http", "level": "info"},

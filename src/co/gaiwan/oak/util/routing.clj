@@ -5,9 +5,12 @@
 
 (defn base-url [req]
   (let [{:keys [headers authority scheme host]} req
-        host (or (get headers "host") ;; HTTP 1.1
-                 authority)] ;; HTTP 2.0
-    (str (name scheme) "://" host)))
+        scheme (or (get headers "X-Forwarded-Proto") ;; behind proxy
+                   (name scheme))
+        host (or (get headers "X-Forwarded-Host")    ;; behind proxy
+                 (get headers "host")                ;; HTTP 1.1
+                 authority)]                         ;; HTTP 2.0
+    (str scheme "://" host)))
 
 (defn path-for
   ([req name]
