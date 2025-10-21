@@ -47,7 +47,8 @@
    content))
 
 (defn verify-failed-page [{:keys [next-uri]}]
-  [main-layout [:div "Invalid code. Please check and re-enter."
+  [main-layout [:div
+                [:p "Invalid code. Please check and re-enter."]
                 [next-link {:href next-uri} "Continue"]]])
 
 (defn verify-success-page [{:keys [cred-save-success?]}]
@@ -68,9 +69,12 @@
   [:label
    {:display       "block"
     :margin-bottom --size-2
-    :font-weight   :bold}]
+    :font-weight   600}]
   [:input
-   {:width "100%"}]
+   {:width "100%"}
+   [:&:focus
+    {:outline :none
+     :border-color --oak-green-5}]]
   ([props]
    [:<>
     [:label {:for (:id props)} (:label props)]
