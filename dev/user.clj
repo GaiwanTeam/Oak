@@ -25,3 +25,8 @@
 
 (defn restart! [& ks]
   ((requiring-resolve 'co.gaiwan.oak.app.config/restart!) ks))
+
+(defn browse []
+  ((requiring-resolve 'clojure.java.browse/browse-url)
+   (str "http://localhost:"
+        ((requiring-resolve 'co.gaiwan.oak.app.config/get) :http/port))))
