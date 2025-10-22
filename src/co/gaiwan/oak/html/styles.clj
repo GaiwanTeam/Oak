@@ -17,10 +17,13 @@
   [:footer
    {:position :absolute
     :bottom "1em"
-    :right "1em"}]
+    :right "1em"
+    :z-index "-1"
+    :color --text-subtle}]
 
   [#{"input[type=\"email\"]"
-     "input[type=\"password\"]"}
+     "input[type=\"password\"]"
+     "input[type=\"text\"]"}
    {:border-width  "1px"
     :border-style  "solid"
     :border-color  --border-input
@@ -31,6 +34,30 @@
   [:.call-to-action
    {:background-color --bg-call-to-action
     :color            --text-call-to-action
-    :transition       "background-color 0.2s ease"}
+    :border           (str "1px solid " --border-call-to-action)
+    :background-image (str "linear-gradient(to bottom, "
+                           --bg-call-to-action-light " 0%, "
+                           --bg-call-to-action" 100%)")
+    :box-shadow "/* Inner shadow for slight bevel/highlight effect */
+   inset 0 1px 0 rgba(255, 255, 255, 0.4),
+   /* Subtle outer shadow for lift */
+   0 4px 6px rgba(0, 0, 0, 0.2),
+   /* Darker shadow at the bottom for more depth */
+   0 1px 3px rgba(0, 0, 0, 0.4)"
+    :transition "background-color .1s ease, box-shadow .1s ease"}
    [:&:hover
-    {:background-color --bg-call-to-action-hover}]])
+    {:background-image (str "linear-gradient(to top, "
+                            --bg-call-to-action-light " 0%, "
+                            --bg-call-to-action " 100%)")
+     :box-shadow "inset 0 1px 0 rgba(255, 255, 255, 0.6),
+     0 6px 10px rgba(0, 0, 0, 0.3), /* Slightly larger shadow on hover */
+     0 1px 5px rgba(0, 0, 0, 0.5)"
+
+     :background-color --bg-call-to-action-hover}]
+
+   [:&:active
+    {:background-image --bg-call-to-action-dark
+     :box-shadow "inset 0 1px 3px rgba(0, 0, 0, 0.6), /* Strong inner shadow */
+    0 1px 1px rgba(0, 0, 0, 0.1) /* Very small outer shadow */"
+     :transform "translateY(1px)"}]
+   ])

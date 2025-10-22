@@ -88,13 +88,7 @@
 (defn fixed-routes []
   ["" {}
    ["/ping" {:get (constantly {:status 200 :body "pong"})}]
-   ["/styles.css" {:get (constantly {:status 200
-                                     :body (try
-                                             (slurp (io/resource "oak/styles.css"))
-                                             (catch Exception e
-                                               (require 'co.gaiwan.oak.html.styles)
-                                               (o/defined-styles)))
-                                     :headers {"Content-Type" "text/css;charset=utf-8"}})}]])
+   ])
 
 (defn component [{:keys [routes request-filters session-store]}]
   (let [request-filter (apply comp (keep :http/request-filter request-filters))

@@ -28,17 +28,14 @@
     {:status 200
      :session (assoc session :totp/secret secret)
      :html/body
-     (totp-html/setup-page {:data-uri (totp/qrcode-data-url
-                                       {:secret secret
-                                        :label user-email
-                                        :issuer (config/get :application/name)})
-                            :next-uri (routing/url-for req :totp/verify)})}))
+     [totp-html/setup-page
+      {:data-uri (totp/qrcode-data-url
+                  {:secret secret
+                   :label user-email
+                   :issuer (config/get :application/name)})
+       :next-uri (routing/url-for req :totp/verify)}]}))
 
-(defn GET-verify [req]
-  {:status 200
-   :html/body [totp-html/verify-form]})
-
-(defn verified-success
+(defn verification-success
   "Tell success, store secret as credential (upsert the record), remove the secret from
    the session"
   [{:keys [identity db session]} secret]
@@ -50,15 +47,15 @@
       {:status 200
        :session updated-session
        :html/body
-       (totp-html/verify-success-page {:cred-save-success? true})}
+       [totp-html/success-page {:cred-save-success? true}]}
       {:status 200
        :html/body
-       (totp-html/verify-success-page {:cred-save-success? false})})))
+       [totp-html/success-page {:cred-save-success? false}]})))
 
-(defn verified-failed [req]
+(defn verification-failed [req]
   {:status 200
    :html/body
-   (totp-html/verify-failed-page {:next-uri (routing/url-for req :totp/verify)})})
+   [totp-html/fail-page {:next-uri (routing/url-for req :totp/setup)}]})
 
 (defn POST-verify
   {:parameters {:form [:map
@@ -66,20 +63,18 @@
   [{:keys [identity db session parameters] :as req}]
   (let [code (-> parameters :form :code)
         secret (-> session :totp/secret)]
-    (if (totp/verify-code secret code)
-      (verified-success req secret)
-      (verified-failed req))))
+    (if (and code secret (totp/verify-code secret code))
+      (verification-success req secret)
+      (verification-failed req))))
 
 (defn component [opts]
   {:routes
    ["" {}
-    ["/totp" {:html/layout layout/layout
-              :middleware  [ring-csrf/wrap-anti-forgery
-                            auth-mw/wrap-session-auth
-                            auth-mw/wrap-enforce-login
-                            hiccup-mw/wrap-render]}
+    ["/2fa" {:html/layout layout/layout
+             :middleware  [ring-csrf/wrap-anti-forgery
+                           auth-mw/wrap-session-auth
+                           auth-mw/wrap-enforce-login
+                           hiccup-mw/wrap-render]}
      ["/setup" {:name        :totp/setup
-                :get         #'GET-setup}]
-     ["/verify" {:name :totp/verify
-                 :get #'GET-verify
-                 :post #'POST-verify}]]]})
+                :get         #'GET-setup
+                :post #'POST-verify}]]]})

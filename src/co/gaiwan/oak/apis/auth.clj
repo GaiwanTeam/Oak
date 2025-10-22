@@ -41,14 +41,13 @@
 
 (defn component [opts]
   {:routes
-   ["" {}
-    ["/auth" {}
-     ["/login" {:name :auth/login
-                :html/layout layout/layout
-                :middleware [ring-csrf/wrap-anti-forgery
-                             auth-mw/wrap-session-auth
-                             hiccup-mw/wrap-render]
-                :get #'GET-login
-                :post #'POST-login}]
-     ["/logout" {:name :auth/logout
-                 :get #'GET-logout}]]]})
+   ["/auth" {}
+    ["/login" {:name :auth/login
+               :html/layout layout/layout
+               :middleware [ring-csrf/wrap-anti-forgery
+                            auth-mw/wrap-session-auth
+                            hiccup-mw/wrap-render]
+               :get #'GET-login
+               :post #'POST-login}]
+    ["/logout" {:name :auth/logout
+                :get #'GET-logout}]]})

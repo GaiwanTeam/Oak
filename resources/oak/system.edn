@@ -9,7 +9,7 @@
   :request-filters [#makina/ref :system/database]}
 
  :system/database
- {:config {:url #config :db/url
+ {:config {:url      #config :db/url
            :username #config :db/username
            :password #config :db/password}}
 
@@ -23,10 +23,12 @@
  {:prepend #config :java.security.provider/prepend
   :append  #config :java.security.provider/append}
 
- :apis/jwks    {:makina/type :http/api}
- :apis/oauth   {:makina/type :http/api}
- :apis/openapi {:makina/type :http/api}
- :apis/auth    {:makina/type :http/api}
- :apis/oidc    {:makina/type :http/api}
- :apis/totp    {:makina/type :http/api}
+ :apis/assets    {:makina/type :http/api}
+ :apis/auth      {:makina/type :http/api}
+ :apis/dashboard {:makina/type :http/api}
+ :apis/jwks      {:makina/type :http/api}
+ :apis/oauth     {:makina/type :http/api}
+ :apis/oidc      {:makina/type :http/api}
+ :apis/openapi   {:makina/type :http/api}
+ :apis/totp      {:makina/type :http/api}
  }
