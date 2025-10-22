@@ -5,9 +5,6 @@
   "
   (:gen-class)
   (:require
-   [camel-snake-kebab.core :as csk]
-   [charred.api :as json]
-   [clojure.pprint :as pprint]
    [clojure.string :as str]
    [co.gaiwan.oak.app.config :as config]
    [co.gaiwan.oak.domain.identity :as identity]
@@ -15,7 +12,6 @@
    [co.gaiwan.oak.domain.jwt :as jwt]
    [co.gaiwan.oak.domain.oauth-client :as oauth-client]
    [co.gaiwan.oak.lib.cli-error-mw :as cli-error-mw]
-   [co.gaiwan.oak.util.jose :as jose]
    [lambdaisland.cli :as cli])
   (:import
    (java.io StringWriter)))
@@ -155,7 +151,7 @@
   [opts]
   (let [sub (:user-id opts)]
     (println
-     (jose/build-jwt
+     ((requiring-resolve 'co.gaiwan.oak.util.jose/build-jwt)
       (:jwk/full-key (jwk/default-key (db)))
       (jwt/access-token-claims {:issuer      (or (config/get :oak/origin)
                                                  (str "http://localhost:" (config/get :http/port)))
@@ -187,20 +183,20 @@
         (let [columns (or columns (distinct (mapcat #(for [k (keys %)] [(name k) k]) data)))]
           (cond
             (= "json" (:format opts))
-            (println (json/write-json-str (map #(update-keys % (comp csk/->snake_case name)) data)))
+            (println ((requiring-resolve 'charred.api/write-json-str) (map #(update-keys % (comp (requiring-resolve 'camel-snake-kebab.core/->snake_case) name)) data)))
 
             (= "csv" (:format opts))
             (let [w (StringWriter.)
                   ks (distinct (mapcat keys data))]
-              (json/write-csv w (cons ks
-                                      (map (apply juxt (map (fn [col] #(get-col % col)) ks)) data))
-                              {:close-writer? true})
+              ((requiring-resolve 'charred.api/write-csv) w (cons ks
+                                                                  (map (apply juxt (map (fn [col] #(get-col % col)) ks)) data))
+               {:close-writer? true})
               (println (.toString w)))
 
             :else
-            (pprint/print-table (map first columns)
-                                (map (fn [row]
-                                       (into {} (map (fn [[h k]] [h (get-col row k)])) columns)) data)))))
+            ((requiring-resolve 'clojure.pprint/print-table) (map first columns)
+             (map (fn [row]
+                    (into {} (map (fn [[h k]] [h (get-col row k)])) columns)) data)))))
       res)))
 
 (defn run-cmd
@@ -219,7 +215,7 @@
   "Give an overview of all configuration entries"
   [_]
   (config/load!)
-  (pprint/print-table
+  ((requiring-resolve 'clojure.pprint/print-table)
    (for [[k {:keys [val source]}] (config/entries)]
      {"key" k "value" val "source" source})))
 
