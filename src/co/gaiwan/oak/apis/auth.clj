@@ -4,6 +4,7 @@
    [clojure.java.io :as io]
    [co.gaiwan.oak.domain.identity :as identity]
    [co.gaiwan.oak.html.layout :as layout]
+   [co.gaiwan.oak.html.auth :as auth-html]
    [co.gaiwan.oak.html.login-page :as login-form]
    [co.gaiwan.oak.lib.auth-middleware :as auth-mw]
    [co.gaiwan.oak.util.routing :as routing]
@@ -28,11 +29,11 @@
        :session {:identity id
                  :auth-time (System/currentTimeMillis)}}
       {:status 200
-       :html/body [:p "Successfully authenticated"]
+       :html/body (auth-html/message "Successfully authenticated")
        :session {:identity id
                  :auth-time (System/currentTimeMillis)}})
     {:status 403
-     :html/body [:p "Invalid credentials"]}))
+     :html/body (auth-html/message "Invalid credentials")}))
 
 (defn GET-logout [req]
   {:status 302
