@@ -8,7 +8,7 @@ Rooted in Standards, Built to Last
 Start the application
 
 ```
-echo '{:launchpad/aliases [:dev :test] :launchpad/options {:go true}' > deps.local.edn
+echo '{:launchpad/aliases [:dev :test] :launchpad/options {:go true}}' > deps.local.edn
 bin/launchpad
 ```
 
