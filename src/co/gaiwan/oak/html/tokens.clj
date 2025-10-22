@@ -158,9 +158,12 @@
 (o/defprop --bg-interactive "Background for hover/active states on backgrounds." --gray-2)
 (o/defprop --bg-call-to-action "Call to action button background" --oak-green-10)
 (o/defprop --bg-call-to-action-hover "Call to action button hover state background" --oak-green-11)
+(o/defprop --bg-call-to-action-light "Call to action button lighter color" --oak-green-8)
+(o/defprop --bg-call-to-action-dark "Call to action button lighter color" --oak-green-12)
 
 (o/defprop --border-subtle "Faint lines, dividers, or subtle separators." --gray-4)
 (o/defprop --border-input "Border for form inputs" --gray-4)
+(o/defprop --border-call-to-action "Border for CTA buttons" --oak-green-12)
 
 (o/defprop --text-surface "Default text color for the main surface background." --gray-12)
 (o/defprop --text-panel "Text color used in layered panels; slightly less dominant than surface-text." --gray-8)
