@@ -31,6 +31,9 @@
     :padding       --size-2
     :font-size     "1rem"}]
 
+  [:a.subtle
+   {:color --text-subtle}]
+
   [:.call-to-action
    {:background-color --bg-call-to-action
     :color            --text-call-to-action
@@ -60,4 +63,6 @@
      :box-shadow "inset 0 1px 3px rgba(0, 0, 0, 0.6), /* Strong inner shadow */
     0 1px 1px rgba(0, 0, 0, 0.1) /* Very small outer shadow */"
      :transform "translateY(1px)"}]
+
+
    ])

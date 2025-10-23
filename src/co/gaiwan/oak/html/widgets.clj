@@ -19,6 +19,8 @@
             :transform "translate(1192.91 2194.93)"
             :fill "#4e765c"}]]))
 
+(o/defprop --card-width --size-fluid-10)
+
 (o/defstyled full-center-card :div
   "Visual 'card' with rounded corners and drop shadow. Becomes seamless at
   smaller screen sizes. Intended to only have one on the screen."
@@ -31,7 +33,7 @@
   [:>* {:margin-top 0
         :margin-bottom 0}]
   [:at-media {:min-width "40rem"}
-   {:max-width        --size-fluid-10
+   {:max-width        --card-width
     :border-radius    --radius-3
     :box-shadow       --shadow-2
     :background-color --bg-panel

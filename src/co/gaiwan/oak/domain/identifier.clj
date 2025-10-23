@@ -4,6 +4,7 @@
   Email, phone number, etc"
   (:require
    [clj-uuid :as uuid]
+   [clojure.string :as str]
    [co.gaiwan.oak.lib.db :as db]))
 
 (def attributes
@@ -14,13 +15,20 @@
    [:is_verified :boolean [:default false]]
    [:is_primary :boolean [:default false]]])
 
+(defn normalize-email [email]
+  (-> email
+      str/trim
+      str/lower-case))
+
 (defn create! [db opts]
   (db/insert!
    db :identifier
    {:id (or (:id opts) (uuid/v7))
     :identity_id (:identity-id opts)
     :type (:type opts)
-    :value (:value opts)
+    :value (if (= "email" (:type opts))
+             (normalize-email (:value opts))
+             (:value opts))
     :is_primary (boolean (:primary opts))}))
 
 (defn where-sql [{:keys [identity-id type value primary verified]}]
@@ -32,7 +40,9 @@
     (and type (not (coll? type)))
     (conj [:= :identifier.type type])
     value
-    (conj [:= :identifier.value value])
+    (conj [:= :identifier.value (if (= "email" type)
+                                  (normalize-email value)
+                                  value)])
     primary
     (conj [:= :identifier.is_primary primary])
     verified
@@ -54,4 +64,4 @@
   (db/execute-honey! db {:delete-from :identifier :where (where-sql opts)}))
 
 (comment
-  (find-one (user/db) {:type "email" :value "foo@bar.com"}))
+  (find-one (user/db) {:type "email" :value " Foo@bar.com"}))

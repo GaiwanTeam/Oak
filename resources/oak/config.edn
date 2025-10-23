@@ -12,4 +12,5 @@
  :html/inline-css                     true
  :totp/hash-alg                       "SHA-512"
  :totp/secret-size                    64
- :org/name                            "Oak"}
+ :org/name                            "Oak"
+ :password-reset/link-expiry-hours    24}

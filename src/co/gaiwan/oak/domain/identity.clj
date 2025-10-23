@@ -2,7 +2,6 @@
   "Identity entity, can be a human identity, or non-human identity"
   (:require
    [clj-uuid :as uuid]
-   [co.gaiwan.oak.app.config :as config]
    [co.gaiwan.oak.domain.credential :as credential]
    [co.gaiwan.oak.domain.identifier :as identifier]
    [co.gaiwan.oak.domain.oauth-authorization :as oauth-authorization]
@@ -21,20 +20,17 @@
 (defn create-user! [db {:keys [email password]}]
   (db/with-transaction [conn db]
     (let [ident (create! conn {:type "user"})
-          id    (:identity/id ident)
-          hsh   (password4j/hash-password
-                 password
-                 (keyword (config/get :password/hash-type)))]
+          id    (:identity/id ident)]
       (identifier/create!
        conn
        {:identity-id id
         :type        "email"
         :value       email
         :primary     true})
-      (credential/set-password-hash!
+      (credential/set-password!
        conn
        {:identity-id   id
-        :password-hash hsh})
+        :password password})
       ident)))
 
 (defn list-all [db]

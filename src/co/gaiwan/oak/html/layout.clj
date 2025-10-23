@@ -1,7 +1,7 @@
 (ns co.gaiwan.oak.html.layout
   (:require
    [co.gaiwan.oak.app.config :as config]
-   [co.gaiwan.oak.html.logo :as logo]
+   [co.gaiwan.oak.html.graphics :as g]
    [lambdaisland.ornament :as o]))
 
 (require 'co.gaiwan.oak.html.styles)
@@ -22,4 +22,4 @@
     body
     [:footer
      "Powered by"
-     [logo/logo]]]])
+     [g/logo]]]])

@@ -1,8 +1,9 @@
 (ns co.gaiwan.oak.html.login-page
   (:require
+   [co.gaiwan.oak.html.forms :as f]
    [co.gaiwan.oak.html.tokens :refer :all]
    [co.gaiwan.oak.html.widgets :as w]
-   [co.gaiwan.oak.html.forms :as f]
+   [co.gaiwan.oak.util.routing :as routing]
    [lambdaisland.ornament :as o]))
 
 (o/defstyled input-group :div
@@ -18,12 +19,17 @@
     [:label {:for (:id props)} (:label props)]
     [:input props]]))
 
+(o/defstyled forgot-password-link :a
+  {:text-align :right}
+  ([req]
+   [:<> {:href (routing/url-for req :auth/password-reset)} "Forgot password?"]))
+
 (o/defstyled login-html :main
   {:display         :flex
    :justify-content :center
    :align-items     :center
    :min-height      "100vh"}
-  ([]
+  ([req]
    [:<>
     [w/leaf-bg]
     [w/full-center-card
@@ -46,4 +52,5 @@
         :required     "required"
         :autocomplete "current-password"
         :placeholder  "Enter your password"}]
-      [f/submit {:type "submit" :value "Log In"}]]]]))
+      [f/submit {:type "submit" :value "Log In"}]]
+     [forgot-password-link req]]]))

@@ -1,4 +1,5 @@
-(ns co.gaiwan.oak.html.logo
+(ns co.gaiwan.oak.html.graphics
+  "SVGs"
   (:require
    [co.gaiwan.oak.html.tokens :refer :all]
    [lambdaisland.ornament :as o]))
@@ -32,5 +33,23 @@
             :stroke-width ".23875"
             :stroke-linecap "round"
             :stroke-dasharray "none"
-            :stroke-opacity "1"}]])
-  )
+            :stroke-opacity "1"}]]))
+
+(o/defstyled envelope :svg
+  ([]
+   [:<> {:xmlns "http://www.w3.org/2000/svg" :width "178.057" :height "93.773" :viewBox "0 0 47.111 24.811"}
+    [:path {:d "M81.862 136.512h46.276v23.976H81.862Z"
+            :transform "translate(-81.445 -136.095)"
+            :stroke-width ".835144"
+            :stroke-linecap "round"
+            :stroke-linejoin "round"}]
+    [:path {:d "M81.872 159.18v1.258h46.21v-1.258l-23.105-12.422z"
+            :transform "translate(-81.445 -136.095)"
+            :stroke-width ".854598"
+            :stroke-linecap "round"
+            :stroke-linejoin "round"}]
+    [:path {:d "M81.944 136.565v1.659L105 150.239l23.056-12.016v-1.658z"
+            :transform "translate(-81.445 -136.095)"
+            :stroke-width ".867602"
+            :stroke-linecap "round"
+            :stroke-linejoin "round"}]]))

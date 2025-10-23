@@ -4,7 +4,8 @@
   (:require
    [clj-uuid :as uuid]
    [co.gaiwan.oak.app.config :as config]
-   [co.gaiwan.oak.lib.db :as db]))
+   [co.gaiwan.oak.lib.db :as db]
+   [co.gaiwan.oak.lib.password4j :as password4j]))
 
 (set! *warn-on-reflection* true)
 
@@ -12,68 +13,84 @@
   [[:id :uuid [:primary-key]]
    [:identity_id :uuid [:references [:identity :id]] [:not nil]]
    [:type :text [:not nil]]
-   [:value :text [:not nil]]])
+   [:value :text [:not nil]]
+   [:expires_at :timestamptz]])
 
-(defn create! [db {:keys [id identity-id type value] :as opts}]
+(def type-password "password")
+(def type-password-reset-nonce "password_reset_nonce")
+(def type-totp "Time-base one time password" "totp")
+
+(defn create! [db {:keys [id identity-id type value expires-at] :as opts}]
   (db/insert!
    db
    :credential
-   {:id (uuid/v7)
-    :identity_id identity-id
-    :type type
-    :value value}))
+   (cond-> {:id (uuid/v7)
+            :identity_id identity-id
+            :type type
+            :value value}
+     expires-at
+     (assoc :expires_at expires-at))))
 
-(defn get-hash [db identity-id type]
-  (:credential/value
-   (first (db/execute-honey! db {:select [:value]
-                                 :from :credential
-                                 :where [:and
-                                         [:= :identity_id identity-id]
-                                         [:= :type type]]}))))
+(defn where-sql [{:keys [id identity-id type value expired]}]
+  (cond-> [:and]
+    id
+    (conj [:= :credential.id id])
+    identity-id
+    (conj [:= :credential.identity_id identity-id])
+    (coll? type)
+    (conj [:in :credential.type type])
+    (and type (not (coll? type)))
+    (conj [:= :credential.type type])
+    value
+    (conj [:= :credential.value value])
+    (not expired)
+    (conj [:or
+           [:= :credential.expires_at nil]
+           [:< :%now :credential.expires_at]])))
 
-(defn get-password-hash [db identity-id]
-  (get-hash db identity-id "password"))
-
-(defn set-password-hash!
-  "Set the password hash for a identity/user, creating a new credential, or
-  updating the existing one."
-  [db {:keys [identity-id password-hash]}]
-  (db/with-transaction [conn db]
-    (db/execute-honey!
-     conn
-     (if (get-password-hash conn identity-id)
-       {:update :credential
-        :set {:value password-hash}
-        :where [:and
-                [:= :identity_id identity-id]
-                [:= :type "password"]]}
-       {:insert-into [:credential],
-        :columns [:id :identity_id :type :value],
-        :values
-        [[(uuid/v7)
-          identity-id
-          "password"
-          password-hash]]}))))
-
-(defn delete! [db {:keys [identity-id]}]
-  (db/execute-honey! db {:delete-from :credential :where [:= identity-id :identity_id]}))
-
-(defn find-one [db identity-id type]
+(defn find-one [db opts]
   (first (db/execute-honey! db {:select [:*]
                                 :from :credential
-                                :where [:and
-                                        [:= :identity_id identity-id]
-                                        [:= :type type]]})))
+                                :where (where-sql opts)})))
 
-(defn update! [db {:keys [id identity-id type value] :as opts}]
+(defn set-password!
+  "Set the password hash for a identity/user, creating a new credential, or
+  updating the existing one."
+  [db {:keys [identity-id password]}]
+  (let [hsh (password4j/hash-password
+             password
+             (keyword (config/get :password/hash-type)))]
+    (db/with-transaction [conn db]
+      (db/execute-honey!
+       conn
+       (if-let [id (:credential/id (find-one db {:identity-id identity-id
+                                                 :type "password"}))]
+         {:update :credential
+          :set {:value hsh}
+          :where [:and
+                  [:= :id id]
+                  [:= :type "password"]]}
+         {:insert-into [:credential]
+          :columns [:id :identity_id :type :value]
+          :values
+          [[(uuid/v7)
+            identity-id
+            "password"
+            hsh          ]]})))))
+
+(defn delete! [db opts]
+  (db/execute-honey! db {:delete-from :credential :where (where-sql opts)}))
+
+(defn update! [db {:keys [id identity-id type value expires-at] :as opts}]
   (db/execute-honey! db {:update :credential
-                         :set {:identity_id identity-id
-                               :type type
-                               :value value}
+                         :set (cond-> {:identity_id identity-id
+                                       :type type
+                                       :value value}
+                                expires-at (assoc :expires_at expires-at))
                          :where [:= id :id]}))
 
 (defn create-or-update! [db {:keys [id identity-id type value] :as opts}]
-  (if-let [record (find-one db identity-id type)]
+  (if-let [record (find-one db opts)]
     (update! db (assoc opts :id (:credential/id record)))
     (create! db opts)))
 
@@ -104,5 +121,4 @@
   (get-hash (user/db) tmp-uuid "totp")
   (get-hash (user/db) tmp-uuid "password")
   (get-password-hash (user/db) tmp-uuid)
-  (set-password-hash! (user/db) tmp-uuid
-                      (hash-password "bar" (keyword (config/get :password/hash-type)))))
+)

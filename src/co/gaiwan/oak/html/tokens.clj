@@ -190,7 +190,6 @@
      ;; Text & Icons (Inverted Grays)
      --text-surface  --gray-2
      --text-panel    --gray-1
-     --text-subtle   --gray-6
      --text-inverted --gray-12
 
      ;; Status & Action (Lighter Hues to Pop on Dark BG)

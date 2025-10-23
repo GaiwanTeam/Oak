@@ -18,3 +18,6 @@
   should be a multiple of 8."
   [bits]
   (bigint/bigint->base62 (random-bigint bits)))
+
+(comment
+  (secure-base62-str 400))
