@@ -8,7 +8,7 @@
    [co.gaiwan.oak.app.config :as config]
    [co.gaiwan.oak.html.layout :as layout]
    [co.gaiwan.oak.lib.auth-middleware :as auth-mw]
-   [co.gaiwan.oak.lib.form :as form]
+   [co.gaiwan.oak.html.forms :as form]
    [co.gaiwan.oak.lib.totp :as totp]
    [co.gaiwan.oak.html.totp :as totp-html]
    [co.gaiwan.oak.util.routing :as routing]

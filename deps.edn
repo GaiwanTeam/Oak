@@ -41,7 +41,11 @@
   org.clj-commons/pretty    {:mvn/version "3.6.7"}
   com.lambdaisland/hiccup   {:mvn/version "0.14.67"}
   lambdaisland/uri          {:mvn/version "1.19.155"}
-  com.lambdaisland/ornament {:mvn/version "1.17.150"}}
+  com.lambdaisland/ornament {:mvn/version "1.17.150"}
+
+  ;; Email
+  toyokumo/tarayo {:mvn/version "0.2.7"}
+  }
 
  :aliases
  {:dev
