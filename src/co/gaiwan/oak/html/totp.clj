@@ -3,7 +3,7 @@
    [co.gaiwan.oak.html.forms :as f]
    [co.gaiwan.oak.html.tokens :refer :all]
    [co.gaiwan.oak.html.widgets :as w]
-   [co.gaiwan.oak.lib.form :as form]
+   [co.gaiwan.oak.html.forms :as form]
    [lambdaisland.ornament :as o]))
 
 (o/defstyled totp-layout :div

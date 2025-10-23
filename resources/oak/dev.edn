@@ -4,4 +4,8 @@
  :db/password "oak"
 
  :http/csp-policy "default-src 'self'; script-src 'self' 'nonce-random_value'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;"
+
+ :email/smtp-host "127.0.0.1"
+ :email/smtp-port 2525
+ :email/from "oak@example.com"
  }

@@ -204,3 +204,8 @@
      --shadow-color-strong "rgba(255, 255, 255, 0.1)"
 
      }]))
+
+(defn prop-default-val [prop]
+  (if-let [v (:default prop)]
+    (recur v)
+    prop))

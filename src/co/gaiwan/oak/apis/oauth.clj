@@ -11,7 +11,7 @@
    [co.gaiwan.oak.domain.scope :as scope]
    [co.gaiwan.oak.lib.auth-middleware :as auth-mw]
    [co.gaiwan.oak.lib.debug-middleware :as debug]
-   [co.gaiwan.oak.lib.form :as form]
+   [co.gaiwan.oak.html.forms :as f]
    [co.gaiwan.oak.util.hash :as hash]
    [co.gaiwan.oak.util.jose :as jose]
    [co.gaiwan.oak.util.log :as log]
@@ -43,7 +43,7 @@
      [:ul
       (for [s requested-scopes]
         [:li (scope/desc s)])]
-     [form/form {:method "post"}
+     [f/form {:method "post"}
       [:input {:type "hidden", :name "client_id", :value client_id}]
       [:input {:type "hidden", :name "redirect_uri", :value redirect_uri}]
       [:input {:type "hidden", :name "response_type", :value response_type}]
