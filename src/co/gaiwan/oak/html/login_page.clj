@@ -19,7 +19,7 @@
     [:label {:for (:id props)} (:label props)]
     [:input props]]))
 
-(o/defstyled forgot-password-link :a
+(o/defstyled forgot-password-link :a.subtle
   {:text-align :right}
   ([req]
    [:<> {:href (routing/url-for req :auth/password-reset)} "Forgot password?"]))
@@ -36,14 +36,14 @@
      [:h1 "Login"]
      [f/form {:method "POST"}
       [f/input-group
-       {:label            "Email address"
-        :id               "email"
-        :type             "email"
-        :name             "email"
-        :required         "required"
-        :autocomplete     "username"
-        :placeholder      "you@example.com"
-        :aria-describedby "email-help"}]
+       {:label        "Email address"
+        :id           "email"
+        :type         "email"
+        :name         "email"
+        :required     "required"
+        :autocomplete "username"
+        :placeholder  "you@example.com"
+        :autofocus    "autofocus"}]
       [f/input-group
        {:id           "password"
         :label        "Password"

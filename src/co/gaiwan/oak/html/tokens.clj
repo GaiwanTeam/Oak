@@ -8,12 +8,12 @@
 
 (o/defprop --white "#fff")
 (o/defprop --gray-0 "#f8f9fa")
-(o/defprop --gray-1 "#f1f3f5")
-(o/defprop --gray-2 "#e9ecef")
-(o/defprop --gray-3 "#dee2e6")
-(o/defprop --gray-4 "#ced4da")
-(o/defprop --gray-5 "#adb5bd")
-(o/defprop --gray-6 "#868e96")
+(o/defprop --gray-1 "#dee2e6")
+(o/defprop --gray-2 "#ced4da")
+(o/defprop --gray-3 "#adb5bd")
+(o/defprop --gray-4 "#9AA2AA")
+(o/defprop --gray-5 "#868e96")
+(o/defprop --gray-6 "#686F77")
 (o/defprop --gray-7 "#495057")
 (o/defprop --gray-8 "#343a40")
 (o/defprop --gray-9 "#212529")
@@ -22,6 +22,7 @@
 (o/defprop --gray-12 "#030507")
 (o/defprop --black "#000")
 
+(o/defprop --oak-green-00 "#F6FBEE")
 (o/defprop --oak-green-0 "#f4fde2")
 (o/defprop --oak-green-1 "#E6F2D7")
 (o/defprop --oak-green-2 "#D8E7CC")
@@ -35,6 +36,7 @@
 (o/defprop --oak-green-10 "#688F74")
 (o/defprop --oak-green-11 "#5A8469")
 (o/defprop --oak-green-12 "#4e765c")
+(o/defprop --oak-green-13 "#24312D")
 
 (o/defprop --blue-0 "#e7f5ff")
 (o/defprop --blue-1 "#d0ebff")
@@ -153,7 +155,7 @@
 
 ;; Semantic tokens
 
-(o/defprop --bg-surface "The main background of the page/app." --gray-2)
+(o/defprop --bg-surface "The main background of the page/app." --oak-green-00)
 (o/defprop --bg-panel "Background for layered elements (e.g., cards, panels)." --white)
 (o/defprop --bg-interactive "Background for hover/active states on backgrounds." --gray-2)
 (o/defprop --bg-call-to-action "Call to action button background" --oak-green-10)
@@ -173,16 +175,23 @@
 
 (o/defprop --action-primary "Main button/link color." --blue-6)
 (o/defprop --status-success "Background/icon for positive feedback." --oak-green-6)
-(o/defprop --status-error "Background/icon for negative feedback or errors." --red-6)
+(o/defprop --status-error "Background/icon for negative feedback or errors." --red-8)
 (o/defprop --status-warning "Background/icon for caution or warnings." --yellow-7)
 (o/defprop --status-info "Background/icon for informational messages." --blue-6)
+
+(o/defprop --button-color --gray-10) ;; will need adjusting, placeholder but used in cta button
+(o/defprop --button-color-light --gray-10) ;; will need adjusting, placeholder but used in cta button
+(o/defprop --button-color-dark --gray-10) ;; will need adjusting, placeholder but used in cta button
+(o/defprop --button-color-hover --gray-10) ;; will need adjusting, placeholder but used in cta button
+(o/defprop --button-border --gray-10) ;; will need adjusting, placeholder but used in cta button
+(o/defprop --text-button --gray-0)
 
 (o/defrules dark-mode-tokens
   (gs/at-media
    {:prefers-color-scheme 'dark}
    [":where(html)"
     {;; Interface & Backgrounds (Inverted Grays)
-     --bg-surface     --gray-11
+     --bg-surface     --gray-12
      --bg-panel       --gray-8
      --bg-interactive --gray-11
      --border-subtle  --gray-7
@@ -191,11 +200,12 @@
      --text-surface  --gray-2
      --text-panel    --gray-1
      --text-inverted --gray-12
+     --text-subtle   --gray-4
 
      ;; Status & Action (Lighter Hues to Pop on Dark BG)
      --action-primary --blue-4
      --status-success --oak-green-4
-     --status-error   --red-4
+     --status-error   --red-9
      --status-warning --yellow-4
      --status-info    --blue-4
 

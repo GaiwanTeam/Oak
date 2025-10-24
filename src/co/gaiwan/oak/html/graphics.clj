@@ -36,20 +36,78 @@
             :stroke-opacity "1"}]]))
 
 (o/defstyled envelope :svg
+  [:path
+   {:fill "none"
+    :stroke-width 1.8
+    :stroke-linecap "round"
+    :stroke-linejoin "round"}]
   ([]
-   [:<> {:xmlns "http://www.w3.org/2000/svg" :width "178.057" :height "93.773" :viewBox "0 0 47.111 24.811"}
-    [:path {:d "M81.862 136.512h46.276v23.976H81.862Z"
-            :transform "translate(-81.445 -136.095)"
-            :stroke-width ".835144"
-            :stroke-linecap "round"
-            :stroke-linejoin "round"}]
-    [:path {:d "M81.872 159.18v1.258h46.21v-1.258l-23.105-12.422z"
-            :transform "translate(-81.445 -136.095)"
-            :stroke-width ".854598"
-            :stroke-linecap "round"
-            :stroke-linejoin "round"}]
-    [:path {:d "M81.944 136.565v1.659L105 150.239l23.056-12.016v-1.658z"
-            :transform "translate(-81.445 -136.095)"
-            :stroke-width ".867602"
-            :stroke-linecap "round"
-            :stroke-linejoin "round"}]]))
+   [:<> {:xmlns "http://www.w3.org/2000/svg" :width "179" :height "100" :viewBox "0 0 47.361 26.459"}
+    [:path {:d "M.76.76H46.6v24.938H.76Z"}]
+    [:path {:d "M.842 1.99 23.68 15.039 46.52 1.99" :stroke-dasharray "none"}]
+    [:path {:d "M46.545 24.888 26.79 13.261l-3.11 1.777-3.133-1.79L.77 24.888"}]]))
+
+(o/defstyled checkmark :svg
+  [:circle {:fill --oak-green-11}]
+  [:path {:stroke --white
+          :fill "none"
+          :stroke-width 3.7}]
+  ([]
+   [:<> {:xmlns "http://www.w3.org/2000/svg" :width "100" :height "100" :viewBox "0 0 26.458 26.459"}
+    [:circle {:cx "13.229" :cy "13.229" :r "13.229"}]
+    [:path {:d "m5.777 13.52 4.486 4.487L20.681 7.589"}]]))
+
+(o/defstyled error-cross :svg
+  [:circle {:fill --status-error}]
+  [:path {:stroke --gray-0}]
+  ([]
+   [:<>
+    {:xmlns "http://www.w3.org/2000/svg" :width "100" :height "100" :viewBox "0 0 26.458 26.459"}
+    [:circle {:r "13.229" :cx "13.229" :cy "13.229"}]
+    [:path {:d "m7.005 19.454 12.449-12.45m0 12.45L7.004 7.004" :stroke-width "3.23904"}]]))
+
+(o/defstyled circle-bang :svg
+  [:circle {:stroke --status-error}]
+  [:path {:fill --status-error}]
+  ([]
+   [:<> {:xmlns "http://www.w3.org/2000/svg" :width "100" :height "100" :viewBox "0 0 26.458 26.459"}
+    [:circle {:r "12.113" :fill "none" :stroke-width "2.23284" :cx "13.229" :cy "13.229"}]
+    [:path
+     {:transform "translate(-1.264 -4.498)scale(1.1809)"
+      :d "m11.209 16.87-.467-8.737h3.08l-.467 8.736zm1.064 5.02q-.728 0-1.214-.503-.485-.504-.485-1.214 0-.746.485-1.232.486-.504 1.214-.504.746 0 1.213.504.485.486.485 1.232 0 .71-.485 1.214-.467.504-1.213.504"
+      :aria-label "!"}]]))
+
+
+(o/defstyled eye :svg
+  [:>* {:stroke --gray-3
+        :fill "none"
+        :stroke-linejoin "round"
+        :stroke-linecap "round"
+        :stroke-width 1.8}]
+  ([]
+   [:<>
+    {:xmlns "http://www.w3.org/2000/svg"
+     :width "100"
+     :height "60"
+     :viewBox "0 0 26.458 15.875"}
+    [:path {:d "M.549 7.938c3.338 4.015 7.615 7.388 12.68 7.388s9.524-3.376 12.68-7.388C22.732 4.048 18.295.548 13.23.549S3.89 4.067.55 7.938"}]
+    [:ellipse {:rx "4.052" :cx "13.229" :cy "7.938" :ry "4.16"}]]))
+
+(o/defstyled eye-closed :svg
+  [:path {:fill --gray-3
+          :stroke "none"}]
+  [:.dash {:stroke --gray-3
+           :stroke-linecap "round"
+           :stroke-width 1.2}]
+  ([]
+   [:<>
+    {:xmlns "http://www.w3.org/2000/svg"
+     :width "100"
+     :height "80"
+     :viewBox "0 0 26.458 21.167"}
+    [:path
+     {:d "m12.168 16.812-.582 1.474q.806.11 1.644.11c5.319 0 9.874-3.437 13.062-7.42a.78.766 0 0 0-.01-.958c-2.309-2.778-5.306-5.405-8.8-6.653l-.57 1.442c2.934 1.058 5.573 3.248 7.71 5.701-2.975 3.527-6.974 6.358-11.392 6.358q-.537 0-1.062-.054m2.779-14.081a12 12 0 0 0-1.717-.122C7.896 2.609 3.532 6.196.19 10a.78.766 0 0 0-.01.992c2.426 2.867 5.392 5.464 8.863 6.678l.569-1.438c-2.917-1.024-5.518-3.188-7.757-5.725 3.138-3.443 6.98-6.37 11.375-6.37q.572.001 1.135.065z"}]
+    [:path
+     {:d "m13.38 13.746-.598 1.514q.221.022.448.022c2.63 0 4.757-2.16 4.757-4.78a4.79 4.79 0 0 0-1.836-3.766l-.602 1.523c.545.58.88 1.367.88 2.243 0 1.762-1.354 3.165-3.049 3.244m.373-7.994a5 5 0 0 0-.523-.029c-2.63 0-4.758 2.16-4.758 4.78 0 1.55.745 2.938 1.897 3.813l.598-1.512a3.26 3.26 0 0 1-.936-2.302c0-1.789 1.396-3.208 3.128-3.246z"}]
+    [:path.dash
+     {:d "M17.24.604 9.356 20.562"}]]))

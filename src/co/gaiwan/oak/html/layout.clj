@@ -2,6 +2,7 @@
   (:require
    [co.gaiwan.oak.app.config :as config]
    [co.gaiwan.oak.html.graphics :as g]
+   [co.gaiwan.oak.lib.ring-csp :as csp]
    [lambdaisland.ornament :as o]))
 
 (require 'co.gaiwan.oak.html.styles)
@@ -22,4 +23,5 @@
     body
     [:footer
      "Powered by"
-     [g/logo]]]])
+     [g/logo]]
+    ]])

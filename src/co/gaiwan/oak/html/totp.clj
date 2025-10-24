@@ -43,7 +43,7 @@
   ([{:keys [data-uri next-uri]}]
    [totp-layout
     [:h1 "Set up 2FA"]
-    [:p "Use a 2FA app to scan the QR code, then provide the 6-digit code it generates."]
+    [:p#totp-desc "Use a 2FA app to scan the QR code, then provide the 6-digit code it generates."]
     [qr-img {:src data-uri}]
     [f/form {:method "POST"}
      [f/input-group
@@ -52,5 +52,6 @@
        :type             "text"
        :name             "code"
        :required         "required"
-       :aria-describedby "2FA code"}]
+       :aria-describedby "totp-desc"
+       :autofocus        true}]
      [f/submit {:type "submit" :value "Enable 2FA"}]]]))

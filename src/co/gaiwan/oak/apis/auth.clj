@@ -65,20 +65,20 @@
   (let [email (-> parameters :form :email)
         expiry-hours (config/get :password-reset/link-expiry-hours)
         org-name (config/get :org/name)]
-    ;; (future)
-    (when-let [{:identifier/keys [identity-id]} (identifier/find-one db {:type "email" :value email})]
-      (let [nonce (random/secure-base62-str 400)]
-        (credential/create! db {:identity-id identity-id
-                                :type credential/type-password-reset-nonce
-                                :value nonce
-                                :expires-at (.plus (Instant/now) expiry-hours ChronoUnit/HOURS)})
-        (email/send! {:to email
-                      :subject (str "Your " org-name " password reset link")
-                      :html (email-views/reset-html
-                             {:name email
-                              :org-name org-name
-                              :reset-link (routing/url-for req :auth/submit-password-reset {:nonce nonce})
-                              :expiry-hours expiry-hours})})))
+    (future
+      (when-let [{:identifier/keys [identity-id]} (identifier/find-one db {:type "email" :value email})]
+        (let [nonce (random/secure-base62-str 400)]
+          (credential/create! db {:identity-id identity-id
+                                  :type credential/type-password-reset-nonce
+                                  :value nonce
+                                  :expires-at (.plus (Instant/now) expiry-hours ChronoUnit/HOURS)})
+          (email/send! {:to email
+                        :subject (str "Your " org-name " password reset link")
+                        :html (email-views/reset-html
+                               {:name email
+                                :org-name org-name
+                                :reset-link (routing/url-for req :auth/submit-password-reset {:nonce nonce})
+                                :expiry-hours expiry-hours})}))))
     {:status 200
      :html/body [views/password-reset-requested req {:email email
                                                      :expiry-hours expiry-hours}]
@@ -99,10 +99,10 @@
   [{:keys [parameters db] :as req}]
   (if-let [{:keys [email]} (resolve-nonce db (-> parameters :path :nonce))]
     {:status 200
-     :html/body [views/password-reset-form req {:email email}]}
-    ;; TODO clean up this response
+     :html/body [views/password-reset-form req {:email email
+                                                :minlength (config/get :password/min-length)}]}
     {:status 400
-     :html/body [:p "Invalid or expired link"]}))
+     :html/body [views/error-page req "Invalid or expired link"]}))
 
 (defn POST-submit-password-reset
   {:parameters
@@ -110,19 +110,39 @@
     :form {:password string?
            :confirm-password string?}}}
   [{:keys [parameters db] :as req}]
-  (if-let [{:keys [nonce-id identity-id]} (resolve-nonce db (-> parameters :path :nonce))]
-    (let [{:keys [password confirm-password]} (:form parameters)]
-      (if (= password confirm-password)
+  (if-let [{:keys [nonce-id identity-id email]} (resolve-nonce db (-> parameters :path :nonce))]
+    (let [{:keys [password confirm-password]} (:form parameters)
+          min-len (config/get :password/min-length)]
+      (cond
+        (not= password confirm-password)
+        {:status 400
+         :html/body
+         [views/password-reset-form req
+          {:email email
+           :minlength min-len
+           :password password
+           :confirm-password confirm-password
+           :confirm-error "Passwords do not match"}]}
+
+        (< (count password) min-len)
+        {:status 400
+         :html/body
+         [views/password-reset-form req
+          {:email email
+           :minlength min-len
+           :password password
+           :confirm-password confirm-password
+           :password-error (str "Passwords should be at least " min-len " characters")}]}
+
+        :else
         (do
           (db/with-transaction [conn db]
             (credential/delete! conn {:id nonce-id})
             (credential/set-password! conn {:identity-id identity-id :password password}))
           {:status 200
-           :html/body [:p "Password updated"]})))
-    ;; TODO clean up this response
+           :html/body [views/password-reset-success req]})))
     {:status 400
-     :html/body [:p "Invalid or expired link"]})
-  )
+     :html/body [views/error-page req "Invalid or expired link"]}))
 
 (defn component [opts]
   {:routes

@@ -51,6 +51,7 @@
   `:html`, which will automatically extract text to create a html+plain-text
   multipart email."
   [msg]
+  ;; TODO: log mails and errors
   (with-open [conn (smtp/connect (smtp-config))]
     (smtp/send!
      conn
