@@ -2,6 +2,7 @@
   "OAuth 2.1 authorization and token exchange"
   (:require
    [clojure.string :as str]
+   [co.gaiwan.oak.domain.identity :as identity]
    [co.gaiwan.oak.domain.jwk :as jwk]
    [co.gaiwan.oak.domain.jwt :as jwt]
    [co.gaiwan.oak.domain.oauth-authorization :as oauth-authorization]
@@ -9,9 +10,9 @@
    [co.gaiwan.oak.domain.oauth-code :as oauth-code]
    [co.gaiwan.oak.domain.refresh-token :as refresh-token]
    [co.gaiwan.oak.domain.scope :as scope]
+   [co.gaiwan.oak.html.layout :as layout]
+   [co.gaiwan.oak.html.oauth :as views]
    [co.gaiwan.oak.lib.auth-middleware :as auth-mw]
-   [co.gaiwan.oak.lib.debug-middleware :as debug]
-   [co.gaiwan.oak.html.forms :as f]
    [co.gaiwan.oak.util.hash :as hash]
    [co.gaiwan.oak.util.jose :as jose]
    [co.gaiwan.oak.util.log :as log]
@@ -19,45 +20,10 @@
    [lambdaisland.hiccup.middleware :as hiccup-mw]
    [lambdaisland.uri :as uri]))
 
-(defn auth-error-html [extra-info]
-  [:<>
-   [:h1 "Oh no! Something went wrong."]
-   [:hr]
-   [:p "It looks like the link you clicked to sign in isn't quite right. Don't worry, this is usually a simple fix."]
-   [:p "The application you're trying to use did not pass along all information needed to let you log in. This could be because of a broken link or a typo."]
-   [:p "What you can do:"
-    [:ul
-     [:li "Head back to the application and try clicking the sign-in button again."]
-     [:li "If the issue continues, please reach out to the application's support team. They'll know exactly what to do!"]]]
-   [:p "We apologize for the inconvenience!"]
-   [:hr]
-   [:details
-    [:summary "Technical information"]
-    extra-info]])
-
-(defn permission-dialog-html [oauth-client requested-scopes params]
-  (let [{:keys [client_id redirect_uri response_type scope state code_challenge code_challenge_method]} params]
-    [:<>
-     [:p (:oauth-client/client-name oauth-client) " wants to access your account."]
-     [:p "This will allow " (:oauth-client/client-name oauth-client) " to:"]
-     [:ul
-      (for [s requested-scopes]
-        [:li (scope/desc s)])]
-     [f/form {:method "post"}
-      [:input {:type "hidden", :name "client_id", :value client_id}]
-      [:input {:type "hidden", :name "redirect_uri", :value redirect_uri}]
-      [:input {:type "hidden", :name "response_type", :value response_type}]
-      [:input {:type "hidden", :name "scope", :value scope}]
-      [:input {:type "hidden", :name "code_challenge", :value code_challenge}]
-      [:input {:type "hidden", :name "code_challenge_method", :value code_challenge_method}]
-      (when state [:input {:type "hidden", :name "state", :value state}])
-      [:button {:type "submit", :name "allow", :value "true"} "Allow"]
-      [:button {:type "submit", :name "allow", :value "false"} "Cancel"]]]))
-
 (defn error-html-response [message]
   {:status 400
    :html/head [:title "Something went wrong"]
-   :html/body [auth-error-html message]})
+   :html/body [views/auth-error-html message]})
 
 (defn error-redirect-response [redirect-uri kvs]
   {:status 302
@@ -124,7 +90,7 @@
   "Ask the user permission for the requested scopes"
   [oauth-client scope params]
   {:status 200
-   :html/body [permission-dialog-html oauth-client (str/split scope #"\s+") params]})
+   :html/body [views/permission-dialog-html oauth-client (str/split scope #"\s+") params]})
 
 (defn authorize-response
   "Happy path, store a code for later token exchange, and send the user back to
@@ -243,6 +209,7 @@
             ;; Look up the authorization code
             (if-let [code-entity (oauth-code/find-one db {:code code :client-uuid client-uuid})]
               (let [{:oauth-code/keys [identity-id scope code-challenge code-challenge-method]} code-entity
+                    identity (identity/find-one db {:id identity-id})
                     code-verifier-valid? (when (= code-challenge-method "S256")
                                            (and code_verifier
                                                 (= code-challenge (hash/sha256-base64url code_verifier))))]
@@ -260,11 +227,15 @@
                         at-claims (jwt/access-token-claims claim-opts)
                         access-token (jose/build-jwt jwk at-claims)
                         openid? (scope/subset? #{"openid"} scope)
-                        id-claims (when openid? (jwt/id-token-claims db (assoc claim-opts :access-token access-token)))
+                        offline-access? (scope/subset? #{"offline_access"} scope)
+                        id-claims (when openid? (merge (jwt/id-token-claims db (assoc claim-opts :access-token access-token))
+                                                       (:identity/claims identity)
+                                                       {"email" "foo@bar.com"}))
                         id-token (when openid? (jose/build-jwt jwk id-claims))
-                        refresh-token (refresh-token/create! db {:client-id client-uuid
-                                                                 :access-token-claims at-claims
-                                                                 :id-token-claims id-claims})]
+                        refresh-token (when offline-access?
+                                        (refresh-token/create! db {:client-id client-uuid
+                                                                   :access-token-claims at-claims
+                                                                   :id-token-claims id-claims}))]
                     (log/info :token/exchange {:scope scope :id-claims id-claims :at-claims at-claims})
                     ;; Delete the used code
                     (oauth-code/delete! db {:code code :client-uuid client-uuid})
@@ -275,8 +246,9 @@
                      (cond-> {:access_token access-token
                               :token_type "Bearer"
                               :expires_in (- (get at-claims "exp") (get at-claims "iat"))
-                              :refresh_token refresh-token
                               :scope scope}
+                       offline-access?
+                       (assoc :refresh_token refresh-token)
                        id-token
                        (assoc :id_token id-token))})
                   (error-response "server_error" "No default JWK configured")))
@@ -476,6 +448,7 @@
       :get #'GET-authorization-server-metadata}]
     ["/oauth" {:openapi {:tags ["oauth"]}}
      ["/authorize" {:name :oauth/authorize
+                    :html/layout layout/layout
                     :middleware [hiccup-mw/wrap-render]
                     :get #'GET-authorize
                     :post #'POST-authorize}]

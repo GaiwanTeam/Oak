@@ -45,3 +45,12 @@
    db
    {:delete-from :oauth-authorization
     :where [:= identity-id :identity_id]}))
+
+(comment
+  (db/execute-honey!
+   (user/db)
+   {:select [:*]
+    :from :oauth-authorization
+    })
+
+  )

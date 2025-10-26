@@ -11,15 +11,18 @@
 
 (def attributes
   [[:id :uuid :primary-key]
-   [:type :text [:not nil]]])
+   [:type :text [:not nil]]
+   ;; freeform extra jwt claims, escape hatch
+   [:claims :jsonb]])
 
-(defn create! [db {:keys [id type]}]
+(defn create! [db {:keys [id type claims]}]
   (db/insert! db :identity {:id (or id (uuid/v7))
-                            :type (or type "user")}))
+                            :type (or type "user")
+                            :claims claims}))
 
-(defn create-user! [db {:keys [email password]}]
+(defn create-user! [db {:keys [email password claims]}]
   (db/with-transaction [conn db]
-    (let [ident (create! conn {:type "user"})
+    (let [ident (create! conn {:type "user" :claims claims})
           id    (:identity/id ident)]
       (identifier/create!
        conn
@@ -32,6 +35,15 @@
        {:identity-id   id
         :password password})
       ident)))
+
+(defn update! [db {:keys [id type claims]}]
+  (db/execute-honey!
+   db
+   {:update :identity
+    :set (cond-> {}
+           type (assoc :type type)
+           claims (assoc :claims [:lift claims]))
+    :where [:= :id id]}))
 
 (defn list-all [db]
   (doall
@@ -46,7 +58,7 @@
 
 (defn validate-login
   "Return identity id if password matches, nil otherwise"
-  [db {:keys [identifier password]}]
+  [db {:keys [identifier password] :as opts}]
   (when-let [identity
              (some->
               (db/execute-honey!

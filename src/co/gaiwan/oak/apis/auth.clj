@@ -8,7 +8,7 @@
    [co.gaiwan.oak.html.email.password-reset :as email-views]
    [co.gaiwan.oak.html.layout :as layout]
    [co.gaiwan.oak.html.login-page :as login-form]
-   [co.gaiwan.oak.html.password-reset :as views]
+   [co.gaiwan.oak.html.auth :as views]
    [co.gaiwan.oak.lib.auth-middleware :as auth-mw]
    [co.gaiwan.oak.lib.db :as db]
    [co.gaiwan.oak.lib.email :as email]
@@ -20,18 +20,21 @@
    (java.time Instant)
    (java.time.temporal ChronoUnit)))
 
-(defn GET-login [req]
+(defn GET-login
+  {:parameters
+   {:query [:map [:id {:optional true} string?]]}}
+  [req]
   (if (:identity req)
     {:status 302
      :headers {"Location" (routing/url-for req :home/dash)}}
     {:status 200
-     :html/body [login-form/login-html req]
+     :html/body [login-form/login-html req {:identifier (-> req :parameters :query :id)}]
      :html/head [:title "Oak Login"]}))
 
 (defn POST-login
   {:parameters
    {:form
-    {:email string?
+    {:identifier string?
      :password string?}}}
   [{:keys [db parameters session] :as req}]
   (if-let [id (identity/validate-login db (:form parameters))]
@@ -41,11 +44,12 @@
        :session {:identity id
                  :auth-time (System/currentTimeMillis)}}
       {:status 200
-       :html/body [:p "Successfully authenticated"]
+       :html/body [views/success-page req {:title "Successfully authenticated"}]
        :session {:identity id
                  :auth-time (System/currentTimeMillis)}})
     {:status 403
-     :html/body [:p "Invalid credentials"]}))
+     :html/body [login-form/login-html req {:identifier (:identifier (:form parameters))
+                                            :error "Invalid username or password"}]}))
 
 (defn GET-logout [req]
   {:status 302

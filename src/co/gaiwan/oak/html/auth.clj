@@ -1,4 +1,4 @@
-(ns co.gaiwan.oak.html.password-reset
+(ns co.gaiwan.oak.html.auth
   (:require
    [co.gaiwan.oak.html.forms :as f]
    [co.gaiwan.oak.html.graphics :as g]
@@ -19,7 +19,7 @@
 
 (defn password-reset-html [req]
   [layout
-   [:h1 "Reset Password"]
+   [:h1 "Reset password"]
    [:p "Enter your email and we'll send you a link to reset your password."]
    [f/form {:method "POST"}
     [f/input-group
@@ -56,7 +56,7 @@
   ([req {:keys [email password confirm-password minlength
                 password-error confirm-error]}]
    [layout
-    [:h1 "Reset Password"]
+    [:h1 "Set your new password"]
     [:p "Choose a new password for " [:strong email]]
     [f/form {:method "POST"}
      [f/input-group
@@ -85,18 +85,23 @@
        :minlength    minlength}]
      [f/submit {:type "submit" :value "Reset password"}]]]))
 
-(o/defstyled password-reset-success :div
+(o/defstyled success-page :div
   {:text-align :center}
   [g/checkmark {:height "3rem"
                 :margin "1rem"
                 :align-self :center}]
-  ([req]
+  ([req {:keys [title]} & children]
    [layout
-    [:h1 "Password Successfully Reset"]
-    [:p "Your password has been updated. You can now log in with your new password."]
+    [:h1 title]
+    (into [:<>] children)
+
     [g/checkmark]
     [:a.subtle {:href (routing/url-for req :auth/login)} "Back to Login"]]))
 
+(defn password-reset-success [req]
+  [success-page req
+   {:title "Password Successfully Reset"}
+   [:p "Your password has been updated. You can now log in with your new password."]])
 
 (o/defstyled error-page :div
   {:text-align :center}

@@ -88,8 +88,4 @@
 
 (o/defstyled submit :input.call-to-action
   {:width            "100%"
-   :padding          --size-2
-   :border-radius    --radius-2
-   :font-size        "1rem"
-   :font-weight      :bold
-   :cursor           :pointer})
+   })

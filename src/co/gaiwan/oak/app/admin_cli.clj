@@ -7,11 +7,14 @@
   (:require
    [clojure.string :as str]
    [co.gaiwan.oak.app.config :as config]
+   [co.gaiwan.oak.domain.credential :as credential]
+   [co.gaiwan.oak.domain.identifier :as identifier]
    [co.gaiwan.oak.domain.identity :as identity]
    [co.gaiwan.oak.domain.jwk :as jwk]
    [co.gaiwan.oak.domain.jwt :as jwt]
    [co.gaiwan.oak.domain.oauth-client :as oauth-client]
    [co.gaiwan.oak.lib.cli-error-mw :as cli-error-mw]
+   [co.gaiwan.oak.lib.db :as db]
    [lambdaisland.cli :as cli])
   (:import
    (java.io StringWriter)))
@@ -84,11 +87,42 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn create-user
-  "Create a new user user"
-  {:flags ["--email <email>" "Email address"
-           "--password <password>" "User password"]}
+  "Create a new user"
+  {:flags ["--email <email>" {:doc "Email address"
+                              :required true}
+           "--password <password>" "User password"
+           "--claim <k=v>" {:doc "Additional claim"
+                            :handler (fn [opts claim]
+                                       (let [[k v] (str/split claim #"=")]
+                                         (update opts :claims assoc k v)))}]}
   [opts]
   {:data [(identity/create-user! (db) opts)]})
+
+(defn update-user
+  "Update a user/identity"
+  {:flags ["--email <email>" {:doc "Email address"
+                              :required true}
+           "--password <password>" "User password"
+           "--claim <k=v>" {:doc "Set a JWK claim, e.g. `--claim 'groups=admin owner'`
+
+Leave the part after `=` blank to unset a claim."
+                            :handler (fn [opts claim]
+                                       (let [[k v] (str/split claim #"=")]
+                                         (update opts :claims assoc k v)))}]}
+  [{:keys [email password claims] :as opts}]
+  (db/with-transaction [conn (db)]
+    (if-let [{user-id :identifier/identity-id} (identifier/find-one conn {:type "email" :value email})]
+      (do
+        (when claims
+          (let [{orig-claims :identity/claims} (identity/find-one conn {:id user-id})]
+            (identity/update! conn {:id user-id :claims (reduce (fn [c [k v]]
+                                                                  (if (str/blank? v)
+                                                                    (dissoc c k)
+                                                                    (assoc c k v)))
+                                                                orig-claims
+                                                                claims)})))
+        (when password
+          (credential/set-password! conn {:identity-id user-id :password password}))))))
 
 (defn list-users
   "List users"
@@ -107,6 +141,7 @@
    :commands
    ["create" #'create-user
     "list" #'list-users
+    "update" #'update-user
     "delete <id>" #'delete-user]})
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

@@ -179,11 +179,13 @@
 (o/defprop --status-warning "Background/icon for caution or warnings." --yellow-7)
 (o/defprop --status-info "Background/icon for informational messages." --blue-6)
 
-(o/defprop --button-color --gray-10) ;; will need adjusting, placeholder but used in cta button
-(o/defprop --button-color-light --gray-10) ;; will need adjusting, placeholder but used in cta button
-(o/defprop --button-color-dark --gray-10) ;; will need adjusting, placeholder but used in cta button
-(o/defprop --button-color-hover --gray-10) ;; will need adjusting, placeholder but used in cta button
-(o/defprop --button-border --gray-10) ;; will need adjusting, placeholder but used in cta button
+;; Base styles for plain buttons, this also ensures we can use these properties
+;; for contextual overrides
+(o/defprop --button-color --gray-5)
+(o/defprop --button-color-light --gray-4)
+(o/defprop --button-color-dark --gray-6)
+(o/defprop --button-color-hover --gray-7)
+(o/defprop --button-border --gray-10)
 (o/defprop --text-button --gray-0)
 
 (o/defrules dark-mode-tokens

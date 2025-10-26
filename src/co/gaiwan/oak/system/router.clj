@@ -67,13 +67,15 @@
           res (h req)
           delta (- (System/currentTimeMillis) start)
           type (res/get-header res "content-type")
-          location (res/get-header res "location")]
+          location (res/get-header res "location")
+          session (get req :session)]
       (log/debug :http/request (cond-> {(keyword (str/upper-case (name (:request-method req))))
                                         (:uri req)
                                         :status (:status res)
                                         :t delta}
                                  type (assoc :type type)
-                                 location (assoc :location location)))
+                                 location (assoc :location location)
+                                 session (assoc :session session)))
       res)))
 
 (defn wrap-404 [h]
@@ -101,8 +103,7 @@
       :data
       {:coercion   (reitit.coercion.malli/create malli-coercion-options)
        :muuntaja   (muuntaja-instance)
-       :middleware [wrap-log-request
-                    reitit-openapi/openapi-feature
+       :middleware [reitit-openapi/openapi-feature
                     reitit-params/parameters-middleware
                     reitit-muuntaja/format-negotiate-middleware
                     reitit-muuntaja/format-response-middleware
@@ -119,6 +120,7 @@
                                :same-site :strict}
                         (config/get :http-session/secure-cookie)
                         (assoc :secure true))}]
+                    wrap-log-request
                     ring-csp/wrap-content-security-policy
                     wrap-404]}})))
 

@@ -118,7 +118,4 @@
             :type "totp_secret"
             :value secret})
 
-  (get-hash (user/db) tmp-uuid "totp")
-  (get-hash (user/db) tmp-uuid "password")
-  (get-password-hash (user/db) tmp-uuid)
 )

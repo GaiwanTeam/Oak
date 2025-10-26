@@ -37,7 +37,12 @@
   [#{:button "input[type=\"submit\"]"}
    {:background-color --button-color
     :border           (str "1px solid " --button-border)
-    :color            --text-button}
+    :color            --text-button
+    :padding          --size-2
+    :border-radius    --radius-2
+    :font-size        "1rem"
+    :font-weight      :bold
+    :cursor           :pointer}
    [:&:hover
     {:background-color --button-color-hover}]
    [:&:active

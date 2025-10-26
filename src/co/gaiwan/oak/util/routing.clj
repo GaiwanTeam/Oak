@@ -1,16 +1,19 @@
 (ns co.gaiwan.oak.util.routing
   "Helpers related to the reitit router/routing"
   (:require
+   [co.gaiwan.oak.app.config :as config]
    [reitit.core :as reitit]))
 
 (defn base-url [req]
-  (let [{:keys [headers authority scheme host]} req
-        scheme (or (get headers "x-forwarded-proto") ;; behind proxy
-                   (name scheme))
-        host (or (get headers "x-forwarded-host")    ;; behind proxy
-                 (get headers "host")                ;; HTTP 1.1
-                 authority)]                         ;; HTTP 2.0
-    (str scheme "://" host)))
+  (or
+   (config/get :http/origin)
+   (let [{:keys [headers authority scheme host]} req
+         scheme (or (get headers "x-forwarded-proto") ;; behind proxy
+                    (name scheme))
+         host (or (get headers "x-forwarded-host")    ;; behind proxy
+                  (get headers "host")                ;; HTTP 1.1
+                  authority)]                         ;; HTTP 2.0
+     (str scheme "://" host))))
 
 (defn path-for
   ([req name]

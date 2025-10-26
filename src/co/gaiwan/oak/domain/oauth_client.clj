@@ -112,8 +112,7 @@
     id
     (conj [:= :oauth_client.id id])
     client-id
-    (conj [:= :oauth_client.client-id client-id])
-    ))
+    (conj [:= :oauth_client.client-id client-id])))
 
 (defn find-by-client-id [db client-id]
   (first
@@ -131,4 +130,12 @@
 
 (comment
   (create! (user/db) {:client-name "My client"
-                      :redirect-uris []}))
+                      :redirect-uris []})
+
+  (db/execute-honey! (user/db)
+                     {:update :oauth_client
+                      :set {:redirect-uris [:lift ["http://localhost:3111/user/oauth2/oak/callback"]]
+                            :scope "openid profile email"}
+                      :where [:= :client_id "2ZyVA5TnoXw.oak.client"]})
+
+  )

@@ -29,19 +29,20 @@
    :justify-content :center
    :align-items     :center
    :min-height      "100vh"}
-  ([req]
+  ([req {:keys [error identifier password]}]
    [:<>
     [w/leaf-bg]
     [w/full-center-card
      [:h1 "Login"]
      [f/form {:method "POST"}
       [f/input-group
-       {:label        "Email address"
-        :id           "email"
+       {:label        "Email address or username"
+        :id           "identifier"
         :type         "email"
-        :name         "email"
+        :name         "identifier"
+        :value        identifier
         :required     "required"
-        :autocomplete "username"
+        :autocomplete "email"
         :placeholder  "you@example.com"
         :autofocus    "autofocus"}]
       [f/input-group
@@ -49,8 +50,10 @@
         :label        "Password"
         :type         "password"
         :name         "password"
+        :value        password
         :required     "required"
         :autocomplete "current-password"
-        :placeholder  "Enter your password"}]
+        :placeholder  "Enter your password"
+        :error        error}]
       [f/submit {:type "submit" :value "Log In"}]]
      [forgot-password-link req]]]))
