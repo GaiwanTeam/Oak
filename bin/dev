@@ -19,11 +19,13 @@
   (spit "deps.local.edn" "{:launchpad/aliases [:dev]}"))
 
 (defn write-styles
+  "Compile Ornament styles down to target/oak/styles.css"
   {:flags ["--target-dir" {:doc "Target directory" :default "target"}]}
   [{:keys [target-dir]}]
   (let [f (io/file target-dir "oak/styles.css")]
     (.mkdirs (io/file (.getParent f)))
     (config/load!)
+    (print "wrote" (str f) (count (o/defined-styles)) "bytes, ")
     (spit f (o/defined-styles))))
 
 (defn uberjar
