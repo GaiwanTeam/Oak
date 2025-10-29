@@ -4,16 +4,29 @@
   Default to returning kebab-cased qualified maps.
   "
   (:require
+   [clojure.walk :as walk]
    [honey.sql :as honey]
    [next.jdbc :as jdbc]
    [next.jdbc.result-set :as rs]
-   [next.jdbc.sql :as sql]))
+   [next.jdbc.sql :as sql])
+  (:import
+   (java.time Instant)))
+
+(defn munge-response [o]
+  (cond
+    (instance? java.sql.Timestamp o)
+    (.toInstant ^java.sql.Timestamp o)
+
+    :else
+    o))
 
 (defn execute! [ds qry]
-  (jdbc/execute!
-   ds
-   qry
-   {:builder-fn rs/as-kebab-maps}))
+  (walk/postwalk
+   munge-response
+   (jdbc/execute!
+    ds
+    qry
+    {:builder-fn rs/as-kebab-maps})))
 
 (defn execute-honey! [ds qry]
   (execute!
@@ -23,6 +36,12 @@
 (defn insert! [ds table key-map]
   (sql/insert! ds table key-map
                {:builder-fn rs/as-kebab-maps}))
+
+(defn update! [ds table id entity]
+  (execute-honey!
+   ds {:update table
+       :set (assoc entity :updated_at (Instant/now))
+       :where [:= id :id]}))
 
 (defmacro with-transaction
   {:doc (:doc (meta #'jdbc/with-transaction))}

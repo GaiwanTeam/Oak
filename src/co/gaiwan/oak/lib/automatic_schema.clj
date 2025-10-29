@@ -39,7 +39,9 @@
   Creates tables that don't exist and adds columns that are missing from existing tables."
   [conn schema-defs]
   (doseq [[table-kw columns] schema-defs]
-    (let [columns (conj columns [:created_at :timestamptz [:default :CURRENT_TIMESTAMP]])
+    (let [columns (conj columns
+                        [:created_at :timestamptz [:default :CURRENT_TIMESTAMP]]
+                        [:updated_at :timestamptz [:default :CURRENT_TIMESTAMP]])
           table-name (name table-kw)]
       (if-not (table-exists? conn table-name)
         (create-table! conn table-name columns)

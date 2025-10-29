@@ -3,16 +3,17 @@
   (:require
    [co.gaiwan.oak.html.layout :as layout]
    [co.gaiwan.oak.lib.auth-middleware :as auth-mw]
+   [co.gaiwan.oak.html.dashboard :as dash-html]
    [co.gaiwan.oak.util.routing :as routing]
    [lambdaisland.hiccup.middleware :as hiccup-mw]
    [ring.middleware.anti-forgery :as ring-csrf]))
 
 (defn GET-dashboard [req]
   {:status 200
-   :html/body [:<>
-               [:p (pr-str (:identity req))]
-               [:a {:href (routing/url-for req :auth/logout)} "Sign out"]]}
-  )
+   :html/body (dash-html/dash-page
+               {:req req
+                :totp-setup-url (routing/url-for req :totp/setup)
+                :logout-url (routing/url-for req :auth/logout)})})
 
 (defn component [opts]
   {:routes
@@ -22,5 +23,4 @@
                       auth-mw/wrap-session-auth
                       auth-mw/wrap-enforce-login
                       hiccup-mw/wrap-render]
-         :get #'GET-dashboard
-         }]})
+         :get #'GET-dashboard}]})

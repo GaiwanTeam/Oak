@@ -37,19 +37,42 @@
     {:identifier string?
      :password string?}}}
   [{:keys [db parameters session] :as req}]
-  (if-let [id (identity/validate-login db (:form parameters))]
-    (if-let [url (:redirect-after-login session)]
+  (let [identity-id (identity/validate-login db (:form parameters))
+        totp-cred (when identity-id (credential/find-one db {:identity-id identity-id :type credential/type-totp}))
+        session (if identity-id
+                  (with-meta
+                    (-> session
+                        (assoc :identity identity-id)
+                        (update-in [:authentications identity-id]
+                                   (fnil conj #{})
+                                   {:type credential/type-password
+                                    :created-at (Instant/now)}))
+                    {:recreate true})
+                  session)]
+    (cond
+      ;; login failed, show form again, don't touch session
+      (not identity-id)
+      {:status 403
+       :html/body [login-form/login-html req {:identifier (:identifier (:form parameters))
+                                              :error "Invalid username or password"}]}
+
+      ;; login passed, but we still need to do totp
+      totp-cred
       {:status 302
-       :headers {"Location" url}
-       :session {:identity id
-                 :auth-time (System/currentTimeMillis)}}
+       :headers {"Location" (routing/path-for req :totp/check)}
+       :session session}
+
+      ;; login passed, and we have a place to send the user (probably OAuth2 redirect)
+      (:redirect-after-login session)
+      {:status 302
+       :headers {"Location" (:redirect-after-login session)}
+       :session (dissoc session :redirect-after-login)}
+
+      ;; login passed, show success page
+      :else
       {:status 200
        :html/body [views/success-page req {:title "Successfully authenticated"}]
-       :session {:identity id
-                 :auth-time (System/currentTimeMillis)}})
-    {:status 403
-     :html/body [login-form/login-html req {:identifier (:identifier (:form parameters))
-                                            :error "Invalid username or password"}]}))
+       :session session})))
 
 (defn GET-logout [req]
   {:status 302
@@ -70,7 +93,7 @@
         expiry-hours (config/get :password-reset/link-expiry-hours)
         org-name (config/get :org/name)]
     (future
-      (when-let [{:identifier/keys [identity-id]} (identifier/find-one db {:type "email" :value email})]
+      (when-let [{:identifier/keys [identity-id]} (identifier/find-one db {:type "email" :value email :primary true})]
         (let [nonce (random/secure-base62-str 400)]
           (credential/create! db {:identity-id identity-id
                                   :type credential/type-password-reset-nonce
