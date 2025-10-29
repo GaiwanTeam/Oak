@@ -76,7 +76,7 @@
           [[(uuid/v7)
             identity-id
             "password"
-            hsh          ]]})))))
+            hsh]]})))))
 
 (defn delete! [db opts]
   (db/execute-honey! db {:delete-from :credential :where (where-sql opts)}))
@@ -98,6 +98,7 @@
   (def tmp-id #uuid "0199e255-d5e4-7010-b2c9-435a4593af49")
   (def tmp-uuid #uuid "0199c27f-5bbe-702a-9ea8-968f6873d88e")
 
+  (find-one (user/db) {:identity-id tmp-uuid :type "totp"})
   (create-or-update! (user/db)
                      {:id tmp-id
                       :identity-id tmp-uuid
@@ -116,6 +117,4 @@
   (create! (user/db)
            {:identity-id tmp-uuid
             :type "totp_secret"
-            :value secret})
-
-)
+            :value secret}))

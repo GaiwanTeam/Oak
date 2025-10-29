@@ -67,6 +67,34 @@
       (verification-success req secret)
       (verification-failed req))))
 
+(defn GET-check
+  [{:keys [identity db session] :as req}]
+  (let [secret (totp/secret
+                (config/get :totp/hash-alg)
+                (config/get :totp/secret-size))
+        id (:identity/id identity)
+        identifier (identifier/find-one db {:identity-id id :type "email"})
+        user-email (:identifier/value identifier)]
+    {:status 200
+     :session (assoc session :totp/secret secret)
+     :html/body
+     [totp-html/setup-page
+      {:data-uri (totp/qrcode-data-url
+                  {:secret secret
+                   :label user-email
+                   :issuer (config/get :application/name)})
+       :next-uri (routing/url-for req :totp/verify)}]}))
+
+(defn POST-check
+  {:parameters {:form [:map
+                       [:code string?]]}}
+  [{:keys [identity db session parameters] :as req}]
+  (let [code (-> parameters :form :code)
+        secret (-> session :totp/secret)]
+    (if (and code secret (totp/verify-code secret code))
+      (verification-success req secret)
+      (verification-failed req))))
+
 (defn component [opts]
   {:routes
    ["" {}
@@ -77,4 +105,7 @@
                            hiccup-mw/wrap-render]}
      ["/setup" {:name        :totp/setup
                 :get         #'GET-setup
-                :post #'POST-verify}]]]})
+                :post #'POST-verify}]
+     ["/check" {:name        :totp/check
+                :get         #'GET-check
+                :post #'POST-check}]]]})

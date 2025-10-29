@@ -43,10 +43,15 @@
        :headers {"Location" url}
        :session {:identity id
                  :auth-time (System/currentTimeMillis)}}
-      {:status 200
-       :html/body [views/success-page req {:title "Successfully authenticated"}]
-       :session {:identity id
-                 :auth-time (System/currentTimeMillis)}})
+      (if-let [cred (credential/find-one db {:identity-id id :type "totp"})]
+        {:status 302
+         :headers {"Location" (routing/path-for req :totp/check)}
+         :session {:identity id
+                   :auth-time (System/currentTimeMillis)}}
+        {:status 200
+         :html/body [views/success-page req {:title "Successfully authenticated"}]
+         :session {:identity id
+                   :auth-time (System/currentTimeMillis)}}))
     {:status 403
      :html/body [login-form/login-html req {:identifier (:identifier (:form parameters))
                                             :error "Invalid username or password"}]}))
