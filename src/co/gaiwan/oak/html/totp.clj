@@ -39,19 +39,33 @@
   {:max-width "80%"
    :margin "0 auto"})
 
-(defn setup-page
-  ([{:keys [data-uri next-uri]}]
-   [totp-layout
-    [:h1 "Set up 2FA"]
-    [:p#totp-desc "Use a 2FA app to scan the QR code, then provide the 6-digit code it generates."]
-    [qr-img {:src data-uri}]
-    [f/form {:method "POST"}
-     [f/input-group
-      {:label            "2FA code from authenticator app"
-       :id               "code"
-       :type             "text"
-       :name             "code"
-       :required         "required"
-       :aria-describedby "totp-desc"
-       :autofocus        true}]
-     [f/submit {:type "submit" :value "Enable 2FA"}]]]))
+(defn setup-page [{:keys [data-uri next-uri]}]
+  [totp-layout
+   [:h1 "Set up 2FA"]
+   [:p#totp-desc "Use a 2FA app to scan the QR code, then provide the 6-digit code it generates."]
+   [qr-img {:src data-uri}]
+   [f/form {:method "POST"}
+    [f/input-group
+     {:label            "2FA code from authenticator app"
+      :id               "code"
+      :type             "text"
+      :name             "code"
+      :required         "required"
+      :aria-describedby "totp-desc"
+      :autofocus        true}]
+    [f/submit {:type "submit" :value "Enable 2FA"}]]])
+
+(defn check-page []
+  [totp-layout
+   [:h1 "Verify 2FA"]
+   [:p#totp-desc "Open your 2FA app, and input the 6-digit code it generates."]
+   [f/form {:method "POST"}
+    [f/input-group
+     {:label            "2FA code from authenticator app"
+      :id               "code"
+      :type             "text"
+      :name             "code"
+      :required         "required"
+      :aria-describedby "totp-desc"
+      :autofocus        true}]
+    [f/submit {:type "submit" :value "Enable 2FA"}]]])

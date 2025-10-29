@@ -44,7 +44,8 @@
     (let [auth-header (res/get-header req "authorization")
           [scheme token] (when auth-header (str/split auth-header #"\s+"))]
       (h
-       (if-let [id (and (:identity session)
+       (if-let [id (and (not (:2fa-checking session))
+                        (:identity session)
                         (identity/find-one db {:id (:identity session)}))]
          (assoc req
                 :identity id

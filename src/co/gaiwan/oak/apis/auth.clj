@@ -47,6 +47,7 @@
         {:status 302
          :headers {"Location" (routing/path-for req :totp/check)}
          :session {:identity id
+                   :2fa-checking true
                    :auth-time (System/currentTimeMillis)}}
         {:status 200
          :html/body [views/success-page req {:title "Successfully authenticated"}]

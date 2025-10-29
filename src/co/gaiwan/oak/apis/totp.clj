@@ -78,12 +78,7 @@
     {:status 200
      :session (assoc session :totp/secret secret)
      :html/body
-     [totp-html/setup-page
-      {:data-uri (totp/qrcode-data-url
-                  {:secret secret
-                   :label user-email
-                   :issuer (config/get :application/name)})
-       :next-uri (routing/url-for req :totp/verify)}]}))
+     [totp-html/check-page]}))
 
 (defn POST-check
   {:parameters {:form [:map
@@ -105,7 +100,10 @@
                            hiccup-mw/wrap-render]}
      ["/setup" {:name        :totp/setup
                 :get         #'GET-setup
-                :post #'POST-verify}]
-     ["/check" {:name        :totp/check
-                :get         #'GET-check
-                :post #'POST-check}]]]})
+                :post #'POST-verify}]]
+    ["/2fa/check" {:html/layout layout/layout
+                   :middleware [ring-csrf/wrap-anti-forgery
+                                hiccup-mw/wrap-render]
+                   :name        :totp/check
+                   :get         #'GET-check
+                   :post #'POST-check}]]})
