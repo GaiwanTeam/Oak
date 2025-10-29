@@ -94,9 +94,8 @@
    [layout
     [:h1 title]
     (into [:<>] children)
-
     [g/checkmark]
-    [:a.subtle {:href (routing/url-for req :auth/login)} "Back to Login"]]))
+    [:a.subtle {:href (routing/url-for req :home/dash)} "Back to dashboard"]]))
 
 (defn password-reset-success [req]
   [success-page req

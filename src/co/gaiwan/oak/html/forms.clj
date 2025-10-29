@@ -68,8 +68,7 @@
        [:<>
         [:button.eye {:type "button" :aria-pressed "false"}
          [g/eye]
-         [g/eye-closed]]
-        ])]
+         [g/eye-closed]]])]
     [:div.error {:id (str (:id props) "-error")} [g/circle-bang] (:error props)]
     (when (= "password" (:type props))
       [:script {:nonce (str csp/*csp-nonce*)}
@@ -83,8 +82,7 @@
           }
 
           fg.querySelector('button').addEventListener('click', (e)=>toggleAriaPressed(e, fg.querySelector('input')));
-        })(document.currentScript.parentElement)"
-       ])]))
+        })(document.currentScript.parentElement)"])]))
 
 (o/defstyled submit :input.call-to-action
   {:width            "100%"
