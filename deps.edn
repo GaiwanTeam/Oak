@@ -45,6 +45,7 @@
 
   ;; Email
   toyokumo/tarayo {:mvn/version "0.2.7"}
+  metosin/malli {:mvn/version "0.19.2"}
   }
 
  :aliases

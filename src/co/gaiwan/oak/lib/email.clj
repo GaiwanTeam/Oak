@@ -15,7 +15,7 @@
     (assert host)
     (cond-> {:host host}
       user (assoc :user user)
-      password (assoc :pass password)
+      password (assoc :password password)
       port (assoc :port port)
       (= :ssl type) (assoc :ssl true)
       (= :tls type) (assoc :tls true))))
