@@ -36,18 +36,6 @@
                    :label  user-email
                    :issuer (config/get :application/name)})}]}))
 
-(defn verification-success
-  "Tell success, store secret as credential (upsert the record), remove the secret from
-   the session"
-  [{:keys [db session] :as req} secret]
-  (let [identity-id     (:identity session)
-        updated-session (dissoc session :totp/secret)]
-    (credential/create-or-update! db {:identity-id identity-id :type "totp" :value secret})
-    {:status  200
-     :session updated-session
-     :html/body
-     [totp-html/success-page req]}))
-
 (defn POST-setup
   {:parameters
    {:form
@@ -55,11 +43,16 @@
      [:code string?]]}}
   [{:keys [db session parameters] :as req}]
   (let [code   (-> parameters :form :code)
-        secret (-> session :totp/secret)]
+        secret (-> session :totp/secret)
+        identity-id (:identity session)]
     (if (and code secret (totp/verify-code secret code))
-      (verification-success req secret)
-      (let [identity-id (:identity session)
-            identifier  (identifier/find-one db {:identity-id identity-id :type "email" :primary true})
+      (do
+        (credential/enable-totp! db {:identity-id identity-id :secret secret})
+        {:status  200
+         :session (dissoc session :totp/secret)
+         :html/body
+         [totp-html/success-page req]})
+      (let [identifier  (identifier/find-one db {:identity-id identity-id :type "email" :primary true})
             user-email  (:identifier/value identifier)]
         {:status 400
          :html/body

@@ -93,10 +93,14 @@
                                 expires-at (assoc :expires_at expires-at))
                          :where [:= id :id]}))
 
-(defn create-or-update! [db {:keys [id identity-id type value] :as opts}]
-  (if-let [record (find-one db (dissoc opts :id :value))]
+(defn create-or-update! [db {:keys [identity-id type value] :as opts}]
+  (if-let [record (find-one db (dissoc opts :value))]
     (update! db (assoc opts :id (:credential/id record)))
     (create! db opts)))
+
+(defn enable-totp!
+  [db {:keys [identity-id secret]}]
+  (create-or-update! db {:identity-id identity-id :type type-totp :value secret}))
 
 (comment
   (def tmp-id #uuid "0199e255-d5e4-7010-b2c9-435a4593af49")
