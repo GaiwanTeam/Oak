@@ -104,7 +104,9 @@
   [opts]
   (oauth-client/update! (db) (cond-> opts
                                (:client-secret opts)
-                               (assoc :client-secret (oauth-client/new-client-secret)))))
+                               (assoc :client-secret (oauth-client/new-client-secret))
+                               (:scope opts)
+                               (update :scope #(str/join " " %)))))
 
 (def oauth-client-commands
   {:doc "Read and manipulate OAuth clients"
