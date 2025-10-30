@@ -18,7 +18,7 @@
     [w/leaf-bg]
     (into [w/full-center-card] children)]))
 
-(defn success-page [req {:keys [cred-save-success?]}]
+(defn success-page [req]
   [totp-layout
    [:<>
     [:h1 "2FA Enabled"]
