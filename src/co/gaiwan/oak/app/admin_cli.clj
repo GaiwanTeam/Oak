@@ -78,10 +78,39 @@
 (defn delete-oauth-client [{:keys [id]}]
   (oauth-client/delete! (db) {:client-id id}))
 
+(defn update-oauth-client
+  {:doc
+   "Change one or more OAuth2 client settings.
+
+   Use either --id or --client-id to identify the client."
+   :flags
+   ["--id <uuid>" {:doc "UUID identifying this client"}
+    "--client-id <oauth2-id>" {:doc "OAuth2 identifier"}
+    "--client-name <name>" {:doc "The name of the client"}
+    "--client-secret" {:doc "Generate a new client secret"}
+    "--redirect-uri <uri>" {:doc "Redirect URI, can be passed multiple times"
+                            :coll? true
+                            :key :redirect-uris}
+    "--token-endpoint-auth-method <method>" {:doc "Token endpoint authentication method"
+                                             :key :token-endpoint-auth-method}
+    "--grant-type <type>" {:doc "Grant type, can be passed multiple times"
+                           :coll? true
+                           :key :grant-types}
+    "--response-type <type>" {:doc "Response type, can be passed multiple times"
+                              :coll? true
+                              :key :response-types}
+    "--scope <scope>" {:doc "Scope"
+                       :coll? true}]}
+  [opts]
+  (oauth-client/update! (db) (cond-> opts
+                               (:client-secret opts)
+                               (assoc :client-secret (oauth-client/new-client-secret)))))
+
 (def oauth-client-commands
   {:doc "Read and manipulate OAuth clients"
    :commands ["create" #'create-oauth-client
               "list" #'list-oauth-clients
+              "update" #'update-oauth-client
               "delete <client-id>" #'delete-oauth-client]})
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

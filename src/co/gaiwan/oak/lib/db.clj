@@ -37,11 +37,13 @@
   (sql/insert! ds table key-map
                {:builder-fn rs/as-kebab-maps}))
 
-(defn update! [ds table id entity]
+(defn update!
+  "Perform a UPDATE query, sets `updated_at`"
+  [ds {:keys [update set where]}]
   (execute-honey!
-   ds {:update table
-       :set (assoc entity :updated_at (Instant/now))
-       :where [:= id :id]}))
+   ds {:update update
+       :set (assoc set :updated_at (Instant/now))
+       :where where}))
 
 (defmacro with-transaction
   {:doc (:doc (meta #'jdbc/with-transaction))}

@@ -8,7 +8,7 @@
   com.lambdaisland/cli    {:mvn/version "1.27.121"}
 
   ;; Logging
-  com.lambdaisland/log4j2                  {:mvn/version "0.2.6"}
+  com.lambdaisland/log4j2 {:mvn/version "0.2.6"}
 
   ;; HTTP
   ring/ring-jetty-adapter             {:mvn/version "1.15.3"}
@@ -36,6 +36,7 @@
   dev.samstevens.totp/totp                     {:mvn/version "1.7.1"}
 
   ;; Formats and utilities
+  metosin/malli             {:mvn/version "0.19.2"}
   com.cnuernber/charred     {:mvn/version "1.037"}
   danlentz/clj-uuid         {:mvn/version "0.2.0"}
   org.clj-commons/pretty    {:mvn/version "3.6.7"}
@@ -45,7 +46,6 @@
 
   ;; Email
   toyokumo/tarayo {:mvn/version "0.2.7"}
-  metosin/malli {:mvn/version "0.19.2"}
   }
 
  :aliases

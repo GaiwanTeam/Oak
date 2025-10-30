@@ -39,10 +39,13 @@
 
 (defn update! [db {:keys [id type claims]}]
   (when (or type claims)
-    (db/update! db :identity id
-                (cond-> {}
-                  type (assoc :type type)
-                  claims (assoc :claims [:lift claims])))))
+    (db/update!
+     db
+     {:update :identity
+      :where [:= :id id]
+      :set (cond-> {}
+             type (assoc :type type)
+             claims (assoc :claims [:lift claims]))})))
 
 (defn list-all [db]
   (doall

@@ -18,19 +18,20 @@
 
 (defn auth-error-html [extra-info]
   [layout
-   [:h1 "Oh no! Something went wrong."]
-   [:hr]
-   [:p "It looks like the link you clicked to sign in isn't quite right. Don't worry, this is usually a simple fix."]
-   [:p "The application you're trying to use did not pass along all information needed to let you log in. This could be because of a broken link or a typo."]
-   [:p "What you can do:"
-    [:ul
-     [:li "Head back to the application and try clicking the sign-in button again."]
-     [:li "If the issue continues, please reach out to the application's support team. They'll know exactly what to do!"]]]
-   [:p "We apologize for the inconvenience!"]
-   [:hr]
-   [:details
-    [:summary "Technical information"]
-    extra-info]])
+   [:section
+    [:h1 "Oh no! Something went wrong."]
+    [:hr]
+    [:p "It looks like the link you clicked to sign in isn't quite right. Don't worry, this is usually a simple fix."]
+    [:p "The application you're trying to use did not pass along all information needed to let you log in. This could be because of a broken link or a typo."]
+    [:p "What you can do:"
+     [:ul
+      [:li "Head back to the application and try clicking the sign-in button again."]
+      [:li "If the issue continues, please reach out to the application's support team. They'll know exactly what to do!"]]]
+    [:p "We apologize for the inconvenience!"]
+    [:hr]
+    [:details
+     [:summary "Technical information"]
+     extra-info]]])
 
 (o/defstyled submit-buttons :div
   {:display "flex"

@@ -6,6 +6,7 @@
    [malli.core :as m]
    [malli.error :as me]
    [malli.transform :as mt]
+   [malli.util :as mu]
    [co.gaiwan.oak.lib.db :as db]))
 
 (def attributes
@@ -58,6 +59,7 @@
 (def ClientOpts
   [:map
    [:client-name :string]
+   [:client-secret {:optional true} :string]
    [:redirect-uris
     ;; public clients are not useful without a redirect uri, but it could make
     ;; sense for specific types of clients (e.g. service to service), and you
@@ -81,6 +83,9 @@
             :default ""}
     :string]])
 
+(defn new-client-secret []
+  (random/secure-base62-str client-secret-default-entropy-bits))
+
 (defn create! [db opts]
   (if-let [errors (m/explain ClientOpts opts)]
     (throw (ex-info (str "Invalid oauth-client options: " (me/humanize errors))
@@ -93,7 +98,7 @@
        "oauth_client"
        {:id                         (uuid/v7)
         :client_id                  (str (random/secure-base62-str 64) ".oak.client")
-        :client_secret              (random/secure-base62-str client-secret-default-entropy-bits)
+        :client_secret              (new-client-secret)
         :client_name                client-name
         :redirect_uris              redirect-uris
         :token_endpoint_auth_method token-endpoint-auth-method
@@ -128,6 +133,26 @@
    {:delete-from :oauth_client
     :where (where-sql opts)}))
 
+(defn update! [db {:keys [id client-id] :as opts}]
+  (let [coerced-opts (m/coerce (-> ClientOpts
+                                   mu/open-schema
+                                   mu/optional-keys)
+                               opts)
+        {:keys [client-name client-secret redirect-uris
+                token-endpoint-auth-method grant-types response-types scope]} coerced-opts]
+    (db/update!
+     db
+     {:update :oauth-client
+      :where  (where-sql opts)
+      :set    (cond-> {}
+                client-secret              (assoc :client_secret client-secret)
+                client-name                (assoc :client_name client-name)
+                redirect-uris              (assoc :redirect_uris [:lift redirect-uris])
+                token-endpoint-auth-method (assoc :token_endpoint_auth_method token-endpoint-auth-method)
+                grant-types                (assoc :grant_types [:lift grant-types])
+                response-types             (assoc :response_types [:lift response-types])
+                scope                      (assoc :scope scope))})))
+
 (comment
   (create! (user/db) {:client-name "My client"
                       :redirect-uris []})
@@ -138,4 +163,9 @@
                             :scope "openid profile email"}
                       :where [:= :client_id "2ZyVA5TnoXw.oak.client"]})
 
+
+  (list-all (user/db))
+
+  (update! (user/db) {:id #uuid "0199853a-dc56-703e-9e9f-373ea857646f",
+                      :client-name "hello"})
   )
