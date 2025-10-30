@@ -94,7 +94,7 @@
                          :where [:= id :id]}))
 
 (defn create-or-update! [db {:keys [id identity-id type value] :as opts}]
-  (if-let [record (find-one db opts)]
+  (if-let [record (find-one db (dissoc opts :id :value))]
     (update! db (assoc opts :id (:credential/id record)))
     (create! db opts)))
 
@@ -108,7 +108,7 @@
                      {:id tmp-id
                       :identity-id tmp-uuid
                       :type "totp"
-                      :value "jjjj"})
+                      :value "sss"})
   (update! (user/db)
            {:id tmp-id
             :identity-id tmp-uuid
