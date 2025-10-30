@@ -95,6 +95,7 @@
     [:h1 title]
     (into [:<>] children)
     [g/checkmark]
+    ;; FIXME: this is also used in places where a user isn't logged in yet, should in those cases say "Back to Login"
     [:a.subtle {:href (routing/url-for req :home/dash)} "Back to dashboard"]]))
 
 (defn password-reset-success [req]

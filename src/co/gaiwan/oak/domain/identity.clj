@@ -30,10 +30,11 @@
         :type        "email"
         :value       email
         :primary     true})
-      (credential/set-password!
-       conn
-       {:identity-id   id
-        :password password})
+      (when password
+        (credential/set-password!
+         conn
+         {:identity-id   id
+          :password password}))
       ident)))
 
 (defn update! [db {:keys [id type claims]}]
