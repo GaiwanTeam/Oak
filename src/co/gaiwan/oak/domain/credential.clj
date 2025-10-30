@@ -5,9 +5,12 @@
    [clj-uuid :as uuid]
    [co.gaiwan.oak.app.config :as config]
    [co.gaiwan.oak.lib.db :as db]
-   [co.gaiwan.oak.lib.password4j :as password4j])
+   [co.gaiwan.oak.lib.password4j :as password4j]
+   [co.gaiwan.oak.domain.identifier :as identifier]
+   [co.gaiwan.oak.util.random :as random])
   (:import
-   (java.time Instant)))
+   (java.time Instant)
+   (java.time.temporal ChronoUnit)))
 
 (set! *warn-on-reflection* true)
 
@@ -54,6 +57,26 @@
   (first (db/execute-honey! db {:select [:*]
                                 :from :credential
                                 :where (where-sql opts)})))
+
+(defn resolve-password-reset-nonce
+  [db nonce]
+  (when-let [{:credential/keys [id identity-id]}
+             (find-one db {:type  type-password-reset-nonce
+                           :value nonce})]
+    (let [{:identifier/keys [value]} (identifier/find-one db {:type "email" :identity-id identity-id :primary true})]
+      {:identity-id identity-id
+       :nonce-id id
+       :email value})))
+
+(defn create-password-reset-nonce!
+  [db {:keys [identity-id]}]
+  (let [nonce (random/secure-base62-str 400)
+        expiry-hours (config/get :password-reset/link-expiry-hours)]
+    (create! db {:identity-id identity-id
+                 :type type-password-reset-nonce
+                 :value nonce
+                 :expires-at (.plus (Instant/now) expiry-hours ChronoUnit/HOURS)})
+    nonce))
 
 (defn set-password!
   "Set the password hash for a identity/user, creating a new credential, or

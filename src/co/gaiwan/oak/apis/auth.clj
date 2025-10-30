@@ -12,13 +12,11 @@
    [co.gaiwan.oak.lib.auth-middleware :as auth-mw]
    [co.gaiwan.oak.lib.db :as db]
    [co.gaiwan.oak.lib.email :as email]
-   [co.gaiwan.oak.util.random :as random]
    [co.gaiwan.oak.util.routing :as routing]
    [lambdaisland.hiccup.middleware :as hiccup-mw]
    [ring.middleware.anti-forgery :as ring-csrf])
   (:import
-   (java.time Instant)
-   (java.time.temporal ChronoUnit)))
+   (java.time Instant)))
 
 (defn GET-login
   {:parameters
@@ -94,11 +92,7 @@
         org-name (config/get :org/name)]
     (future
       (when-let [{:identifier/keys [identity-id]} (identifier/find-one db {:type "email" :value email :primary true})]
-        (let [nonce (random/secure-base62-str 400)]
-          (credential/create! db {:identity-id identity-id
-                                  :type credential/type-password-reset-nonce
-                                  :value nonce
-                                  :expires-at (.plus (Instant/now) expiry-hours ChronoUnit/HOURS)})
+        (let [nonce (credential/create-password-reset-nonce! db {:identity-id identity-id})]
           (email/send! {:to email
                         :subject (str "Your " org-name " password reset link")
                         :html (email-views/reset-html
@@ -111,20 +105,11 @@
                                                      :expiry-hours expiry-hours}]
      :html/head [:title "Reset Password"]}))
 
-(defn- resolve-nonce [db nonce]
-  (when-let [{:credential/keys [id identity-id]}
-             (credential/find-one db {:type  credential/type-password-reset-nonce
-                                      :value nonce})]
-    (let [{:identifier/keys [value]} (identifier/find-one db {:type "email" :identity-id identity-id :primary true})]
-      {:identity-id identity-id
-       :nonce-id id
-       :email value})))
-
 (defn GET-submit-password-reset
   {:parameters
    {:path {:nonce string?}}}
   [{:keys [parameters db] :as req}]
-  (if-let [{:keys [email]} (resolve-nonce db (-> parameters :path :nonce))]
+  (if-let [{:keys [email]} (credential/resolve-password-reset-nonce db (-> parameters :path :nonce))]
     {:status 200
      :html/body [views/password-reset-form req {:email email
                                                 :minlength (config/get :password/min-length)}]}
@@ -137,9 +122,10 @@
     :form {:password string?
            :confirm-password string?}}}
   [{:keys [parameters db] :as req}]
-  (if-let [{:keys [nonce-id identity-id email]} (resolve-nonce db (-> parameters :path :nonce))]
-    (let [{:keys [password confirm-password]} (:form parameters)
-          min-len (config/get :password/min-length)]
+  (let [nonce (-> parameters :path :nonce)
+        {:keys [password confirm-password]} (:form parameters)
+        min-len (config/get :password/min-length)]
+    (if-let [{:keys [email]} (credential/resolve-password-reset-nonce db nonce)]
       (cond
         (not= password confirm-password)
         {:status 400
@@ -161,13 +147,13 @@
            :confirm-password confirm-password
            :password-error (str "Passwords should be at least " min-len " characters")}]}
 
+        (identity/reset-password-with-nonce! db {:nonce nonce :password password})
+        {:status 200
+         :html/body [views/password-reset-success req]}
+
         :else
-        (do
-          (db/with-transaction [conn db]
-            (credential/delete! conn {:id nonce-id})
-            (credential/set-password! conn {:identity-id identity-id :password password}))
-          {:status 200
-           :html/body [views/password-reset-success req]})))
+        {:status 400
+         :html/body [views/error-page req "Invalid or expired link"]}))
     {:status 400
      :html/body [views/error-page req "Invalid or expired link"]}))
 
