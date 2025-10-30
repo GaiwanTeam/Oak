@@ -18,7 +18,6 @@
     [w/leaf-bg]
     (into [w/full-center-card] children)]))
 
-
 (defn success-page [req {:keys [cred-save-success?]}]
   [totp-layout
    [:<>
@@ -30,7 +29,7 @@
   {:max-width "80%"
    :margin "0 auto"})
 
-(defn setup-page [{:keys [data-uri next-uri]}]
+(defn setup-page [{:keys [data-uri]}]
   [totp-layout
    [:h1 "Set up 2FA"]
    [:p#totp-desc "Use a 2FA app to scan the QR code, then provide the 6-digit code it generates."]

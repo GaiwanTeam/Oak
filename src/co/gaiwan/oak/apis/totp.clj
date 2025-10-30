@@ -34,8 +34,7 @@
       {:data-uri (totp/qrcode-data-url
                   {:secret secret
                    :label  user-email
-                   :issuer (config/get :application/name)})
-       :next-uri (routing/url-for req :totp/verify)}]}))
+                   :issuer (config/get :application/name)})}]}))
 
 (defn verification-success
   "Tell success, store secret as credential (upsert the record), remove the secret from
@@ -68,8 +67,7 @@
           {:data-uri (totp/qrcode-data-url
                       {:secret (:totp/secret session)
                        :label  user-email
-                       :issuer (config/get :application/name)})
-           :next-uri (routing/url-for req :totp/verify)}]}))))
+                       :issuer (config/get :application/name)})}]}))))
 
 (defn GET-check
   [{:keys [db session] :as req}]
