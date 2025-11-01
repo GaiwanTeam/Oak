@@ -9,8 +9,10 @@
   "
   (:require
    [clojure.string :as str]
+   [buddy.auth.middleware :as buddy]
    [co.gaiwan.oak.domain.credential :as credential]
    [co.gaiwan.oak.domain.identity :as identity]
+   [co.gaiwan.oak.domain.auth-backend :as backend]
    [co.gaiwan.oak.domain.jwt :as jwt]
    [co.gaiwan.oak.domain.scope :as scope]
    [co.gaiwan.oak.util.routing :as routing]
@@ -37,18 +39,11 @@
   (def h (wrap-enforce-login (constantly 1)))
   (h {}))
 
-(defn get-session-auth [session type]
-  (let [{:keys [authentications identity]} session]
-    (some #(when (= type (:type %)) %)
-          (get-in session [:authentications identity]))))
-
-(comment
-  (get-session-auth
-   {:session {:authentications
-              {"abc" #{{:type "password"
-                        :created-at (java.time.Instant/now)}}}
-              :identity "abc"}}
-   credential/type-password))
+(defn wrap-session-auth
+  [h]
+  (buddy/wrap-authentication
+   h
+   backend/password-backend))
 
 ;; (defn wrap-authentications
 ;;   "Upon a successful authentication challenge, like password or totp, we add an
@@ -77,28 +72,6 @@
 ;;            (update-in req [:session :authentications identity-id] #(into #{} (remove #{authn}) %)))))
 ;;      req
 ;;      (get-in session [:authentications identity-id]))))
-
-(defn wrap-session-auth
-  "If an `:identity` key is set in the session, this will look up the user with
-  that uuid, and set it (the identity record) as the `:identity` key on the
-  request, as well as propagating the `:auth-time` key from the request to the
-  session."
-  [h]
-  (fn [{:keys [session db] :as req}]
-    (let [identity-id (:identity session)
-          identity    (and identity-id (identity/find-one db {:id identity-id}))
-          pwd-auth    (get-session-auth session credential/type-password)
-          totp-auth   (get-session-auth session credential/type-totp)
-          pwd-cred    (when identity (credential/find-one db {:identity-id identity-id :type credential/type-password}))
-          totp-cred   (when identity (credential/find-one db {:identity-id identity-id :type credential/type-totp}))
-          pwd-valid?  (and pwd-auth pwd-cred (.isBefore ^java.time.Instant (:credential/updated-at pwd-cred) (:created-at pwd-auth)))
-          totp-valid? (and totp-auth totp-cred (.isBefore ^java.time.Instant (:credential/updated-at totp-cred) (:created-at totp-auth)))]
-      (h
-       ;; Logged in with password, and either no 2FA configured, or we have a
-       ;; valid 2FA login
-       (if (and pwd-valid? (or (not totp-cred) totp-valid?))
-         (assoc req :identity identity)
-         req)))))
 
 (defn wrap-bearer-auth
   "Accept Authorization: Bearer style authentication.

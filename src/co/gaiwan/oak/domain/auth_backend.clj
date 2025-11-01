@@ -1,5 +1,5 @@
 (ns co.gaiwan.oak.domain.auth-backend
-  "Domain layer for working with id/pw login"
+  "Domain layer for working with password/totp login"
   (:require
    [co.gaiwan.oak.domain.credential :as credential]
    [co.gaiwan.oak.domain.identity :as identity]
@@ -25,13 +25,15 @@
   [{:keys [session db]}]
   (let [pwd-auth  (get-session-auth session credential/type-password)
         totp-auth (get-session-auth session credential/type-totp)]
-    {:identitiy-id  (:identity session)
+    {:identity-id  (:identity session)
      :db db
      :pwd-auth pwd-auth
      :totp-auth totp-auth}))
 
 (defn authfn
-  "authfn will return the data which will be put into the `:identity` key of a request"
+  "authfn will
+   1. Doing the auth
+   2. Return the identity data which will be put into the `:identity` key of a request"
   [{:keys [identity-id db pwd-auth totp-auth]}]
   (let [pwd-cred    (when identity (credential/find-one db {:identity-id identity-id :type credential/type-password}))
         totp-cred   (when identity (credential/find-one db {:identity-id identity-id :type credential/type-totp}))
@@ -41,7 +43,7 @@
     (when (and pwd-valid? (or (not totp-cred) totp-valid?))
       identity)))
 
-(defn password-backend
+(defn session-backend
   [& [{:keys [unauthorized-handler parsefn authfn] :or {authfn identity}}]]
   (reify
     proto/IAuthentication
@@ -59,8 +61,6 @@
           (http/response "Permission denied" 403)
           (http/response "Unauthorized" 401))))))
 
-(comment
-  ;; Using password-backend
-
-  (password-backend {:parsefn parsefn
-                     :authtn  authfn}))
+(def password-backend
+  (session-backend {:parsefn parsefn
+                    :authfn  authfn}))
