@@ -29,6 +29,7 @@
   com.zaxxer/HikariCP               {:mvn/version "7.0.2"}
 
   ;; Cryptography
+  buddy/buddy-auth                             {:mvn/version "3.0.1"}
   com.nimbusds/nimbus-jose-jwt                 {:mvn/version "10.5"}
   com.google.crypto.tink/tink                  {:mvn/version "1.19.0"}
   org.conscrypt/conscrypt-openjdk$linux-x86_64 {:mvn/version "2.5.2"}
@@ -45,8 +46,7 @@
   com.lambdaisland/ornament {:mvn/version "1.17.150"}
 
   ;; Email
-  toyokumo/tarayo {:mvn/version "0.2.7"}
-  }
+  toyokumo/tarayo {:mvn/version "0.2.7"}}
 
  :aliases
  {:dev
