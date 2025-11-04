@@ -1,0 +1,29 @@
+name: Build And Publish OCI Container
+
+on:
+  push:
+
+jobs:
+  build:
+    runs-on: node-20-bookworm
+    steps:
+      - name: Checkout the repo
+        uses: actions/checkout@v4
+
+      - name: install podman
+        run: |
+          apt-get update && apt-get install podman -y
+
+      - name: Log in to the Container registry
+        run: |
+          echo "${{ secrets.FORGEJO_TOKEN }}" | podman login -u "${{ github.actor }}" --password-stdin ${{ github.server_url }}
+
+      - name: Build and push
+        run: |
+          IMAGE_TAG="git.gaiwan.co/Gaiwan/Oak/oak:latest"
+
+          echo "Building $IMAGE_TAG"
+          podman build -t $IMAGE_TAG .
+
+          echo "Pushing $IMAGE_TAG"
+          podman push $IMAGE_TAG
