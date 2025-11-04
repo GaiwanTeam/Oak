@@ -20,7 +20,7 @@ jobs:
 
       - name: Build and push
         run: |
-          IMAGE_TAG="git.gaiwan.co/Gaiwan/Oak/oak:latest"
+          IMAGE_TAG="git.gaiwan.co/gaiwan/oak/oak:latest"
 
           echo "Building $IMAGE_TAG"
           podman build -t $IMAGE_TAG .
