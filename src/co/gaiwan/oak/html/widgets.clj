@@ -47,10 +47,17 @@
    :gap            "1rem"}
   [:>* {:margin-top    0
         :margin-bottom 0}]
+  [:h3 {:color --oak-green-12}]
   {:border-radius    --radius-3
    :box-shadow       --shadow-2
    :background-color --bg-panel
    :color            --text-panel})
+
+(o/defstyled avatar :div
+  {:border-radius "50%"
+   :background-color --oak-green-4
+   :width "3rem"
+   :height "3rem"})
 
 (o/defstyled full-center-card :div
   "Visual 'card' with rounded corners and drop shadow. Becomes seamless at
