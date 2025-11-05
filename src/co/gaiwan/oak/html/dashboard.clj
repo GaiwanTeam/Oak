@@ -19,7 +19,7 @@
    :marging "1rem"
    :gap "1rem"})
 
-(defn dash-page [{:keys [req totp-setup-url logout-url]}]
+(defn dash-page [{:keys [req debug? totp-setup-url logout-url]}]
   [dash-layout
    [card-container
     [w/card
@@ -30,7 +30,7 @@
      [:h1 "Change Password"]]
     [w/card
      [:h1 "Authentications"]]
-    [w/card
-     [:h1 "Debug"]
-     [:p (pr-str (:identity req))]]]
-   ])
+    (when debug?
+      [w/card
+       [:h1 "Debug"]
+       [:p (pr-str (:identity req))]])]])
