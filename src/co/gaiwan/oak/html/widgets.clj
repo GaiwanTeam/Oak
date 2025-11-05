@@ -37,6 +37,21 @@
    :background-color --bg-panel
    :color            --text-panel})
 
+(o/defstyled column-card :div
+  "Visual 'column-card' with rounded corners and drop shadow."
+  {:padding        [--size-8 --size-4]
+   :flex-grow      1
+   :display        :flex
+   :flex-direction :column
+   :align-items    :stretch
+   :gap            "1rem"}
+  [:>* {:margin-top    0
+        :margin-bottom 0}]
+  {:border-radius    --radius-3
+   :box-shadow       --shadow-2
+   :background-color --bg-panel
+   :color            --text-panel})
+
 (o/defstyled full-center-card :div
   "Visual 'card' with rounded corners and drop shadow. Becomes seamless at
   smaller screen sizes. Intended to only have one on the screen."
