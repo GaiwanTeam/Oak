@@ -46,8 +46,15 @@
    [card-container
     [w/column-card
      [:h3 "Account Security"]
-     [:a {:href totp-setup-url} "Setup 2FA"]
-     [:a {:href logout-url} "Sign out"]]
+     [:div.security-status
+      [:div {:class "status-indicator status-active"}]
+      [:span "Two-Factor Authentication: Active"]]
+     [:p "Enhance your account security with two-factor authentication."]
+     [:div
+      {:class "action-buttons"}
+      [:button.call-to-action  "Disable 2FA"]
+      [:button.call-to-action "Change Settings"]]]
+
     [w/column-card
      [:h3 "Change Password"]
      [f/form {:method "POST"}
@@ -68,10 +75,23 @@
                       :required "required"}]
       [f/password-validate-script]
       [f/submit {:type "submit" :value "Update Password"}]]]
-
     [w/column-card
-     [:h3 "Authorized Applications"]]
+     [:h3 "Authorized Applications"]
+     [:p "These applications have access to your account."]
+     [:div.oauth-apps
+      [:div.app-item
+       [:div.app-info
+        [:div.app-info  "AS"]
+        [:div [:h4 "Analytics Suite"] [:p "Authorized on Sep 22, 2023"]]]
+       [:button.call-to-action  "Remove"]]
+      [:div.app-item
+       [:div.app-info
+        [:div.app-icon  "CD"]
+        [:div [:h4 "Cloud Drive"] [:p "Authorized on Aug 5, 2023"]]]
+       [:button.call-to-action  "Remove"]]]]
     (when debug?
       [w/column-card
        [:h1 "Debug"]
+       [:a {:href totp-setup-url} "Setup 2FA"]
+       [:a {:href logout-url} "Sign out"]
        [:p (pr-str (:identity req))]])]])
