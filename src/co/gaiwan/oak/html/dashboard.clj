@@ -41,6 +41,30 @@
    :gap "0.5rem"
    :margin-bottom "1rem"})
 
+(o/defstyled oauth-apps :div
+  {:margin-top "1rem"}
+  [:>div {:margin 0
+          :padding 0}]
+  [:.app-item {:display :flex
+               :justify-content :space-between
+               :align-items :center
+               :padding ["1rem" 0]
+               :border-bottom-width "1px"
+               :border-bottom-style :solid
+               :border-bottom-color --gray-2}]
+  [:.app-info {:display :flex
+               :align-items :center
+               :gap "1rem"}]
+  [:.app-icon {:display :flex
+               :justify-content :center
+               :align-items :center
+               :width "2rem"
+               :height "2rem"
+               :border-radius "0.4rem"
+               :background-color --gray-1
+               :font-weight :bold
+               :color --status-info}])
+
 (defn dash-page [{:keys [req debug? totp-setup-url logout-url]}]
   [dash-layout
    [dash-header
@@ -84,10 +108,10 @@
     [w/column-card
      [:h3 "Authorized Applications"]
      [:p "These applications have access to your account."]
-     [:div.oauth-apps
+     [oauth-apps
       [:div.app-item
        [:div.app-info
-        [:div.app-info  "AS"]
+        [:div.app-icon  "AS"]
         [:div [:h4 "Analytics Suite"] [:p "Authorized on Sep 22, 2023"]]]
        [:button.call-to-action  "Remove"]]
       [:div.app-item
