@@ -49,7 +49,24 @@
      [:a {:href totp-setup-url} "Setup 2FA"]
      [:a {:href logout-url} "Sign out"]]
     [w/column-card
-     [:h3 "Change Password"]]
+     [:h3 "Change Password"]
+     [f/form {:method "POST"}
+      [f/input-group {:label "Current Password"
+                      :id "current-password"
+                      :type "password"
+                      :name "current-password"
+                      :required "required"}]
+      [f/input-group {:label "New Password"
+                      :id "new-password"
+                      :type "password"
+                      :name "new-password"
+                      :required "required"}]
+      [f/input-group {:label "Confirm New Password"
+                      :id "confirm-new-password"
+                      :type "password"
+                      :name "confirm-new-password"
+                      :required "required"}]
+      [f/submit {:type "submit" :value "Update Password"}]]]
     [w/column-card
      [:h3 "Authorized Applications"]]
     (when debug?
