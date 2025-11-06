@@ -84,6 +84,213 @@
           fg.querySelector('button').addEventListener('click', (e)=>toggleAriaPressed(e, fg.querySelector('input')));
         })(document.currentScript.parentElement)"])]))
 
+(defn password-validate-script []
+  [:script {:nonce (str csp/*csp-nonce*)}
+   "
+(function(fg) {
+    const currentPassword = fg.querySelector('#current-password');
+    const newPassword = fg.querySelector('#new-password');
+    const confirmPassword = fg.querySelector('#confirm-new-password');
+    const submitBtn = fg.querySelector('input[type=\"submit\"]');
+
+    const errorDivMap = new Map();
+
+    // init error area
+    function initErrorDiv(input) {
+        const existingErrorDiv = input.parentElement.parentElement.querySelector('.error');
+        if (existingErrorDiv) {
+            let errorMessage = existingErrorDiv.querySelector('.error-message');
+            if (!errorMessage) {
+                errorMessage = document.createElement('span');
+                errorMessage.className = 'error-message';
+                existingErrorDiv.appendChild(errorMessage);
+            }
+            errorDivMap.set(input, { div: existingErrorDiv, message: errorMessage });
+        }
+    }
+
+    // init error div for each field
+    initErrorDiv(currentPassword);
+    initErrorDiv(newPassword);
+    initErrorDiv(confirmPassword);
+
+    // check password strength
+    function validatePasswordStrength(password) {
+        const errors = [];
+        if (password.length < 8) {
+            errors.push('Password must be at least 8 characters');
+        }
+        if (!/[A-Z]/.test(password)) {
+            errors.push('Password must contain at least one uppercase letter');
+        }
+        if (!/[a-z]/.test(password)) {
+            errors.push('Password must contain at least one lowercase letter');
+        }
+        if (!/[0-9]/.test(password)) {
+            errors.push('Password must contain at least one number');
+        }
+        return errors;
+    }
+
+    // show error message
+    function showError(input, message) {
+        const errorData = errorDivMap.get(input);
+        if (!errorData) return;
+
+        errorData.message.textContent = message;
+        errorData.div.style.display = 'flex';
+        errorData.div.style.alignItems = 'center';
+        errorData.div.style.gap = '0.5rem';
+        input.classList.add('error-input');
+        input.setAttribute('aria-invalid', 'true');
+    }
+
+    // clear error message
+    function clearError(input) {
+        const errorData = errorDivMap.get(input);
+        if (!errorData) return;
+
+        errorData.message.textContent = '';
+        errorData.div.style.display = 'none';
+        input.classList.remove('error-input');
+        input.removeAttribute('aria-invalid');
+    }
+
+    // check if password match
+    function checkPasswordsMatch() {
+        const newPass = newPassword.value;
+        const confirmPass = confirmPassword.value;
+
+        if (confirmPass === '') {
+            clearError(confirmPassword);
+            return false;
+        }
+
+        if (newPass !== confirmPass) {
+            showError(confirmPassword, 'Passwords do not match');
+            return false;
+        } else {
+            clearError(confirmPassword);
+            return true;
+        }
+    }
+
+    // check new password strength
+    function checkNewPasswordStrength() {
+        const password = newPassword.value;
+
+        if (password === '') {
+            clearError(newPassword);
+            return false;
+        }
+
+        const errors = validatePasswordStrength(password);
+
+        if (errors.length > 0) {
+            showError(newPassword, errors[0]);
+            return false;
+        } else {
+            clearError(newPassword);
+            return true;
+        }
+    }
+
+    // New Password check when input
+    newPassword.addEventListener('input', function() {
+        checkNewPasswordStrength();
+        if (confirmPassword.value) {
+            checkPasswordsMatch();
+        }
+    });
+
+    // New Password check when losing the focus
+    newPassword.addEventListener('blur', function() {
+        if (this.value) {
+            checkNewPasswordStrength();
+        }
+    });
+
+    // Confirm Password check when input
+    confirmPassword.addEventListener('input', function() {
+        checkPasswordsMatch();
+    });
+
+    // Confirm Password check when losing the focus
+    confirmPassword.addEventListener('blur', function() {
+        if (this.value) {
+            checkPasswordsMatch();
+        }
+    });
+
+    // check before submit
+    fg.addEventListener('submit', function(e) {
+        let isValid = true;
+
+        // check current password
+        if (currentPassword.value.trim() === '') {
+            showError(currentPassword, 'Current password is required');
+            isValid = false;
+        } else {
+            clearError(currentPassword);
+        }
+
+        // check new password
+        if (newPassword.value.trim() === '') {
+            showError(newPassword, 'New password is required');
+            isValid = false;
+        } else if (!checkNewPasswordStrength()) {
+            isValid = false;
+        }
+
+        // check confirmed password
+        if (confirmPassword.value.trim() === '') {
+            showError(confirmPassword, 'Please confirm your new password');
+            isValid = false;
+        } else if (!checkPasswordsMatch()) {
+            isValid = false;
+        }
+
+        // force the password needs to be updated
+        if (isValid && newPassword.value === currentPassword.value) {
+            showError(newPassword, 'New password must be different from current password');
+            isValid = false;
+        }
+
+        if (!isValid) {
+            e.preventDefault();
+            // focus on first error field
+            const firstError = fg.querySelector('[aria-invalid=" true "]');
+            if (firstError) {
+                firstError.focus();
+            }
+        } else {
+            // show submitting state
+            submitBtn.disabled = true;
+            submitBtn.value = 'Updating...';
+        }
+    });
+
+    // add CSS styles
+    const style = document.createElement('style');
+    style.textContent = `
+        .error-message {
+            color: #ef476f;
+            font-size: 0.875rem;
+            font-weight: 500;
+            line-height: 1.4;
+        }
+        .error-input {
+            border-color: #ef476f !important;
+            box-shadow: 0 0 0 1px #ef476f !important;
+        }
+        input[type=" submit "]:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+    `;
+    document.head.appendChild(style);
+})(document.currentScript.parentElement);
+   "])
+
 (o/defstyled submit :input.call-to-action
-  {:width            "100%"
-   })
+  {:width            "100%"})
