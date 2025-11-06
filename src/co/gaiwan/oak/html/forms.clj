@@ -283,7 +283,7 @@
             border-color: #ef476f !important;
             box-shadow: 0 0 0 1px #ef476f !important;
         }
-        input[type=" submit "]:disabled {
+        input[type=\" submit \"]:disabled {
             opacity: 0.6;
             cursor: not-allowed;
         }
