@@ -35,6 +35,12 @@
        :margin 0
        :padding 0}])
 
+(o/defstyled security-header :div
+  {:display :flex
+   :align-items :center
+   :gap "0.5rem"
+   :margin-bottom "1rem"})
+
 (defn dash-page [{:keys [req debug? totp-setup-url logout-url]}]
   [dash-layout
    [dash-header
@@ -46,8 +52,8 @@
    [card-container
     [w/column-card
      [:h3 "Account Security"]
-     [:div.security-status
-      [:div {:class "status-indicator status-active"}]
+     [security-header
+      [:div.status-indicator {:class "status-active"}]
       [:span "Two-Factor Authentication: Active"]]
      [:p "Enhance your account security with two-factor authentication."]
      [:div

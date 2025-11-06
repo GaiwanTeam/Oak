@@ -51,6 +51,12 @@
   [:a.subtle
    {:color --text-subtle}]
 
+  [:div.status-indicator
+   {:border-radius "50%"
+    :width "0.75rem"
+    :height "0.75rem"}]
+  [:div.status-active
+   {:background-color --status-info}]
   [:.call-to-action
    {--button-color       --bg-call-to-action
     --button-color-light --bg-call-to-action-light
@@ -79,6 +85,4 @@
    [:&:active
     {:box-shadow "inset 0 1px 3px rgba(0, 0, 0, 0.6), /* Strong inner shadow */
     0 1px 1px rgba(0, 0, 0, 0.1) /* Very small outer shadow */"
-     :transform  "translateY(1px)"}]]
-
-  )
+     :transform  "translateY(1px)"}]])
