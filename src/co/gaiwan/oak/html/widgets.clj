@@ -55,7 +55,8 @@
 
 (o/defstyled avatar :div
   {:border-radius "50%"
-   :background-color --oak-green-4
+   :background-color --oak-green-3
+   :color --oak-green-9
    :width "3rem"
    :height "3rem"})
 

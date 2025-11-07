@@ -65,6 +65,11 @@
     {:border-color --gray-6
      :color --gray-8
      :background-color --gray-1}]]
+  [:button.cautious-action.severe
+   [:&:hover
+    {:border-color --red-5
+     :color --red-7
+     :background-color --red-0}]]
   [:a.subtle
    {:color --text-subtle}]
 

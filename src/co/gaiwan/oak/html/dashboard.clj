@@ -58,16 +58,20 @@
                :border-bottom-color --gray-2}]
   [:.app-info {:display :flex
                :align-items :center
-               :gap "1rem"}]
+               :gap "1rem"}
+   [:h4 {:margin-top 0
+         :margin-bottom 0}]
+   [:p {:margin-top 0
+        :margin-bottom 0}]]
   [:.app-icon {:display :flex
                :justify-content :center
                :align-items :center
                :width "2rem"
                :height "2rem"
                :border-radius "0.4rem"
-               :background-color --gray-1
+               :background-color --oak-green-3
                :font-weight :bold
-               :color --status-info}])
+               :color --oak-green-9}])
 
 (defn dash-page [{:keys [req debug? totp-setup-url logout-url]}]
   [dash-layout
@@ -116,12 +120,12 @@
        [:div.app-info
         [:div.app-icon  "AS"]
         [:div [:h4 "Analytics Suite"] [:p "Authorized on Sep 22, 2023"]]]
-       [:button.call-to-action  "Remove"]]
+       [:button.cautious-action.severe "Remove"]]
       [:div.app-item
        [:div.app-info
         [:div.app-icon  "CD"]
         [:div [:h4 "Cloud Drive"] [:p "Authorized on Aug 5, 2023"]]]
-       [:button.call-to-action  "Remove"]]]]
+       [:button.cautious-action.severe "Remove"]]]]
     (when debug?
       [w/column-card
        [:h1 "Debug"]
