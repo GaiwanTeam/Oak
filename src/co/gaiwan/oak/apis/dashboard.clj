@@ -5,10 +5,25 @@
    [co.gaiwan.oak.lib.auth-middleware :as auth-mw]
    [co.gaiwan.oak.html.dashboard :as dash-html]
    [co.gaiwan.oak.util.routing :as routing]
+   [co.gaiwan.oak.domain.credential :as cred]
    [lambdaisland.hiccup.middleware :as hiccup-mw]
    [ring.middleware.params :refer [wrap-params]]
    [ring.middleware.keyword-params :refer [wrap-keyword-params]]
    [ring.middleware.anti-forgery :as ring-csrf]))
+
+(defn POST-dashboard
+  {:parameters
+   {:form
+    [:map
+     [:new-password string?]]}}
+  [{:keys [db session parameters] :as req}]
+  (let [new-pass (-> parameters :form :new-password)
+        identity-id (get-in req [:identity :identity/id])]
+    (prn :update {:identity-id identity-id :password new-pass})
+    (cred/set-password! db {:identity-id identity-id :password new-pass})
+    {:status 200
+     :html/body [:div
+                 [:p "success"]]}))
 
 (defn GET-dashboard [req]
   {:status 200
@@ -28,4 +43,5 @@
                       auth-mw/wrap-session-auth
                       auth-mw/wrap-enforce-login
                       hiccup-mw/wrap-render]
+         :post #'POST-dashboard
          :get #'GET-dashboard}]})
