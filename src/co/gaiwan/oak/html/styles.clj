@@ -48,6 +48,23 @@
    [:&:active
     {:background-image --button-color-dark}]]
 
+  [:button.cautious-action
+   {:background-color --white
+    :border           (str "2px solid " --gray-4)
+    :color            --gray-6
+    :padding          --size-2
+    :border-radius    --radius-2
+    :font-size        "1rem"
+    :font-weight      :bold
+    :cursor           :pointer}
+   [:&:hover
+    {:border-color --gray-5
+     :color --gray-7
+     :background-color --gray-0}]
+   [:&:active
+    {:border-color --gray-6
+     :color --gray-8
+     :background-color --gray-1}]]
   [:a.subtle
    {:color --text-subtle}]
 
