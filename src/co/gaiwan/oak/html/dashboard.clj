@@ -41,6 +41,10 @@
    :gap "0.5rem"
    :margin-bottom "1rem"})
 
+(o/defstyled security-actions :div
+  {:display :flex
+   :gap "1rem"})
+
 (o/defstyled oauth-apps :div
   {:margin-top "1rem"}
   [:>div {:margin 0
@@ -80,9 +84,8 @@
       [:div.status-indicator {:class "status-active"}]
       [:span "Two-Factor Authentication: Active"]]
      [:p "Enhance your account security with two-factor authentication."]
-     [:div
-      {:class "action-buttons"}
-      [:button.call-to-action  "Disable 2FA"]
+     [security-actions
+      [:button.cautious-action "Disable 2FA"]
       [:button.call-to-action "Change Settings"]]]
 
     [w/column-card
