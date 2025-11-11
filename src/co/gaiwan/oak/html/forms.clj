@@ -26,6 +26,8 @@
 (o/defstyled input-group :div
   {:margin-bottom --size-4
    :position "relative"}
+  ["&:has([type=hidden])"
+   {:display       "none"}]
   [:label
    {:display       "block"
     :margin-bottom --size-2
@@ -291,6 +293,9 @@
     document.head.appendChild(style);
 })(document.currentScript.parentElement);
    "])
+
+(o/defstyled submit-delete :input.cautious-action.severe
+  {:width            "100%"})
 
 (o/defstyled submit :input.call-to-action
   {:width            "100%"})
