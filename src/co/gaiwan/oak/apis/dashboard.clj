@@ -26,6 +26,20 @@
      :html/body [:div
                  [:p "success"]]}))
 
+(defn POST-auth-apps
+  {:parameters
+   {:form
+    [:map
+     [:app-id string?]]}}
+  [{:keys [db session parameters] :as req}]
+  (let [app-id (-> parameters :form :app-id)
+        identity-id (get-in req [:identity :identity/id])]
+    (prn :auth-apps app-id)
+    ;;(oauth-authorization/delete! db {:identity-id app-id})
+    {:status 200
+     :html/body [:div
+                 [:p "success"]]}))
+
 (defn GET-dashboard [req]
   {:status 200
    :html/body (dash-html/dash-page
@@ -37,13 +51,22 @@
 
 (defn component [opts]
   {:routes
-   ["/" {:name :home/dash
-         :html/layout layout/layout
-         :middleware [wrap-params
-                      wrap-keyword-params
-                      ring-csrf/wrap-anti-forgery
-                      auth-mw/wrap-session-auth
-                      auth-mw/wrap-enforce-login
-                      hiccup-mw/wrap-render]
-         :post #'POST-dashboard
-         :get #'GET-dashboard}]})
+   ["" {}
+    ["/" {:name :home/dash
+          :html/layout layout/layout
+          :middleware [wrap-params
+                       wrap-keyword-params
+                       ring-csrf/wrap-anti-forgery
+                       auth-mw/wrap-session-auth
+                       auth-mw/wrap-enforce-login
+                       hiccup-mw/wrap-render]
+          :post #'POST-dashboard
+          :get #'GET-dashboard}]
+    ["/dashboard/auth-apps" {:name :home/dash-update
+                             :middleware [wrap-params
+                                          wrap-keyword-params
+                                          ring-csrf/wrap-anti-forgery
+                                          auth-mw/wrap-session-auth
+                                          auth-mw/wrap-enforce-login
+                                          hiccup-mw/wrap-render]
+                             :post #'POST-auth-apps}]]})

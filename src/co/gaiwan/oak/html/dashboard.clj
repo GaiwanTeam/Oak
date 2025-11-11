@@ -127,7 +127,7 @@
             [:div.app-icon  "AS"]
             [:div [:h4 app-name]
              [:p (str "Authorized on " (time/format-date authorized-time))]]]
-           [:form {:method "POST"}
+           [f/form {:method "POST" :action "/dashboard/auth-apps"}
             [f/input-group {:type "hidden"
                             :name "app-id"
                             :value app-id}]
