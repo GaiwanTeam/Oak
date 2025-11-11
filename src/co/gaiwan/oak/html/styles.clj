@@ -48,7 +48,7 @@
    [:&:active
     {:background-image --button-color-dark}]]
 
-  [:button.cautious-action
+  [:input.cautious-action
    {:background-color --white
     :border           (str "2px solid " --gray-4)
     :color            --gray-6
@@ -65,7 +65,7 @@
     {:border-color --gray-6
      :color --gray-8
      :background-color --gray-1}]]
-  [:button.cautious-action.severe
+  [:input.cautious-action.severe
    [:&:hover
     {:border-color --red-5
      :color --red-7
