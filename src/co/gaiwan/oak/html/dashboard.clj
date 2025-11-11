@@ -4,6 +4,7 @@
    [co.gaiwan.oak.html.tokens :refer :all]
    [co.gaiwan.oak.html.widgets :as w]
    [co.gaiwan.oak.html.forms :as form]
+   [co.gaiwan.oak.lib.time :as time]
    [lambdaisland.ornament :as o]))
 
 (o/defstyled dash-layout :div
@@ -73,7 +74,8 @@
                :font-weight :bold
                :color --oak-green-9}])
 
-(defn dash-page [{:keys [req debug? totp-setup-url logout-url]}]
+(defn dash-page [{:keys [req debug? authorized-apps totp-setup-url logout-url]}]
+  (prn :debug-apps authorized-apps)
   [dash-layout
    [dash-header
     [:div.user-info
@@ -116,11 +118,16 @@
      [:h3 "Authorized Applications"]
      [:p "These applications have access to your account."]
      [oauth-apps
-      [:div.app-item
-       [:div.app-info
-        [:div.app-icon  "AS"]
-        [:div [:h4 "Analytics Suite"] [:p "Authorized on Sep 22, 2023"]]]
-       [:button.cautious-action.severe "Remove"]]
+      (for [app authorized-apps]
+        (let [app-name (:oauth-client/client-name app)
+              authorized-time (:oauth-authorization/updated-at app)]
+          [:div.app-item
+           [:div.app-info
+            [:div.app-icon  "AS"]
+            [:div [:h4 app-name]
+             [:p (str "Authorized on " (time/format-date authorized-time))]]]
+           [:button.cautious-action.severe "Remove"]]))
+
       [:div.app-item
        [:div.app-info
         [:div.app-icon  "CD"]

@@ -43,10 +43,10 @@
   com.lambdaisland/hiccup   {:mvn/version "0.14.67"}
   lambdaisland/uri          {:mvn/version "1.19.155"}
   com.lambdaisland/ornament {:mvn/version "1.17.150"}
+  clojure.java-time/clojure.java-time   {:mvn/version "1.4.3"}
 
-  ;; Email
-  toyokumo/tarayo {:mvn/version "0.2.7"}
-  }
+;; Email
+  toyokumo/tarayo {:mvn/version "0.2.7"}}
 
  :aliases
  {:dev

@@ -6,6 +6,7 @@
    [co.gaiwan.oak.html.dashboard :as dash-html]
    [co.gaiwan.oak.util.routing :as routing]
    [co.gaiwan.oak.domain.credential :as cred]
+   [co.gaiwan.oak.domain.oauth-authorization :as oauth-authorization]
    [lambdaisland.hiccup.middleware :as hiccup-mw]
    [ring.middleware.params :refer [wrap-params]]
    [ring.middleware.keyword-params :refer [wrap-keyword-params]]
@@ -30,6 +31,7 @@
    :html/body (dash-html/dash-page
                {:req req
                 :debug? (get-in req [:params :debug])
+                :authorized-apps (oauth-authorization/get-apps (:db req))
                 :totp-setup-url (routing/url-for req :totp/setup)
                 :logout-url (routing/url-for req :auth/logout)})})
 
