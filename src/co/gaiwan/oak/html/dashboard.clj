@@ -126,13 +126,7 @@
             [:div.app-icon  "AS"]
             [:div [:h4 app-name]
              [:p (str "Authorized on " (time/format-date authorized-time))]]]
-           [:button.cautious-action.severe "Remove"]]))
-
-      [:div.app-item
-       [:div.app-info
-        [:div.app-icon  "CD"]
-        [:div [:h4 "Cloud Drive"] [:p "Authorized on Aug 5, 2023"]]]
-       [:button.cautious-action.severe "Remove"]]]]
+           [:button.cautious-action.severe "Remove"]]))]]
     (when debug?
       [w/column-card
        [:h1 "Debug"]
