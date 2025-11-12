@@ -74,7 +74,7 @@
                :font-weight :bold
                :color --oak-green-9}])
 
-(defn dash-page [{:keys [req debug? authorized-apps totp-setup-url logout-url]}]
+(defn dash-page [{:keys [req debug? enable-2fa? authorized-apps totp-setup-url logout-url]}]
   [dash-layout
    [dash-header
     [:div.user-info
@@ -86,7 +86,9 @@
     [w/column-card
      [:h3 "Account Security"]
      [security-header
-      [:div.status-indicator {:class "status-active"}]
+      [:div.status-indicator (if enable-2fa?
+                               {:class "status-active"}
+                               {:class "status-inactive"})]
       [:span "Two-Factor Authentication: Active"]]
      [:p "Enhance your account security with two-factor authentication."]
      [security-actions

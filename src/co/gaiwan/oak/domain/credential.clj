@@ -98,6 +98,10 @@
     (update! db (assoc opts :id (:credential/id record)))
     (create! db opts)))
 
+(defn exist-totp?
+  [db {:keys [identity-id]}]
+  (find-one db {:identity-id identity-id :type type-totp}))
+
 (defn enable-totp!
   [db {:keys [identity-id secret]}]
   (create-or-update! db {:identity-id identity-id :type type-totp :value secret}))

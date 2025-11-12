@@ -79,6 +79,8 @@
     :height "0.75rem"}]
   [:div.status-active
    {:background-color --status-info}]
+  [:div.status-inactive
+   {:background-color --gray-6}]
   [:.call-to-action
    {--button-color       --bg-call-to-action
     --button-color-light --bg-call-to-action-light
