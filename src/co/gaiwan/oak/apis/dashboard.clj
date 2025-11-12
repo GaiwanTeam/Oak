@@ -44,6 +44,7 @@
   [{:keys [db session parameters] :as req}]
   (let [op (-> parameters :form :disable-2fa)
         identity-id (get-in req [:identity :identity/id])]
+    (cred/disable-totp! db {:identity-id identity-id})
     {:status 302
      :headers {"Location" (routing/url-for req :home/dash)}}))
 
