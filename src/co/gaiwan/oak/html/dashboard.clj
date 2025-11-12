@@ -75,7 +75,6 @@
                :color --oak-green-9}])
 
 (defn dash-page [{:keys [req debug? authorized-apps totp-setup-url logout-url]}]
-  (prn :debug-apps authorized-apps)
   [dash-layout
    [dash-header
     [:div.user-info
@@ -91,12 +90,16 @@
       [:span "Two-Factor Authentication: Active"]]
      [:p "Enhance your account security with two-factor authentication."]
      [security-actions
-      [:button.cautious-action "Disable 2FA"]
+      [f/form {:method "POST" :action "/dashboard/2fa"}
+       [f/input-group {:type "hidden"
+                       :name "disable-2fa"
+                       :value true}]
+       [f/submit-disable {:type "submit" :value "Disable 2FA"}]]
       [:button.call-to-action "Change Settings"]]]
 
     [w/column-card
      [:h3 "Change Password"]
-     [f/form {:method "POST"}
+     [f/form {:method "POST" :action "/dashboard/password"}
       [f/input-group {:label "Current Password"
                       :id "current-password"
                       :type "password"

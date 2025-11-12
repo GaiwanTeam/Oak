@@ -294,6 +294,9 @@
 })(document.currentScript.parentElement);
    "])
 
+(o/defstyled submit-disable :input
+  {:width            "100%"})
+
 (o/defstyled submit-delete :input.cautious-action.severe
   {:width            "100%"})
 
