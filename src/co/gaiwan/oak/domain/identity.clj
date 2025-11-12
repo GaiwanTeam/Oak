@@ -79,6 +79,16 @@
       (when (password4j/check-password password hsh)
         id))))
 
+(defn reset-password-with-nonce!
+  [db {:keys [nonce password]}]
+  (if-let [{:keys [nonce-id identity-id]} (credential/resolve-password-reset-nonce db nonce)]
+    (do
+      (db/with-transaction [conn db]
+        (credential/delete! conn {:id nonce-id})
+        (credential/set-password! conn {:identity-id identity-id :password password}))
+      true)
+    false))
+
 (defn delete! [db id]
   (db/with-transaction [conn db]
     (let [sel {:identity-id id}]
