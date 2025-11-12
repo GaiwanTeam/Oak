@@ -16,7 +16,7 @@ jobs:
 
       - name: Log in to the Container registry
         run: |
-          echo "${{ secrets.FORGEJO_TOKEN }}" | podman login -u "${{ github.actor }}" --password-stdin ${{ github.server_url }}
+          echo "${{ secrets.CONTAINER_REGISTRY_TOKEN }}" | podman login -u "arne" --password-stdin ${{ github.server_url }}
 
       - name: Build and push
         run: |
