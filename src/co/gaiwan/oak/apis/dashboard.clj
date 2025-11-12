@@ -20,11 +20,9 @@
   [{:keys [db session parameters] :as req}]
   (let [new-pass (-> parameters :form :new-password)
         identity-id (get-in req [:identity :identity/id])]
-    (prn :update {:identity-id identity-id :password new-pass})
     (cred/set-password! db {:identity-id identity-id :password new-pass})
-    {:status 200
-     :html/body [:div
-                 [:p "success"]]}))
+    {:status 302
+     :headers {"Location" (routing/url-for req :home/dash)}}))
 
 (defn POST-auth-apps
   {:parameters
@@ -35,9 +33,8 @@
   (let [auth-id (-> parameters :form :auth-id)
         identity-id (get-in req [:identity :identity/id])]
     (oauth-authorization/remove-auth! db {:id auth-id})
-    {:status 200
-     :html/body [:div
-                 [:p "success"]]}))
+    {:status 302
+     :headers {"Location" (routing/url-for req :home/dash)}}))
 
 (defn POST-2fa
   {:parameters
@@ -47,9 +44,8 @@
   [{:keys [db session parameters] :as req}]
   (let [op (-> parameters :form :disable-2fa)
         identity-id (get-in req [:identity :identity/id])]
-    {:status 200
-     :html/body [:div
-                 [:p "success"]]}))
+    {:status 302
+     :headers {"Location" (routing/url-for req :home/dash)}}))
 
 (defn GET-dashboard [req]
   {:status 200
@@ -81,7 +77,6 @@
                              :middleware [auth-mw/wrap-session-auth
                                           auth-mw/wrap-enforce-login
                                           hiccup-mw/wrap-render]
-
                              :post #'POST-auth-apps}]
     ["/dashboard/2fa" {:name :home/dash-2fa
                        :middleware [auth-mw/wrap-session-auth
