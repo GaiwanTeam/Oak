@@ -48,12 +48,13 @@
     {:status 302
      :headers {"Location" (routing/url-for req :home/dash)}}))
 
-(defn GET-dashboard [req]
+(defn GET-dashboard [{:keys [db] :as req}]
   {:status 200
    :html/body (dash-html/dash-page
                {:req req
                 :debug? (get-in req [:params :debug])
-                :authorized-apps (oauth-authorization/get-apps (:db req))
+                :enable-2fa? (cred/exist-totp? db {:identity-id (get-in req [:identity :identity/id])})
+                :authorized-apps (oauth-authorization/get-apps db)
                 :totp-setup-url (routing/url-for req :totp/setup)
                 :logout-url (routing/url-for req :auth/logout)})})
 
