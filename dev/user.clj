@@ -30,3 +30,7 @@
   ((requiring-resolve 'clojure.java.browse/browse-url)
    (str "http://localhost:"
         ((requiring-resolve 'co.gaiwan.oak.app.config/get) :http/port))))
+
+(defn browse-emails []
+  ((requiring-resolve 'clojure.java.browse/browse-url)
+   "http://localhost:5000"))

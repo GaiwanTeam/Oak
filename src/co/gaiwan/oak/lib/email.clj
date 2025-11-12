@@ -64,3 +64,13 @@
               [{:content-type "text/plain" :content (hiccup->text (:html msg))}
                {:content-type "text/html" :content
                 (hiccup/render (:html msg))}])))))
+
+
+(comment
+  (send! {:to "arne@gaiwan.co"
+          :subject "hello"
+          :html [:p "test"]})
+
+  (config/get :email/smtp-host)
+  (smtp-config)
+  )

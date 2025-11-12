@@ -129,7 +129,7 @@
               authorized-time (:oauth-authorization/updated-at app)]
           [:div.app-item
            [:div.app-info
-            [:div.app-icon  "AS"]
+            [:div.app-icon "AS"]
             [:div [:h4 app-name]
              [:p (str "Authorized on " (time/format-date authorized-time))]]]
            [f/form {:method "POST" :action "/dashboard/auth-apps"}

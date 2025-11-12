@@ -75,7 +75,7 @@
     (create! db {:identity-id identity-id
                  :type type-password-reset-nonce
                  :value nonce
-                 :expires-at (.plus (Instant/now) expiry-hours ChronoUnit/HOURS)})
+                 :expires-at (.plus (Instant/now) (long expiry-hours) ChronoUnit/HOURS)})
     nonce))
 
 (defn set-password!
