@@ -125,6 +125,10 @@
   [db {:keys [identity-id secret]}]
   (create-or-update! db {:identity-id identity-id :type type-totp :value secret}))
 
+(defn disable-totp!
+  [db {:keys [identity-id]}]
+  (delete! db {:identity-id identity-id :type type-totp}))
+
 (comment
   (def tmp-id #uuid "0199e255-d5e4-7010-b2c9-435a4593af49")
   (def tmp-uuid #uuid "0199c27f-5bbe-702a-9ea8-968f6873d88e")
