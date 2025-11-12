@@ -120,7 +120,7 @@
      [oauth-apps
       (for [app authorized-apps]
         (let [app-name (:oauth-client/client-name app)
-              app-id (:oauth-authorization/id app)
+              auth-id (:oauth-authorization/id app)
               authorized-time (:oauth-authorization/updated-at app)]
           [:div.app-item
            [:div.app-info
@@ -129,8 +129,8 @@
              [:p (str "Authorized on " (time/format-date authorized-time))]]]
            [f/form {:method "POST" :action "/dashboard/auth-apps"}
             [f/input-group {:type "hidden"
-                            :name "app-id"
-                            :value app-id}]
+                            :name "auth-id"
+                            :value auth-id}]
             [f/submit-delete {:type "submit" :value "Remove"}]]]))]]
     (when debug?
       [w/column-card

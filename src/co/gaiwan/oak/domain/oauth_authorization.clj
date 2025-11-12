@@ -46,6 +46,12 @@
    {:delete-from :oauth-authorization
     :where [:= identity-id :identity_id]}))
 
+(defn remove-auth! [db {:keys [id]}]
+  (db/execute-honey!
+   db
+   {:delete-from :oauth-authorization
+    :where [:= id :id]}))
+
 (defn get-apps [db]
   (db/execute-honey!
    db

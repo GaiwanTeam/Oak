@@ -30,12 +30,11 @@
   {:parameters
    {:form
     [:map
-     [:app-id string?]]}}
+     [:auth-id uuid?]]}}
   [{:keys [db session parameters] :as req}]
-  (let [app-id (-> parameters :form :app-id)
+  (let [auth-id (-> parameters :form :auth-id)
         identity-id (get-in req [:identity :identity/id])]
-    (prn :auth-apps app-id)
-    ;;(oauth-authorization/delete! db {:identity-id app-id})
+    (oauth-authorization/remove-auth! db {:id auth-id})
     {:status 200
      :html/body [:div
                  [:p "success"]]}))
