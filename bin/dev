@@ -59,10 +59,8 @@
    "write-styles" #'write-styles])
 
 (def flags
-  ["-v, --verbose"
-   "Increase verbosity"
-   "-h, --help"
-   "Show help text for a (sub-)command"])
+  ["-v, --verbose" "Increase verbosity"
+   "-h, --help" "Show help text for a (sub-)command"])
 
 (cli/dispatch*
  {:name "bin/dev"
