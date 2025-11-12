@@ -12,7 +12,7 @@
    [ring.middleware.keyword-params :refer [wrap-keyword-params]]
    [ring.middleware.anti-forgery :as ring-csrf]))
 
-(defn POST-dashboard
+(defn POST-password
   {:parameters
    {:form
     [:map
@@ -39,6 +39,18 @@
      :html/body [:div
                  [:p "success"]]}))
 
+(defn POST-2fa
+  {:parameters
+   {:form
+    [:map
+     [:disable-2fa boolean?]]}}
+  [{:keys [db session parameters] :as req}]
+  (let [op (-> parameters :form :disable-2fa)
+        identity-id (get-in req [:identity :identity/id])]
+    {:status 200
+     :html/body [:div
+                 [:p "success"]]}))
+
 (defn GET-dashboard [req]
   {:status 200
    :html/body (dash-html/dash-page
@@ -59,13 +71,20 @@
                        auth-mw/wrap-session-auth
                        auth-mw/wrap-enforce-login
                        hiccup-mw/wrap-render]
-          :post #'POST-dashboard
           :get #'GET-dashboard}]
-    ["/dashboard/auth-apps" {:name :home/dash-update
-                             :middleware [wrap-params
-                                          wrap-keyword-params
-                                          ring-csrf/wrap-anti-forgery
-                                          auth-mw/wrap-session-auth
+    ["/dashboard/password" {:name :home/dash-password
+                            :middleware [auth-mw/wrap-session-auth
+                                         auth-mw/wrap-enforce-login
+                                         hiccup-mw/wrap-render]
+                            :post #'POST-password}]
+    ["/dashboard/auth-apps" {:name :home/dash-auth-apps
+                             :middleware [auth-mw/wrap-session-auth
                                           auth-mw/wrap-enforce-login
                                           hiccup-mw/wrap-render]
-                             :post #'POST-auth-apps}]]})
+
+                             :post #'POST-auth-apps}]
+    ["/dashboard/2fa" {:name :home/dash-2fa
+                       :middleware [auth-mw/wrap-session-auth
+                                    auth-mw/wrap-enforce-login
+                                    hiccup-mw/wrap-render]
+                       :post #'POST-2fa}]]})
