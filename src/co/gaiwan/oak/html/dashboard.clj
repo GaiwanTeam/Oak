@@ -100,7 +100,7 @@
                        :value (str (not enable-2fa?))}]
        (if enable-2fa?
          [f/submit-disable {:type "submit" :value "Disable 2FA"}]
-         [f/submit-disable {:type "submit" :value "Change Settings"}])]]]
+         [f/submit-disable {:type "submit" :value "Enable 2FA"}])]]]
     [w/column-card
      [:h3 "Change Password"]
      [f/form {:method "POST" :action "/dashboard/password"}
