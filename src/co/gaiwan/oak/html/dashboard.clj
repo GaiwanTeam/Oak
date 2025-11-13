@@ -89,16 +89,18 @@
       [:div.status-indicator (if enable-2fa?
                                {:class "status-active"}
                                {:class "status-inactive"})]
-      [:span "Two-Factor Authentication: Active"]]
+      [:span (str "Two-Factor Authentication: " (if enable-2fa?
+                                                  "Active"
+                                                  "Inactive"))]]
      [:p "Enhance your account security with two-factor authentication."]
      [security-actions
       [f/form {:method "POST" :action "/dashboard/2fa"}
        [f/input-group {:type "hidden"
-                       :name "disable-2fa"
-                       :value true}]
-       [f/submit-disable {:type "submit" :value "Disable 2FA"}]]
-      [:button.call-to-action "Change Settings"]]]
-
+                       :name "enable-2fa"
+                       :value (str (not enable-2fa?))}]
+       (if enable-2fa?
+         [f/submit-disable {:type "submit" :value "Disable 2FA"}]
+         [f/submit-disable {:type "submit" :value "Change Settings"}])]]]
     [w/column-card
      [:h3 "Change Password"]
      [f/form {:method "POST" :action "/dashboard/password"}

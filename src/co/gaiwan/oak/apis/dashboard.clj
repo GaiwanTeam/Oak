@@ -40,20 +40,23 @@
   {:parameters
    {:form
     [:map
-     [:disable-2fa boolean?]]}}
+     [:enable-2fa boolean?]]}}
   [{:keys [db session parameters] :as req}]
-  (let [op (-> parameters :form :disable-2fa)
+  (let [enable-2fa (-> parameters :form :enable-2fa)
         identity-id (get-in req [:identity :identity/id])]
-    (cred/disable-totp! db {:identity-id identity-id})
-    {:status 302
-     :headers {"Location" (routing/url-for req :home/dash)}}))
+    (if enable-2fa
+      {:status 302
+       :headers {"Location" (routing/url-for req :totp/setup)}}
+      (do (cred/disable-totp! db {:identity-id identity-id})
+          {:status 302
+           :headers {"Location" (routing/url-for req :home/dash)}}))))
 
 (defn GET-dashboard [{:keys [db] :as req}]
   {:status 200
    :html/body (dash-html/dash-page
                {:req req
                 :debug? (get-in req [:params :debug])
-                :enable-2fa? (cred/exist-totp? db {:identity-id (get-in req [:identity :identity/id])})
+                :enable-2fa? (some? (cred/exist-totp? db {:identity-id (get-in req [:identity :identity/id])}))
                 :authorized-apps (oauth-authorization/get-apps db)
                 :totp-setup-url (routing/url-for req :totp/setup)
                 :logout-url (routing/url-for req :auth/logout)})})
