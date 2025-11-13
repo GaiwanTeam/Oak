@@ -10,7 +10,10 @@
    [co.gaiwan.oak.lib.db :as db]))
 
 (def attributes
-  [[:id :uuid :primary-key]
+  [;; For naming, try to follow field names defined in
+   ;; https://datatracker.ietf.org/doc/html/rfc7591 - OAuth 2.0 Dynamic Client
+   ;; Registration Protocol
+   [:id :uuid :primary-key]
    [:client_id :text :unique [:not nil]]
    [:client_secret :text]
    [:client_name :text]
@@ -19,10 +22,11 @@
    [:grant_types :jsonb]
    [:response_types :jsonb]
    [:scope :text]
+   [:logo_uri :text]
+   [:client_uri :text]
 
-   ;; https://datatracker.ietf.org/doc/html/rfc7591 - OAuth 2.0 Dynamic Client Registration Protocol
-   ;; [:client_uri :text]
-   ;; [:logo_uri :text]
+   ;; More RFC7591 fields we don't currently implement
+
    ;; [:contacts :jsonb]
    ;; [:tos_uri :text]
    ;; [:policy_uri :text]
