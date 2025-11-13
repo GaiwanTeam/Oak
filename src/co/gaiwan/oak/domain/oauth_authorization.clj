@@ -46,19 +46,22 @@
    {:delete-from :oauth-authorization
     :where [:= identity-id :identity_id]}))
 
-(defn remove-auth! [db {:keys [id]}]
+(defn remove-auth! [db {:keys [id identity-id]}]
   (db/execute-honey!
    db
    {:delete-from :oauth-authorization
-    :where [:= id :id]}))
+    :where [:and
+            [:= :identity_id identity-id]
+            [:= :id id]]}))
 
-(defn get-apps [db]
+(defn get-apps [db {:keys [identity-id]}]
   (db/execute-honey!
    db
    {:select [:*]
     :from [[:oauth-authorization :auth]]
     :join [[:oauth_client :client]
-           [:= :auth.client_id :client.id]]}))
+           [:= :auth.client_id :client.id]]
+    :where [:= identity-id :identity_id]}))
 
 (comment
   (create!

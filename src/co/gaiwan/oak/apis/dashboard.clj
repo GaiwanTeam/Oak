@@ -32,7 +32,7 @@
   [{:keys [db session parameters] :as req}]
   (let [auth-id (-> parameters :form :auth-id)
         identity-id (get-in req [:identity :identity/id])]
-    (oauth-authorization/remove-auth! db {:id auth-id})
+    (oauth-authorization/remove-auth! db {:id auth-id :identity-id identity-id})
     {:status 302
      :headers {"Location" (routing/url-for req :home/dash)}}))
 
@@ -57,7 +57,7 @@
                {:req req
                 :debug? (get-in req [:params :debug])
                 :enable-2fa? (some? (cred/exist-totp? db {:identity-id (get-in req [:identity :identity/id])}))
-                :authorized-apps (oauth-authorization/get-apps db)
+                :authorized-apps (oauth-authorization/get-apps db {:identity-id (get-in req [:identity :identity/id])})
                 :totp-setup-url (routing/url-for req :totp/setup)
                 :logout-url (routing/url-for req :auth/logout)})})
 
