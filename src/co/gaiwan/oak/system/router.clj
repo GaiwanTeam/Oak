@@ -15,6 +15,7 @@
    [reitit.ring.coercion :as ring-coercion]
    [reitit.ring.middleware.muuntaja :as reitit-muuntaja]
    [reitit.ring.middleware.parameters :as reitit-params]
+   [ring.middleware.flash :as ring-flash]
    [ring.middleware.session :as ring-session]
    [ring.util.response :as res]))
 
@@ -89,8 +90,7 @@
 
 (defn fixed-routes []
   ["" {}
-   ["/ping" {:get (constantly {:status 200 :body "pong"})}]
-   ])
+   ["/ping" {:get (constantly {:status 200 :body "pong"})}]])
 
 (defn- hidden-method
   [request]
@@ -138,6 +138,7 @@
                                :same-site :strict}
                         (config/get :http-session/secure-cookie)
                         (assoc :secure true))}]
+                    ring-flash/wrap-flash
                     wrap-log-request
                     ring-csp/wrap-content-security-policy
                     wrap-404
@@ -145,5 +146,4 @@
 
 (comment
   (user/restart!)
-  (user/restart! :system/router)
-  )
+  (user/restart! :system/router))

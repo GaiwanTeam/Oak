@@ -1,6 +1,7 @@
 (ns co.gaiwan.oak.html.dashboard
   (:require
    [co.gaiwan.oak.app.config :as config]
+   [co.gaiwan.oak.html.layout :as layout]
    [co.gaiwan.oak.html.forms :as f]
    [co.gaiwan.oak.html.tokens :refer :all]
    [co.gaiwan.oak.html.widgets :as w]
@@ -87,7 +88,9 @@
                     :color --oak-green-9}])
 
 (defn dash-page [{:keys [req debug? enable-2fa? authorized-apps totp-setup-url logout-url]}]
+  (tap> (:flash req))
   [dash-layout
+   [layout/flash-dialog req]
    [dash-header
     [:div.user-info
      [w/avatar]

@@ -10,7 +10,6 @@
    [co.gaiwan.oak.domain.oauth-authorization :as oauth-authorization]
    [lambdaisland.hiccup.middleware :as hiccup-mw]
    [ring.middleware.params :refer [wrap-params]]
-   [ring.middleware.flash :refer [wrap-flash]]
    [ring.middleware.keyword-params :refer [wrap-keyword-params]]
    [ring.middleware.anti-forgery :as ring-csrf]))
 
@@ -18,7 +17,7 @@
   {:parameters
    {:form
     [:map
-     [:current-password string?]
+     [:current-password [:string {:min 1}]]
      [:new-password [:string {:min (config/get :password/minimum-length)}]]]}}
   [{:keys [db session parameters] :as req}]
   (let [current-pass (-> parameters :form :current-password)
@@ -28,17 +27,17 @@
                                                  :password current-pass})]
     (cond
       (not valid-current?)
-      {:status 400
+      {:status 303
        :flash {:error "Current password is incorrect"}
        :headers {"Location" (routing/url-for req :home/dash)}}
       (= current-pass new-pass)
-      {:status 400
+      {:status 303
        :flash {:error "New password must be different from current password"}
        :headers {"Location" (routing/url-for req :home/dash)}}
       :else
       (do
         (cred/set-password! db {:identity-id identity-id :password new-pass})
-        {:status 302
+        {:status 303
          :flash {:success "Password updated successfully"}
          :headers {"Location" (routing/url-for req :home/dash)}}))))
 
@@ -51,7 +50,7 @@
   (let [auth-id (-> parameters :form :auth-id)
         identity-id (get-in req [:identity :identity/id])]
     (oauth-authorization/remove-auth! db {:id auth-id :identity-id identity-id})
-    {:status 302
+    {:status 303
      :headers {"Location" (routing/url-for req :home/dash)}}))
 
 (defn POST-2fa
@@ -63,10 +62,10 @@
   (let [enable-2fa (-> parameters :form :enable-2fa)
         identity-id (get-in req [:identity :identity/id])]
     (if enable-2fa
-      {:status 302
+      {:status 303
        :headers {"Location" (routing/url-for req :totp/setup)}}
       (do (cred/disable-totp! db {:identity-id identity-id})
-          {:status 302
+          {:status 303
            :headers {"Location" (routing/url-for req :home/dash)}}))))
 
 (defn GET-dashboard [{:keys [db] :as req}]
@@ -90,7 +89,6 @@
                        ring-csrf/wrap-anti-forgery
                        auth-mw/wrap-session-auth
                        auth-mw/wrap-enforce-login
-                       wrap-flash
                        hiccup-mw/wrap-render]
           :get #'GET-dashboard}]
     ["/dashboard/password" {:name :home/dash-password

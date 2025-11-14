@@ -28,3 +28,14 @@
      [g/logo]]
     [:template#password-visibility-toggle
      [forms/visibility-toggle]]]])
+
+(defn flash-dialog [{:keys [flash]}]
+  [:div.flash-data
+   {:data-error (:error flash)}
+   [:script {:nonce (str csp/*csp-nonce*)}
+    "(function(flashDiv) {
+      var msg = flashDiv.getAttribute('data-error');
+      if (msg) {
+        alert(msg);
+      }
+    })(document.currentScript.parentElement)"]])
