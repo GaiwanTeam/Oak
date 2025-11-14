@@ -294,6 +294,10 @@
 })(document.currentScript.parentElement);
    "])
 
+(defn bottom-script []
+  [:script {:nonce (str csp/*csp-nonce*)}
+   "document.querySelectorAll(\" [data-confirm] \").forEach((el)=>el.onclick=()=>confirm(el.dataset.confirm))"])
+
 (o/defstyled submit-disable :input
   {:width            "100%"})
 
