@@ -1,5 +1,6 @@
 (ns co.gaiwan.oak.html.dashboard
   (:require
+   [co.gaiwan.oak.app.config :as config]
    [co.gaiwan.oak.html.forms :as f]
    [co.gaiwan.oak.html.tokens :refer :all]
    [co.gaiwan.oak.html.widgets :as w]
@@ -156,7 +157,7 @@
                             :name "auth-id"
                             :value auth-id}]
             [f/submit-delete {:type "submit" :value "Remove"}]]]))]]
-    (when debug?
+    (when (and debug? (config/get :dev/allow-debug?))
       [w/column-card
        [:h1 "Debug"]
        [:a {:href totp-setup-url} "Setup 2FA"]
