@@ -1,6 +1,7 @@
 (ns co.gaiwan.oak.apis.dashboard
   "Front page, some basic account management for the user"
   (:require
+   [co.gaiwan.oak.app.config :as config]
    [co.gaiwan.oak.html.layout :as layout]
    [co.gaiwan.oak.lib.auth-middleware :as auth-mw]
    [co.gaiwan.oak.html.dashboard :as dash-html]
@@ -9,6 +10,7 @@
    [co.gaiwan.oak.domain.oauth-authorization :as oauth-authorization]
    [lambdaisland.hiccup.middleware :as hiccup-mw]
    [ring.middleware.params :refer [wrap-params]]
+   [ring.middleware.flash :refer [wrap-flash]]
    [ring.middleware.keyword-params :refer [wrap-keyword-params]]
    [ring.middleware.anti-forgery :as ring-csrf]))
 
@@ -16,13 +18,29 @@
   {:parameters
    {:form
     [:map
-     [:new-password string?]]}}
+     [:current-password string?]
+     [:new-password [:string {:min (config/get :password/minimum-length)}]]]}}
   [{:keys [db session parameters] :as req}]
-  (let [new-pass (-> parameters :form :new-password)
-        identity-id (get-in req [:identity :identity/id])]
-    (cred/set-password! db {:identity-id identity-id :password new-pass})
-    {:status 302
-     :headers {"Location" (routing/url-for req :home/dash)}}))
+  (let [current-pass (-> parameters :form :current-password)
+        new-pass (-> parameters :form :new-password)
+        identity-id (get-in req [:identity :identity/id])
+        valid-current? (cred/verify-password db {:identity-id identity-id
+                                                 :password current-pass})]
+    (cond
+      (not valid-current?)
+      {:status 400
+       :flash {:error "Current password is incorrect"}
+       :headers {"Location" (routing/url-for req :home/dash)}}
+      (= current-pass new-pass)
+      {:status 400
+       :flash {:error "New password must be different from current password"}
+       :headers {"Location" (routing/url-for req :home/dash)}}
+      :else
+      (do
+        (cred/set-password! db {:identity-id identity-id :password new-pass})
+        {:status 302
+         :flash {:success "Password updated successfully"}
+         :headers {"Location" (routing/url-for req :home/dash)}}))))
 
 (defn POST-auth-apps
   {:parameters
@@ -72,6 +90,7 @@
                        ring-csrf/wrap-anti-forgery
                        auth-mw/wrap-session-auth
                        auth-mw/wrap-enforce-login
+                       wrap-flash
                        hiccup-mw/wrap-render]
           :get #'GET-dashboard}]
     ["/dashboard/password" {:name :home/dash-password
