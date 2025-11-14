@@ -15,8 +15,7 @@
    (into
     [:<>
      [w/leaf-bg]
-     children
-     [form/bottom-script]])))
+     children])))
 
 (o/defstyled card-container :div
   {:display :grid

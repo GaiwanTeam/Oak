@@ -7,6 +7,10 @@
 
 (require 'co.gaiwan.oak.html.styles)
 
+(defn bottom-script []
+  [:script {:nonce (str csp/*csp-nonce*)}
+   "document.querySelectorAll(\" [data-confirm] \").forEach((el)=>el.onclick=()=>confirm(el.dataset.confirm))"])
+
 (defn layout
   "For wrap-render"
   [{:html/keys [head body]}]
@@ -24,4 +28,4 @@
     [:footer
      "Powered by"
      [g/logo]]
-    ]])
+    [bottom-script]]])
