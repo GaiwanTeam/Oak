@@ -85,7 +85,9 @@
     [:sequential (into [:enum] valid-response-types)]]
    [:scope {:optional true
             :default ""}
-    :string]])
+    :string]
+   [:client-uri {:optional true} :string]
+   [:logo-uri {:optional true} :string]])
 
 (defn new-client-secret []
   (random/secure-base62-str client-secret-default-entropy-bits))
@@ -96,7 +98,8 @@
                     {:category     :invalid
                      :malli/errors errors}))
     (let [coerced-opts (m/coerce ClientOpts opts (mt/default-value-transformer {::mt/add-optional-keys true}))
-          {:keys [client-name redirect-uris token-endpoint-auth-method grant-types response-types scope]} coerced-opts]
+          {:keys [client-name redirect-uris token-endpoint-auth-method grant-types response-types scope
+                  client-uri logo-uri]} coerced-opts]
       (db/insert!
        db
        "oauth_client"
@@ -108,7 +111,9 @@
         :token_endpoint_auth_method token-endpoint-auth-method
         :grant_types                grant-types
         :response_types             response-types
-        :scope                      scope}))))
+        :scope                      scope
+        :client_uri                 client-uri
+        :logo_uri                   logo-uri}))))
 
 (defn list-all [db]
   (db/execute-honey!
@@ -143,7 +148,8 @@
                                    mu/optional-keys)
                                opts)
         {:keys [client-name client-secret redirect-uris
-                token-endpoint-auth-method grant-types response-types scope]} coerced-opts]
+                token-endpoint-auth-method grant-types response-types scope
+                client-uri logo-uri]} coerced-opts]
     (db/update!
      db
      {:update :oauth-client
@@ -155,7 +161,9 @@
                 token-endpoint-auth-method (assoc :token_endpoint_auth_method token-endpoint-auth-method)
                 grant-types                (assoc :grant_types [:lift grant-types])
                 response-types             (assoc :response_types [:lift response-types])
-                scope                      (assoc :scope scope))})))
+                scope                      (assoc :scope scope)
+                client-uri                 (assoc :client_uri client-uri)
+                logo-uri                   (assoc :logo_uri logo-uri))})))
 
 (comment
   (create! (user/db) {:client-name "My client"
@@ -167,9 +175,7 @@
                             :scope "openid profile email"}
                       :where [:= :client_id "2ZyVA5TnoXw.oak.client"]})
 
-
   (list-all (user/db))
 
   (update! (user/db) {:id #uuid "0199853a-dc56-703e-9e9f-373ea857646f",
-                      :client-name "hello"})
-  )
+                      :client-name "hello"}))

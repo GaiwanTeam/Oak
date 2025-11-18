@@ -41,7 +41,9 @@
    ["token_endpoint_auth_method" :oauth-client/token-endpoint-auth-method]
    ["grant_types" :oauth-client/grant-types]
    ["response_types" :oauth-client/response-types]
-   ["scope" :oauth-client/scope]])
+   ["scope" :oauth-client/scope]
+   ["client_uri" :oauth-client/client-uri]
+   ["logo_uri" :oauth-client/logo-uri]])
 
 (defn create-oauth-client
   "Create a new OAuth client"
@@ -60,7 +62,9 @@
                               :coll? true
                               :key :response-types}
     "--scope <scope>" {:doc "Scope"
-                       :coll? true}]}
+                       :coll? true}
+    "--client-uri <uri>" {:doc "URI of a web page providing information about the client, such as its terms of service and privacy policy, displayed to the end-user by the Authorization Server."}
+    "--logo-uri <uri>" {:doc "URL of the client's logo image for display on the Authorization Server's consent screen to help users identify the application."}]}
   [opts]
   {:columns oauth-client-cols
    :data [(oauth-client/create!
@@ -100,7 +104,9 @@
                               :coll? true
                               :key :response-types}
     "--scope <scope>" {:doc "Scope"
-                       :coll? true}]}
+                       :coll? true}
+    "--client-uri <uri>" {:doc "URI of a web page providing information about the client, such as its terms of service and privacy policy, displayed to the end-user by the Authorization Server."}
+    "--logo-uri <uri>" {:doc "URL of the client's logo image for display on the Authorization Server's consent screen to help users identify the application."}]}
   [opts]
   (oauth-client/update! (db) (cond-> opts
                                (:client-secret opts)
@@ -256,13 +262,13 @@ Leave the part after `=` blank to unset a claim."
                   ks (distinct (mapcat keys data))]
               ((requiring-resolve 'charred.api/write-csv) w (cons ks
                                                                   (map (apply juxt (map (fn [col] #(get-col % col)) ks)) data))
-               {:close-writer? true})
+                                                          {:close-writer? true})
               (println (.toString w)))
 
             :else
             ((requiring-resolve 'clojure.pprint/print-table) (map first columns)
-             (map (fn [row]
-                    (into {} (map (fn [[h k]] [h (get-col row k)])) columns)) data)))))
+                                                             (map (fn [row]
+                                                                    (into {} (map (fn [[h k]] [h (get-col row k)])) columns)) data)))))
       res)))
 
 (defn run-cmd
