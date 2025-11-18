@@ -128,6 +128,10 @@
   (let [{:keys [client_id scope] :as params} (:query parameters)
         identity-id (:identity session)]
     (or
+     (when (get-in req [:query-params "debug"])
+       ;; test the uri with client_id, scope, debug query-string
+       (let [oauth-client (oauth-client/find-by-client-id db client_id)]
+         (permission-dialog-response oauth-client scope params)))
      (pre-client-checks params)
      (if-let [oauth-client (oauth-client/find-by-client-id db client_id)]
        (or
