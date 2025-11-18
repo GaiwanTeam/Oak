@@ -47,7 +47,9 @@
   (let [{:keys [client_id redirect_uri response_type scope state code_challenge code_challenge_method]} params]
     [layout
      [w/full-center-card
-      [:h1 (:oauth-client/client-name oauth-client) " Wants to Use Your " (config/get :org/name) " Account"]
+      [:h1
+       [w/app-logo (:oauth-client/logo-uri oauth-client)]
+       (:oauth-client/client-name oauth-client) " Wants to Use Your " (config/get :org/name) " Account"]
       [:p "This will allow " (:oauth-client/client-name oauth-client) " to:"]
       [:ul
        (for [s requested-scopes]

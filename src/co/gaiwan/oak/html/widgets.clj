@@ -60,6 +60,21 @@
    :width "3rem"
    :height "3rem"})
 
+(o/defstyled app-logo :div
+  {:display "inline-flex"
+   :justify-content :center
+   :vertical-align :middle
+   :align-items :center
+   :width "2rem"
+   :height "2rem"
+   :margin "0.4rem"
+   :border-radius "0.4rem"
+   :background-color --oak-green-3}
+  [:img
+   {:max-width "100%"}]
+  ([uri]
+   [:img {:src uri :alt "app's logo"}]))
+
 (o/defstyled full-center-card :div
   "Visual 'card' with rounded corners and drop shadow. Becomes seamless at
   smaller screen sizes. Intended to only have one on the screen."
