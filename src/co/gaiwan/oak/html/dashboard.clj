@@ -70,9 +70,19 @@
                :width "2rem"
                :height "2rem"
                :border-radius "0.4rem"
-               :background-color --oak-green-3
-               :font-weight :bold
-               :color --oak-green-9}])
+               :background-color --oak-green-3}
+   [:img
+    {:max-width "100%"
+     :height :auto}]]
+  [:.app-text-icon {:display :flex
+                    :justify-content :center
+                    :align-items :center
+                    :width "2rem"
+                    :height "2rem"
+                    :border-radius "0.4rem"
+                    :background-color --oak-green-3
+                    :font-weight :bold
+                    :color --oak-green-9}])
 
 (defn dash-page [{:keys [req debug? enable-2fa? authorized-apps totp-setup-url logout-url]}]
   [dash-layout
@@ -127,11 +137,16 @@
      [oauth-apps
       (for [app authorized-apps]
         (let [app-name (:oauth-client/client-name app)
+              app-icon-uri (:oauth-client/logo-uri app)
+              app-uri (:oauth-client/client-uri app)
               auth-id (:oauth-authorization/id app)
               authorized-time (:oauth-authorization/updated-at app)]
           [:div.app-item
            [:div.app-info
-            [:div.app-icon "AS"]
+            (if app-icon-uri
+              [:div.app-icon [:a {:href app-uri}
+                              [:img {:src app-icon-uri}]]]
+              [:div.app-text-icon (first app-name)])
             [:div [:h4 app-name]
              [:p (str "Authorized on " (time/format-date authorized-time))]]]
            [f/form {:method "POST" :action "/dashboard/auth-apps"
