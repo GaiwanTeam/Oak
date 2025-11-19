@@ -5,6 +5,7 @@
    [co.gaiwan.oak.html.widgets :as w]
    [co.gaiwan.oak.html.forms :as form]
    [co.gaiwan.oak.lib.time :as time]
+   [co.gaiwan.oak.util.routing :as routing]
    [lambdaisland.ornament :as o]))
 
 (o/defstyled dash-layout :div
@@ -137,6 +138,7 @@
      [oauth-apps
       (for [app authorized-apps]
         (let [app-name (:oauth-client/client-name app)
+              app-id  (:oauth-client/client-id app)
               app-icon-uri (:oauth-client/logo-uri app)
               app-uri (:oauth-client/client-uri app)
               auth-id (:oauth-authorization/id app)
@@ -145,7 +147,7 @@
            [:div.app-info
             (if app-icon-uri
               [:div.app-icon [:a {:href app-uri}
-                              [:img {:src app-icon-uri}]]]
+                              [:img {:src (routing/url-for req :proxy/image {:client-id app-id})}]]]
               [:div.app-text-icon (first app-name)])
             [:div [:h4 app-name]
              [:p (str "Authorized on " (time/format-date authorized-time))]]]
