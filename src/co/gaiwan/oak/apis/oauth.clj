@@ -88,9 +88,9 @@
 
 (defn permission-dialog-response
   "Ask the user permission for the requested scopes"
-  [oauth-client scope params]
+  [oauth-client scope params req]
   {:status 200
-   :html/body [views/permission-dialog-html oauth-client (str/split scope #"\s+") params]})
+   :html/body [views/permission-dialog-html oauth-client (str/split scope #"\s+") params req]})
 
 (defn authorize-response
   "Happy path, store a code for later token exchange, and send the user back to
@@ -131,7 +131,7 @@
      (when (get-in req [:query-params "debug"])
        ;; test the uri with client_id, scope, debug query-string
        (let [oauth-client (oauth-client/find-by-client-id db client_id)]
-         (permission-dialog-response oauth-client scope params)))
+         (permission-dialog-response oauth-client scope params req)))
      (pre-client-checks params)
      (if-let [oauth-client (oauth-client/find-by-client-id db client_id)]
        (or
@@ -145,7 +145,7 @@
                                :identity-id identity-id
                                :auth-time (:auth-time session)
                                :params params})
-          (permission-dialog-response oauth-client scope params)))
+          (permission-dialog-response oauth-client scope params req)))
        (error-html-response (str "Client not found for client_id=" client_id))))))
 
 (defn POST-authorize

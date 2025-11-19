@@ -4,6 +4,7 @@
    [co.gaiwan.oak.domain.scope :as scope]
    [co.gaiwan.oak.html.forms :as f]
    [co.gaiwan.oak.html.widgets :as w]
+   [co.gaiwan.oak.util.routing :as routing]
    [lambdaisland.ornament :as o]))
 
 (o/defstyled layout :main
@@ -43,12 +44,13 @@
     [:button.call-to-action {:type "submit", :name "allow", :value "true"} "Allow"]
     [:button {:type "submit", :name "allow", :value "false"} "Cancel"]]))
 
-(defn permission-dialog-html [oauth-client requested-scopes params]
+(defn permission-dialog-html [oauth-client requested-scopes params req]
   (let [{:keys [client_id redirect_uri response_type scope state code_challenge code_challenge_method]} params]
     [layout
      [w/full-center-card
       [:h1
-       [w/app-logo (:oauth-client/logo-uri oauth-client)]
+       [w/app-logo (when (:oauth-client/logo-uri oauth-client)
+                     (routing/url-for req :proxy/image {:client-id (:oauth-client/client-id oauth-client)}))]
        (:oauth-client/client-name oauth-client) " wants to access your " (config/get :org/name) " account"]
       [:p "This will allow " (:oauth-client/client-name oauth-client) " to:"]
       [:ul
