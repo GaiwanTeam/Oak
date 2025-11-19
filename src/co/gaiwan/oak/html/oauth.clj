@@ -49,7 +49,7 @@
      [w/full-center-card
       [:h1
        [w/app-logo (:oauth-client/logo-uri oauth-client)]
-       (:oauth-client/client-name oauth-client) " Wants to Use Your " (config/get :org/name) " Account"]
+       (:oauth-client/client-name oauth-client) " wants to access your " (config/get :org/name) " account"]
       [:p "This will allow " (:oauth-client/client-name oauth-client) " to:"]
       [:ul
        (for [s requested-scopes]
