@@ -4,6 +4,7 @@
    [ring.util.response :as response]
    [clojure.java.io :as io]
    [hato.client :as hc]
+   [co.gaiwan.oak.lib.auth-middleware :as auth-mw]
    [co.gaiwan.oak.domain.oauth-client :as oauth-client]))
 
 (defn internal-server-error
@@ -48,4 +49,6 @@
   {:routes
    ["" {}
     ["/proxy/image/:client-id" {:name :proxy/image
+                                :middleware [auth-mw/wrap-session-auth
+                                             auth-mw/wrap-enforce-login]
                                 :get #'proxy-image-handler}]]})
