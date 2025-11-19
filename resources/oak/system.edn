@@ -31,4 +31,4 @@
  :apis/oidc      {:makina/type :http/api}
  :apis/openapi   {:makina/type :http/api}
  :apis/totp      {:makina/type :http/api}
- }
+ :apis/proxy     {:makina/type :http/api}}
