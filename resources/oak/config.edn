@@ -17,5 +17,4 @@
  :org/name                            "Oak"
  :password-reset/link-expiry-hours    24
  :password/min-length                 6
- :time/zone-id                        "UTC"
- :password/minimum-length            8}
+ :time/zone-id                        "UTC"}

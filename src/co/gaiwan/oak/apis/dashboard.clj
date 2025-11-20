@@ -18,7 +18,7 @@
    {:form
     [:map
      [:current-password [:string {:min 1}]]
-     [:new-password [:string {:min (config/get :password/minimum-length)}]]]}}
+     [:new-password [:string {:min (config/get :password/min-length)}]]]}}
   [{:keys [db session parameters] :as req}]
   (let [current-pass (-> parameters :form :current-password)
         new-pass (-> parameters :form :new-password)
