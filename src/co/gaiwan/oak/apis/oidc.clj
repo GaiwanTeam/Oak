@@ -80,7 +80,7 @@
    [["/.well-known/openid-configuration"
      {:name :oauth/openid-configuration
       :get #'GET-openid-configuration}]
-    ["/oidc" {:openapi {:tags ["oauth openid"]}}
+    ["/oidc" {:openapi {:tags ["oauth" "openid"]}}
      ["/userinfo" {:name :oidc/userinfo
                    :get #'GET-userinfo
                    :middleware [auth-mw/wrap-bearer-auth]}]]]})

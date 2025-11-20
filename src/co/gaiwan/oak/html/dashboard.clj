@@ -130,7 +130,6 @@
                       :type "password"
                       :name "confirm-new-password"
                       :required "required"}]
-      [f/password-validate-script]
       [f/submit {:type "submit" :value "Update Password"}]]]
     [w/column-card
      [:h3 "Authorized Applications"]

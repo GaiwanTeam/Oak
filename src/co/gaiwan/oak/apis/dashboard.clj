@@ -53,13 +53,14 @@
 
 (defn GET-dashboard [{:keys [db] :as req}]
   {:status 200
-   :html/body (dash-html/dash-page
-               {:req req
-                :debug? (get-in req [:params :debug])
-                :enable-2fa? (some? (cred/exist-totp? db {:identity-id (get-in req [:identity :identity/id])}))
-                :authorized-apps (oauth-authorization/get-apps db {:identity-id (get-in req [:identity :identity/id])})
-                :totp-setup-url (routing/url-for req :totp/setup)
-                :logout-url (routing/url-for req :auth/logout)})})
+   :html/body
+   [dash-html/dash-page
+    {:req req
+     :debug? (get-in req [:params :debug])
+     :enable-2fa? (some? (cred/exist-totp? db {:identity-id (get-in req [:identity :identity/id])}))
+     :authorized-apps (oauth-authorization/get-apps db {:identity-id (get-in req [:identity :identity/id])})
+     :totp-setup-url (routing/url-for req :totp/setup)
+     :logout-url (routing/url-for req :auth/logout)}]})
 
 (defn component [opts]
   {:routes

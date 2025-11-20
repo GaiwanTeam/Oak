@@ -23,9 +23,9 @@
    {:query [:map [:id {:optional true} string?]]}}
   [req]
   (if (:identity req)
-    {:status 302
+    {:status  302
      :headers {"Location" (routing/url-for req :home/dash)}}
-    {:status 200
+    {:status    200
      :html/body [login-form/login-html req {:identifier (-> req :parameters :query :id)}]
      :html/head [:title "Oak Login"]}))
 
@@ -33,44 +33,44 @@
   {:parameters
    {:form
     {:identifier string?
-     :password string?}}}
+     :password   string?}}}
   [{:keys [db parameters session] :as req}]
   (let [identity-id (identity/validate-login db (:form parameters))
-        totp-cred (when identity-id (credential/find-one db {:identity-id identity-id :type credential/type-totp}))
-        session (if identity-id
-                  (with-meta
-                    (-> session
-                        (assoc :identity identity-id)
-                        (update-in [:authentications identity-id]
-                                   (fnil conj #{})
-                                   {:type credential/type-password
-                                    :created-at (Instant/now)}))
-                    {:recreate true})
-                  session)]
+        totp-cred   (when identity-id (credential/find-one db {:identity-id identity-id :type credential/type-totp}))
+        session     (if identity-id
+                      (with-meta
+                        (-> session
+                            (assoc :identity identity-id)
+                            (update-in [:authentications identity-id]
+                                       (fnil conj #{})
+                                       {:type       credential/type-password
+                                        :created-at (Instant/now)}))
+                        {:recreate true})
+                      session)]
     (cond
       ;; login failed, show form again, don't touch session
       (not identity-id)
-      {:status 403
+      {:status    403
        :html/body [login-form/login-html req {:identifier (:identifier (:form parameters))
-                                              :error "Invalid username or password"}]}
+                                              :error      "Invalid username or password"}]}
 
       ;; login passed, but we still need to do totp
       totp-cred
-      {:status 302
+      {:status  302
        :headers {"Location" (routing/path-for req :totp/check)}
        :session session}
 
       ;; login passed, and we have a place to send the user (probably OAuth2 redirect)
       (:redirect-after-login session)
-      {:status 302
+      {:status  302
        :headers {"Location" (:redirect-after-login session)}
        :session (dissoc session :redirect-after-login)}
 
       ;; login passed, show success page
       :else
-      {:status 200
+      {:status    200
        :html/body [views/success-page req {:title "Successfully authenticated"}]
-       :session session})))
+       :session   session})))
 
 (defn GET-logout [req]
   {:status 302
@@ -87,21 +87,21 @@
    {:form
     {:email string?}}}
   [{:keys [db parameters] :as req}]
-  (let [email (-> parameters :form :email)
+  (let [email        (-> parameters :form :email)
         expiry-hours (config/get :password-reset/link-expiry-hours)
-        org-name (config/get :org/name)]
+        org-name     (config/get :org/name)]
     (future
       (when-let [{:identifier/keys [identity-id]} (identifier/find-one db {:type "email" :value email :primary true})]
         (let [nonce (credential/create-password-reset-nonce! db {:identity-id identity-id})]
-          (email/send! {:to email
+          (email/send! {:to      email
                         :subject (str "Your " org-name " password reset link")
-                        :html (email-views/reset-html
-                               {:name email
-                                :org-name org-name
-                                :reset-link (routing/url-for req :auth/submit-password-reset {:nonce nonce})
-                                :expiry-hours expiry-hours})}))))
-    {:status 200
-     :html/body [views/password-reset-requested req {:email email
+                        :html    (email-views/reset-html
+                                  {:name         email
+                                   :org-name     org-name
+                                   :reset-link   (routing/url-for req :auth/submit-password-reset {:nonce nonce})
+                                   :expiry-hours expiry-hours})}))))
+    {:status    200
+     :html/body [views/password-reset-requested req {:email        email
                                                      :expiry-hours expiry-hours}]
      :html/head [:title "Reset Password"]}))
 
@@ -153,9 +153,9 @@
 
         :else
         {:status 400
-         :html/body [views/error-page req "Invalid or expired link"]}))
-    {:status 400
-     :html/body [views/error-page req "Invalid or expired link"]}))
+         :html/body [views/error-page req "Invalid or expired link"]})
+      {:status 400
+       :html/body [views/error-page req "Invalid or expired link"]})))
 
 (defn component [opts]
   {:routes
