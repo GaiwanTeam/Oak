@@ -88,7 +88,6 @@
                     :color --oak-green-9}])
 
 (defn dash-page [{:keys [req debug? enable-2fa? authorized-apps totp-setup-url logout-url]}]
-  (tap> (:flash req))
   [dash-layout
    [layout/flash-dialog req]
    [dash-header

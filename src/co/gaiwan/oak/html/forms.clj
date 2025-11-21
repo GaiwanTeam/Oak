@@ -2,7 +2,6 @@
   "Form components"
   (:require
    [clojure.string :as str]
-   [co.gaiwan.oak.app.config :as config]
    [co.gaiwan.oak.html.graphics :as g]
    [co.gaiwan.oak.html.tokens :refer :all]
    [co.gaiwan.oak.lib.ring-csp :as csp]
