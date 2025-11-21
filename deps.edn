@@ -56,7 +56,8 @@
   :test
   {:extra-paths ["test"]
    :extra-deps  {org.clojure/tools.gitlibs {:mvn/version "2.6.206"}
-                 lambdaisland/kaocha       {:mvn/version "1.91.1392"}}}
+                 lambdaisland/kaocha       {:mvn/version "1.91.1392"}
+                 ring/ring-mock            {:mvn/version "0.4.0"}}}
 
   :bouncycastle
   {:extra-deps {org.bouncycastle/bcprov-jdk18on {:mvn/version "1.82"}}}
