@@ -41,7 +41,7 @@
          :flash {:success "Password updated successfully"}
          :headers {"Location" (routing/url-for req :home/dash)}}))))
 
-(defn POST-auth-apps
+(defn DELETE-auth-app
   {:parameters
    {:form
     [:map
@@ -96,13 +96,13 @@
                                          auth-mw/wrap-enforce-login
                                          hiccup-mw/wrap-render]
                             :post #'POST-password}]
-    ["/dashboard/auth-apps" {:name :home/dash-auth-apps
-                             :middleware [auth-mw/wrap-session-auth
-                                          auth-mw/wrap-enforce-login
-                                          hiccup-mw/wrap-render]
-                             :post #'POST-auth-apps}]
     ["/dashboard/2fa" {:name :home/dash-2fa
                        :middleware [auth-mw/wrap-session-auth
                                     auth-mw/wrap-enforce-login
                                     hiccup-mw/wrap-render]
-                       :post #'POST-2fa}]]})
+                       :post #'POST-2fa}]
+    ["/authorizations/app" {:name :authorizations/app
+                            :middleware [auth-mw/wrap-session-auth
+                                         auth-mw/wrap-enforce-login
+                                         hiccup-mw/wrap-render]
+                            :delete #'DELETE-auth-app}]]})
