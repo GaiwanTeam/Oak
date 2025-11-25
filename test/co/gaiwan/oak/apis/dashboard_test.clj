@@ -63,28 +63,18 @@
       (is (= {:error "New password must be different from current password"} (:flash response))))))
 
 (deftest password-minimum-length-test
-  (with-redefs [config/get (fn [k] (if (= k :password/min-length)
+  (with-redefs [routing/url-for (fn [req route] (case route :home/dash "/dashboard"))
+                config/get (fn [k] (if (= k :password/min-length)
                                      12
                                      (li-config/get harness/config k)))]
-    (let [mock-router (ring/router
-                       (:routes (dashboard/component {}))
-                       {:compile router/reitit-compile-fn
-                        :data
-                        {:coercion   (reitit.coercion.malli/create router/malli-coercion-options)
-                         :muuntaja   (router/muuntaja-instance)
-                         :middleware [reitit-openapi/openapi-feature
-                                      reitit-params/parameters-middleware
-                                      ring-coercion/coerce-exceptions-middleware
-                                      ring-coercion/coerce-response-middleware
-                                      ring-coercion/coerce-request-middleware
-                                      ring-flash/wrap-flash]}})
-          handler (ring/ring-handler mock-router)
-
-          request (-> (mock/request :post "/dashboard/password")
-                      (mock/body {:current-password *password*
-                                  :new-password "short"}))
-          response (handler request)]
-      (is (= 400 (:status response))))))
+    (let [min-length (config/get :password/min-length)
+          req {:db harness/*db*
+               :identity {:identity/id *identity-id*}
+               :parameters {:form {:current-password *password*
+                                   :new-password (apply str (repeat (dec min-length) "x"))}}}
+          response (dashboard/POST-password req)]
+      (is (= 303 (:status response)))
+      (is (= {:error (format "New password should not be shorter than %d characters", min-length)} (:flash response))))))
 
 (deftest post-2fa-enable-test
   (with-redefs [routing/url-for (fn [req route] (case route :totp/setup "/totp/setup"))]

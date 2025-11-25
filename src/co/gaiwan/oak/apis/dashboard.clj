@@ -18,7 +18,7 @@
    {:form
     [:map
      [:current-password [:string {:min 1}]]
-     [:new-password [:string {:min (config/get :password/min-length)}]]]}}
+     [:new-password [:string]]]}}
   [{:keys [db session parameters] :as req}]
   (let [current-pass (-> parameters :form :current-password)
         new-pass (-> parameters :form :new-password)
@@ -29,6 +29,11 @@
       (not valid-current?)
       {:status 303
        :flash {:error "Current password is incorrect"}
+       :headers {"Location" (routing/url-for req :home/dash)}}
+      (< (count new-pass) (config/get :password/min-length))
+      {:status 303
+       :flash {:error (format "New password should not be shorter than %d characters"
+                              (config/get :password/min-length))}
        :headers {"Location" (routing/url-for req :home/dash)}}
       (= current-pass new-pass)
       {:status 303
