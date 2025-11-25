@@ -1,12 +1,16 @@
 {:system/http
  {:port   #config :http/port
   :host   #config :http/host
-  :router #makina/ref :system/router}
+  :router #makina/ref :system/router
+  :middleware #makina/ref :system/middleware}
 
  :system/router
  {:routes          #makina/refset :http/api
   :session-store   #makina/ref :system/redis-store
   :request-filters [#makina/ref :system/database]}
+
+ ;; the middleware before route match
+ :system/middleware {}
 
  :system/database
  {:config {:url      #config :db/url

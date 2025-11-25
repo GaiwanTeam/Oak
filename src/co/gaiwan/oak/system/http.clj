@@ -10,7 +10,8 @@
   {:server
    (jetty/run-jetty
     (reitit-ring/ring-handler (:router config)
-                              (reitit-ring/create-default-handler))
+                              (reitit-ring/create-default-handler)
+                              {:middleware (:middleware config)})
     {:host  (:host config)
      :port  (:port config)
      :join? false})})
