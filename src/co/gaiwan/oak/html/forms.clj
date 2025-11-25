@@ -11,17 +11,24 @@
 (defn form
   "Drop in replacement for :form, but adds a anti-forgery-token field"
   [props & children]
-  (into
-   [:form props
-    [:input {:type "hidden"
-             :id "__anti-forgery-token"
-             :name "__anti-forgery-token"
-             :value
-             (-> *anti-forgery-token*
-                 (str/replace "&" "&amp;")
-                 (str/replace "\"" "&quot;")
-                 (str/replace "<" "&lt;"))}]]
-   children))
+  (let [restful-method (#{"delete" "put"} (str/lower-case (:method props)))]
+    (into
+     [:form (if restful-method
+              (assoc props :method "post")
+              props)
+      (when restful-method
+        [:input {:type "hidden"
+                 :name "_method"
+                 :value restful-method}])
+      [:input {:type "hidden"
+               :id "__anti-forgery-token"
+               :name "__anti-forgery-token"
+               :value
+               (-> *anti-forgery-token*
+                   (str/replace "&" "&amp;")
+                   (str/replace "\"" "&quot;")
+                   (str/replace "<" "&lt;"))}]]
+     children)))
 
 (o/defstyled input-group :div
   {:margin-bottom --size-4

@@ -153,7 +153,7 @@
               [:div.app-text-icon (first app-name)])
             [:div [:h4 app-name]
              [:p (str "Authorized on " (time/format-date authorized-time))]]]
-           [f/form {:method "POST" :action "/dashboard/auth-apps"
+           [f/form {:method "delete" :action "/authorizations/app"
                     :data-confirm "Are you sure you want to remove this item? This action will permanently delete the resource."}
             [f/input-group {:type "hidden"
                             :name "auth-id"
