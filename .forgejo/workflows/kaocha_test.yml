@@ -1,0 +1,52 @@
+name: Kaocha Test Runner
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  run_kaocha:
+    runs-on: node-20-bookworm
+    steps:
+      - name: Checkout the code
+        uses: actions/checkout@v4
+
+      - name: Prepare Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Install Clojure Tools Manually (Non-Root)
+        run: |
+          curl -L -O https://github.com/clojure/brew-install/releases/latest/download/linux-install.sh
+          chmod +x linux-install.sh
+          echo "Installing Clojure CLI Tools to $BIN_PATH..."
+          PREFIX="$HOME/.local"
+          ./linux-install.sh --prefix $PREFIX
+          # handling the path variables
+          BIN_PATH="$HOME/.local/bin"
+          if [ -n "$GITHUB_PATH" ]; then
+            echo "$BIN_PATH" >> $GITHUB_PATH
+          elif [ -n "$GITEA_PATH" ]; then
+            echo "$BIN_PATH" >> $GITEA_PATH
+          else
+            echo "Warning: Neither GITHUB_PATH nor GITEA_PATH is defined. This may cause failure in the next step."
+          fi
+          # verify
+          $BIN_PATH/clojure -version
+          echo "Clojure CLI Tools installation completed."
+
+      - name: run Kaocha
+        run: |
+          chmod +x ./bin/kaocha
+          echo "--- run kaocha test ---"
+          ./bin/kaocha
+
+      - name: finish it
+        run: echo "Kaocha workflow execution finished."
