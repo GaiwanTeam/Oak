@@ -27,6 +27,9 @@
     :z-index  "-1"
     :color    --text-subtle}]
 
+  [#{:h1 :h2 :h3 :h4 :h5}
+   {:color --text-heading}]
+
   [#{"input[type=\"email\"]"
      "input[type=\"password\"]"
      "input[type=\"text\"]"}

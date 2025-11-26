@@ -25,8 +25,11 @@
    :grid-template-columns "repeat( auto-fit, minmax(20rem, 1fr) )"
    :gap "1.5rem"})
 
-(o/defstyled dash-header :div
-  {:margin-bottom "2rem"}
+(o/defstyled dash-header w/column-card
+  {:margin-bottom "2rem"
+   --bg-panel "rgba(255,255,255,20%)"
+   --text-heading --oak-green-13
+   :padding [--size-2]}
   [:>div {:display :flex
           :align-items :center
           :gap "1rem"}]
@@ -38,12 +41,15 @@
   [:p {:color --gray-8
        :margin 0
        :padding 0}]
-  ([{:keys [name email]}]
+  ([{:keys [username email]}]
    [:div.user-info
     [w/avatar]
     [:div.user-details
-     [:h2 name]
-     [:p email]]]))
+     (if username
+       [:<>
+        [:h2 username]
+        [:p email]]
+       [:h2 email])]]))
 
 (o/defstyled security-header :div
   {:display :flex
@@ -93,13 +99,14 @@
                     :font-weight :bold
                     :color --oak-green-9}])
 
-(defn dash-page [{:keys [req debug? enable-2fa? authorized-apps totp-setup-url logout-url]}]
+(defn dash-page [{:keys [req identifiers debug? enable-2fa? authorized-apps totp-setup-url logout-url
+                         params password-error new-password-error confirm-error]}]
   [dash-layout
    (let [{:keys [error success]} (:flash req)]
      [:<>
       (when error [layout/flash-error error])
       (when success [layout/flash-success success])])
-   [dash-header {:name "nnn" :email "nnn"}]
+   [dash-header identifiers]
    [card-container
     [w/column-card
      [:h3 "Account Security"]
@@ -126,17 +133,20 @@
                       :id "current-password"
                       :type "password"
                       :name "current-password"
-                      :required "required"}]
+                      :required "required"
+                      :error password-error}]
       [f/input-group {:label "New Password"
                       :id "new-password"
                       :type "password"
                       :name "new-password"
-                      :required "required"}]
+                      :required "required"
+                      :error new-password-error}]
       [f/input-group {:label "Confirm New Password"
                       :id "confirm-new-password"
                       :type "password"
                       :name "confirm-new-password"
-                      :required "required"}]
+                      :required "required"
+                      :error confirm-error}]
       [f/submit {:type "submit" :value "Update Password"}]]]
     [w/column-card
      [:h3 "Authorized Applications"]

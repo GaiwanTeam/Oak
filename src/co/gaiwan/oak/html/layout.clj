@@ -30,14 +30,11 @@
      [forms/visibility-toggle]]]])
 
 (o/defstyled flash-box :div
-  {:border-width "1px"
-   :border-style "solid"
-   :border-color t/--border-panel
-   :background-color t/--bg-panel
+  {:background-color t/--bg-panel
    :padding t/--size-2
    :margin-top t/--size-1
-   :margin-bottom t/--size-1
-   :border-radius t/--radius-2
+   :margin-bottom t/--size-2
+   :border-radius t/--radius-3
    :box-shadow t/--shadow-2
    :font-size "110%"
    :font-weight :bold

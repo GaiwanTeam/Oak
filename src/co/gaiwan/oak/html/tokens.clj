@@ -172,12 +172,6 @@
 (o/defprop --border-input "Border for form inputs" --gray-4)
 (o/defprop --border-call-to-action "Border for CTA buttons" --oak-green-12)
 
-(o/defprop --text-surface "Default text color for the main surface background." --gray-12)
-(o/defprop --text-panel "Text color used in layered panels; slightly less dominant than surface-text." --gray-8)
-(o/defprop --text-subtle "Secondary text, captions, or placeholder text." --gray-6)
-(o/defprop --text-inverted "Text color used on dark or accent backgrounds (e.g., buttons)." --gray-0)
-(o/defprop --text-call-to-action "Text color for call-to-action elements" --white)
-
 (o/defprop --action-primary "Main button/link color." --blue-6)
 (o/defprop --status-success "Background/icon for positive feedback." --oak-green-6)
 (o/defprop --status-error "Background/icon for negative feedback or errors." --red-8)
@@ -193,6 +187,13 @@
 (o/defprop --button-border --gray-10)
 (o/defprop --text-button --gray-0)
 (o/defprop --accent-color --oak-green-12)
+
+(o/defprop --text-surface "Default text color for the main surface background." --gray-12)
+(o/defprop --text-panel "Text color used in layered panels; slightly less dominant than surface-text." --gray-8)
+(o/defprop --text-subtle "Secondary text, captions, or placeholder text." --gray-6)
+(o/defprop --text-inverted "Text color used on dark or accent backgrounds (e.g., buttons)." --gray-0)
+(o/defprop --text-call-to-action "Text color for call-to-action elements" --white)
+(o/defprop --text-heading "Text color for headings" --accent-color)
 
 (o/defrules dark-mode-tokens
   (gs/at-media

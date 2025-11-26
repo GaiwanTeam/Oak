@@ -13,6 +13,33 @@
    [ring.middleware.keyword-params :refer [wrap-keyword-params]]
    [ring.middleware.anti-forgery :as ring-csrf]))
 
+(defn- get-primary-identifiers [db identity-id]
+  (-> (group-by :identifier/type
+                (co.gaiwan.oak.domain.identifier/find-all
+                 db
+                 {:identity-id identity-id
+                  :primary     true}))
+      (update-vals #(map :identifier/value %))
+      (update-keys keyword)))
+
+(defn- dashboard-response [{:keys [db] :as req} {:keys [password-error new-password-error confirm-error]
+                                                 :as extra-args}]
+  (let [identity-id (get-in req [:identity :identity/id])]
+    {:status (if (or password-error new-password-error confirm-error)
+               400
+               200)
+     :html/body
+     [dash-html/dash-page
+      (merge
+       {:req req
+        :identifiers (get-primary-identifiers db identity-id)
+        :debug? (some? (get-in req [:params :debug]))
+        :enable-2fa? (some? (cred/exist-totp? db {:identity-id identity-id}))
+        :authorized-apps (oauth-authorization/get-apps db {:identity-id identity-id})
+        :totp-setup-url (routing/url-for req :totp/setup)
+        :logout-url (routing/url-for req :auth/logout)}
+       extra-args)]}))
+
 (defn POST-password
   {:summary "Update user password"
    :description "Allows authenticated users to change their password. Validates the current password and enforces minimum length requirements."
@@ -23,34 +50,35 @@
      [:current-password [:string {:min 1}]]
      [:new-password [:string]]]}
    :responses
-   {303 {:description "Password updated successfully or validation error"
-         :headers {"Location" {:schema :string}}}}}
+   {200 {:description "Password updated successfully"}
+    400 {:description "Submission not valid"}}}
   [{:keys [db session parameters] :as req}]
   (let [current-pass (-> parameters :form :current-password)
         new-pass (-> parameters :form :new-password)
+        confirm-pass (-> parameters :form :confirm-new-password)
         identity-id (get-in req [:identity :identity/id])
         valid-current? (cred/verify-password db {:identity-id identity-id
                                                  :password current-pass})]
     (cond
       (not valid-current?)
-      {:status 303
-       :flash {:error "Current password is incorrect"}
-       :headers {"Location" (routing/url-for req :home/dash)}}
+      (dashboard-response req {:password-error "The current password you entered is incorrect"})
 
       (< (count new-pass) (config/get :password/min-length))
-      {:status 303
-       :flash {:error (format "New password should not be shorter than %d characters"
-                              (config/get :password/min-length))}
-       :headers {"Location" (routing/url-for req :home/dash)}}
+      (dashboard-response req {:new-password-error
+                               (format "The new password should be at least %d characters long"
+                                       (config/get :password/min-length))})
+
       (= current-pass new-pass)
-      {:status 303
-       :flash {:error "New password must be different from current password"}
-       :headers {"Location" (routing/url-for req :home/dash)}}
+      (dashboard-response req {:new-password-error "The new password you chose is identical to old password"})
+
+      (not= new-pass confirm-pass)
+      (dashboard-response req {:confirm-password-error "The new password and confirmation password do not match"})
+
       :else
       (do
         (cred/set-password! db {:identity-id identity-id :password new-pass})
         {:status 303
-         :flash {:success "Password updated successfully"}
+         :flash {:success "Your password updated successfully"}
          :headers {"Location" (routing/url-for req :home/dash)}}))))
 
 (defn DELETE-auth-app
@@ -104,21 +132,12 @@
    :responses
    {200 {:description "Dashboard page rendered successfully"}}}
   [{:keys [db] :as req}]
-  {:status 200
-   :html/body
-   [dash-html/dash-page
-    {:req req
-     :debug? (some? (get-in req [:params :debug]))
-     :enable-2fa? (some? (cred/exist-totp? db {:identity-id (get-in req [:identity :identity/id])}))
-     :authorized-apps (oauth-authorization/get-apps db {:identity-id (get-in req [:identity :identity/id])})
-     :totp-setup-url (routing/url-for req :totp/setup)
-     :logout-url (routing/url-for req :auth/logout)}]})
+  (dashboard-response req {}))
 
 (defn component [opts]
   {:routes
-   ["" {}
+   ["" {:html/layout layout/layout}
     ["/" {:name :home/dash
-          :html/layout layout/layout
           :middleware [wrap-params
                        wrap-keyword-params
                        ring-csrf/wrap-anti-forgery

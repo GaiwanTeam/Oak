@@ -47,7 +47,6 @@
    :gap            "1rem"}
   [:>* {:margin-top    0
         :margin-bottom 0}]
-  [:h3 {:color --accent-color}]
   {:border-radius    --radius-3
    :box-shadow       --shadow-2
    :background-color --bg-panel
