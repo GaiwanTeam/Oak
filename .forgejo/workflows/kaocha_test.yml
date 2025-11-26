@@ -22,22 +22,14 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Install Clojure Tools Manually (Non-Root)
+      - name: Install Clojure Tools Manually
         run: |
           curl -L -O https://github.com/clojure/brew-install/releases/latest/download/linux-install.sh
           chmod +x linux-install.sh
-          echo "Installing Clojure CLI Tools to $BIN_PATH..."
-          PREFIX="$HOME/.local"
-          ./linux-install.sh --prefix $PREFIX
+          ./linux-install.sh
           # handling the path variables
-          BIN_PATH="$HOME/.local/bin"
-          if [ -n "$GITHUB_PATH" ]; then
-            echo "$BIN_PATH" >> $GITHUB_PATH
-          elif [ -n "$GITEA_PATH" ]; then
-            echo "$BIN_PATH" >> $GITEA_PATH
-          else
-            echo "Warning: Neither GITHUB_PATH nor GITEA_PATH is defined. This may cause failure in the next step."
-          fi
+          BIN_PATH="/usr/local/bin"
+          echo "$BIN_PATH" >> $GITHUB_PATH
           # verify
           $BIN_PATH/clojure -version
           echo "Clojure CLI Tools installation completed."
