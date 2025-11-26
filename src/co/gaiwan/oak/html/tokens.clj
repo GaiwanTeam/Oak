@@ -76,6 +76,10 @@
 (o/defprop --red-7 "#f03e3e")
 (o/defprop --red-8 "#e03131")
 (o/defprop --red-9 "#c92a2a")
+(o/defprop --red-10 "#972020")
+(o/defprop --red-11 "#651515")
+(o/defprop --red-12 "#320B0B")
+
 
 ;; Sizes
 
@@ -163,6 +167,7 @@
 (o/defprop --bg-call-to-action-light "Call to action button lighter color" --oak-green-8)
 (o/defprop --bg-call-to-action-dark "Call to action button lighter color" --oak-green-12)
 
+(o/defprop --border-panel "Border for panels" --gray-6)
 (o/defprop --border-subtle "Faint lines, dividers, or subtle separators." --gray-4)
 (o/defprop --border-input "Border for form inputs" --gray-4)
 (o/defprop --border-call-to-action "Border for CTA buttons" --oak-green-12)
@@ -187,6 +192,7 @@
 (o/defprop --button-color-hover --gray-7)
 (o/defprop --button-border --gray-10)
 (o/defprop --text-button --gray-0)
+(o/defprop --accent-color --oak-green-12)
 
 (o/defrules dark-mode-tokens
   (gs/at-media
@@ -214,6 +220,7 @@
      --shadow-color "rgba(255, 255, 255, 0.05)"
      --shadow-color-strong "rgba(255, 255, 255, 0.1)"
 
+     --accent-color --oak-green-6
      }]))
 
 (defn prop-default-val [prop]

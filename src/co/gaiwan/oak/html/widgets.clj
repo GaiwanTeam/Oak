@@ -47,7 +47,7 @@
    :gap            "1rem"}
   [:>* {:margin-top    0
         :margin-bottom 0}]
-  [:h3 {:color --oak-green-12}]
+  [:h3 {:color --accent-color}]
   {:border-radius    --radius-3
    :box-shadow       --shadow-2
    :background-color --bg-panel
@@ -73,7 +73,10 @@
   [:img
    {:max-width "100%"}]
   ([uri]
-   [:img {:src uri :alt "app's logo"}]))
+   (when uri
+     [:img {:src uri :alt "application logo"}]
+     ;; TODO render box with first letters of application
+     )))
 
 (o/defstyled full-center-card :div
   "Visual 'card' with rounded corners and drop shadow. Becomes seamless at

@@ -37,7 +37,13 @@
         :padding 0}]
   [:p {:color --gray-8
        :margin 0
-       :padding 0}])
+       :padding 0}]
+  ([{:keys [name email]}]
+   [:div.user-info
+    [w/avatar]
+    [:div.user-details
+     [:h2 name]
+     [:p email]]]))
 
 (o/defstyled security-header :div
   {:display :flex
@@ -89,13 +95,11 @@
 
 (defn dash-page [{:keys [req debug? enable-2fa? authorized-apps totp-setup-url logout-url]}]
   [dash-layout
-   [layout/flash-dialog req]
-   [dash-header
-    [:div.user-info
-     [w/avatar]
-     [:div.user-details
-      [:h2 "John Doe"]
-      [:p "john.doe@example.com"]]]]
+   (let [{:keys [error success]} (:flash req)]
+     [:<>
+      (when error [layout/flash-error error])
+      (when success [layout/flash-success success])])
+   [dash-header {:name "nnn" :email "nnn"}]
    [card-container
     [w/column-card
      [:h3 "Account Security"]

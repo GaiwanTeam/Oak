@@ -3,7 +3,7 @@
    [co.gaiwan.oak.app.config :as config]
    [co.gaiwan.oak.html.forms :as forms]
    [co.gaiwan.oak.html.graphics :as g]
-   [co.gaiwan.oak.lib.ring-csp :as csp]
+   [co.gaiwan.oak.html.tokens :as t]
    [lambdaisland.ornament :as o]))
 
 (require 'co.gaiwan.oak.html.styles)
@@ -29,13 +29,34 @@
     [:template#password-visibility-toggle
      [forms/visibility-toggle]]]])
 
-(defn flash-dialog [{:keys [flash]}]
-  [:div.flash-data
-   {:data-error (:error flash)}
-   [:script {:nonce (str csp/*csp-nonce*)}
-    "(function(flashDiv) {
-      var msg = flashDiv.getAttribute('data-error');
-      if (msg) {
-        alert(msg);
-      }
-    })(document.currentScript.parentElement)"]])
+(o/defstyled flash-box :div
+  {:border-width "1px"
+   :border-style "solid"
+   :border-color t/--border-panel
+   :background-color t/--bg-panel
+   :padding t/--size-2
+   :margin-top t/--size-1
+   :margin-bottom t/--size-1
+   :border-radius t/--radius-2
+   :box-shadow t/--shadow-2
+   :font-size "110%"
+   :font-weight :bold
+   :color t/--text-panel}
+  [:button {:float "right"}]
+  ([props message]
+   [:<>
+    props
+    message
+    [:button.ghost {:oak-remove "parent"} "close"]]))
+
+(defn flash-error [msg]
+  [flash-box
+   {:style
+    {t/--bg-panel t/--red-2
+     t/--text-panel t/--red-12}} msg])
+
+(defn flash-success [msg]
+  [flash-box
+   {:style {t/--bg-panel t/--oak-green-2
+            t/--text-panel t/--oak-green-13}}
+   msg])

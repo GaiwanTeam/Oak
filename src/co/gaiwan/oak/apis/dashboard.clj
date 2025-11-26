@@ -36,6 +36,7 @@
       {:status 303
        :flash {:error "Current password is incorrect"}
        :headers {"Location" (routing/url-for req :home/dash)}}
+
       (< (count new-pass) (config/get :password/min-length))
       {:status 303
        :flash {:error (format "New password should not be shorter than %d characters"
@@ -99,7 +100,7 @@
    {:query
     [:map
      {:optional true}
-     [:debug boolean?]]}
+     [:debug {:optional true} boolean?]]}
    :responses
    {200 {:description "Dashboard page rendered successfully"}}}
   [{:keys [db] :as req}]
