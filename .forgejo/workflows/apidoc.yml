@@ -13,6 +13,7 @@ on:
 
 jobs:
   generate_docs:
+    if: false # turn this job off for now, it's not working yet
     runs-on: node-20-bookworm
 
     steps:
