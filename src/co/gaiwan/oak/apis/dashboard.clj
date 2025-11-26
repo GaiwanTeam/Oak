@@ -14,11 +14,17 @@
    [ring.middleware.anti-forgery :as ring-csrf]))
 
 (defn POST-password
-  {:parameters
+  {:summary "Update user password"
+   :description "Allows authenticated users to change their password. Validates the current password and enforces minimum length requirements."
+   :tags ["account"]
+   :parameters
    {:form
     [:map
      [:current-password [:string {:min 1}]]
-     [:new-password [:string]]]}}
+     [:new-password [:string]]]}
+   :responses
+   {303 {:description "Password updated successfully or validation error"
+         :headers {"Location" {:schema :string}}}}}
   [{:keys [db session parameters] :as req}]
   (let [current-pass (-> parameters :form :current-password)
         new-pass (-> parameters :form :new-password)
@@ -47,10 +53,16 @@
          :headers {"Location" (routing/url-for req :home/dash)}}))))
 
 (defn DELETE-auth-app
-  {:parameters
+  {:summary "Revoke application authorization"
+   :description "Removes OAuth authorization for a specific third-party application. The authenticated user can only revoke their own authorizations."
+   :tags ["oauth" "security"]
+   :parameters
    {:form
     [:map
-     [:auth-id uuid?]]}}
+     [:auth-id uuid?]]}
+   :responses
+   {303 {:description "Authorization revoked successfully"
+         :headers {"Location" {:schema :string}}}}}
   [{:keys [db session parameters] :as req}]
   (let [auth-id (-> parameters :form :auth-id)
         identity-id (get-in req [:identity :identity/id])]
@@ -59,10 +71,16 @@
      :headers {"Location" (routing/url-for req :home/dash)}}))
 
 (defn POST-2fa
-  {:parameters
+  {:summary "Configure two-factor authentication"
+   :description "Enable or disable two-factor authentication (TOTP) for the authenticated user. Enabling 2FA redirects to setup instructions."
+   :tags ["security" "account"]
+   :parameters
    {:form
     [:map
-     [:enable-2fa boolean?]]}}
+     [:enable-2fa boolean?]]}
+   :responses
+   {303 {:description "2FA configuration updated, redirects to setup or dashboard"
+         :headers {"Location" {:schema :string}}}}}
   [{:keys [db session parameters] :as req}]
   (let [enable-2fa (-> parameters :form :enable-2fa)
         identity-id (get-in req [:identity :identity/id])]
@@ -73,12 +91,23 @@
           {:status 303
            :headers {"Location" (routing/url-for req :home/dash)}}))))
 
-(defn GET-dashboard [{:keys [db] :as req}]
+(defn GET-dashboard
+  {:summary "Display user dashboard"
+   :description "Renders the main dashboard page with account information, 2FA status, password management, and authorized applications for the authenticated user."
+   :tags ["account" "ui"]
+   :parameters
+   {:query
+    [:map
+     {:optional true}
+     [:debug boolean?]]}
+   :responses
+   {200 {:description "Dashboard page rendered successfully"}}}
+  [{:keys [db] :as req}]
   {:status 200
    :html/body
    [dash-html/dash-page
     {:req req
-     :debug? (get-in req [:params :debug])
+     :debug? (some? (get-in req [:params :debug]))
      :enable-2fa? (some? (cred/exist-totp? db {:identity-id (get-in req [:identity :identity/id])}))
      :authorized-apps (oauth-authorization/get-apps db {:identity-id (get-in req [:identity :identity/id])})
      :totp-setup-url (routing/url-for req :totp/setup)
