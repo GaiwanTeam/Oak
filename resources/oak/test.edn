@@ -1,4 +1,5 @@
-{:db/admin-config {:url "jdbc:postgresql://localhost:15432/postgres"
+{:http/origin "http://oak.example.com"
+ :db/admin-config {:url "jdbc:postgresql://localhost:15432/postgres"
                    :username "postgres"
                    :password "oak"}
  :db/url "jdbc:postgresql://localhost:15432/oak_test"

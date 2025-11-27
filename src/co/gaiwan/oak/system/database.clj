@@ -71,7 +71,8 @@
 
 (def component
   {:start (fn [{:keys [config]}]
-            (let [ds (hikari-data-source config)]
+            (let [start (System/nanoTime)
+                  ds (hikari-data-source config)]
               (with-open [conn (jdbc/get-connection ds)]
                 (automatic-schema/evolve-schema! conn schema/schema)
                 (run! #(jdbc/execute! conn (sql/format %)) schema/indices))

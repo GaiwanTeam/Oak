@@ -4,7 +4,7 @@
 
   ;; Application setup
   com.lambdaisland/config {:mvn/version "0.10.37"}
-  com.lambdaisland/makina {:mvn/version "0.3.16"}
+  com.lambdaisland/makina {:local/root "/home/arne/lambdaisland/makina"} #_ {:mvn/version "0.3.16"}
   com.lambdaisland/cli    {:mvn/version "1.27.121"}
 
   ;; Logging
@@ -36,16 +36,16 @@
   dev.samstevens.totp/totp                     {:mvn/version "1.7.1"}
 
   ;; Formats and utilities
-  metosin/malli             {:mvn/version "0.19.2"}
-  com.cnuernber/charred     {:mvn/version "1.037"}
-  danlentz/clj-uuid         {:mvn/version "0.2.0"}
-  org.clj-commons/pretty    {:mvn/version "3.6.7"}
-  com.lambdaisland/hiccup   {:mvn/version "0.14.67"}
-  lambdaisland/uri          {:mvn/version "1.19.155"}
-  com.lambdaisland/ornament {:mvn/version "1.17.150"}
-  clojure.java-time/clojure.java-time   {:mvn/version "1.4.3"}
+  metosin/malli                       {:mvn/version "0.19.2"}
+  com.cnuernber/charred               {:mvn/version "1.037"}
+  danlentz/clj-uuid                   {:mvn/version "0.2.0"}
+  org.clj-commons/pretty              {:mvn/version "3.6.7"}
+  com.lambdaisland/hiccup             {:mvn/version "0.14.67"}
+  lambdaisland/uri                    {:mvn/version "1.19.155"}
+  com.lambdaisland/ornament           {:mvn/version "1.17.150"}
+  clojure.java-time/clojure.java-time {:mvn/version "1.4.3"}
 
-;; Email
+  ;; Email
   toyokumo/tarayo {:mvn/version "0.2.7"}}
 
  :aliases
@@ -55,9 +55,10 @@
 
   :test
   {:extra-paths ["test"]
-   :extra-deps  {org.clojure/tools.gitlibs {:mvn/version "2.6.206"}
-                 lambdaisland/kaocha       {:mvn/version "1.91.1392"}
-                 ring/ring-mock            {:mvn/version "0.4.0"}}}
+   :extra-deps  {org.clojure/tools.gitlibs  {:mvn/version "2.6.206"}
+                 lambdaisland/kaocha        {:mvn/version "1.91.1392"}
+                 ring/ring-mock             {:mvn/version "0.4.0"}
+                 nubank/matcher-combinators {:mvn/version "3.3.1"}}}
 
   :bouncycastle
   {:extra-deps {org.bouncycastle/bcprov-jdk18on {:mvn/version "1.82"}}}

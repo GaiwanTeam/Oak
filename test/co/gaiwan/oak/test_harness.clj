@@ -1,91 +1,63 @@
 (ns co.gaiwan.oak.test-harness
   (:require
-   [co.gaiwan.oak.app.schema :as schema]
+   [co.gaiwan.oak.app.config :as oak-config]
    [co.gaiwan.oak.domain.jwk :as jwk]
-   [co.gaiwan.oak.lib.automatic-schema :as automatic-schema]
-   [honey.sql :as sql]
+   [co.gaiwan.oak.lib.db :as db]
    [lambdaisland.config :as config]
+   [lambdaisland.makina.system :as sys]
+   [lambdaisland.makina.test :as makina-test]
    [next.jdbc :as jdbc]))
 
 (require 'co.gaiwan.oak.lib.pg-jsonb)
 
 (defonce config
-  (config/create {:env :test :prefix "oak"}))
+  (config/create {:env :test :prefix oak-config/prefix}))
 
-(def ^:dynamic *db* nil)
+(def get-config (partial config/get config))
 
-(defn db-config
-  "Get database config in next.jdbc format"
-  []
-  {:jdbcUrl (config/get config :db/url)
-   :user  (config/get config :db/username)
-   :password (config/get config :db/password)})
+(def makina-opts
+  {:prefix oak-config/prefix
+   :ns-prefix oak-config/ns-prefix
+   :data-readers {'config get-config}
+   :handlers {}})
 
-(defn db-admin-config
-  "Get admin database config in next.jdbc format"
-  []
-  (let [cfg (config/get config :db/admin-config)]
-    {:jdbcUrl (:url cfg)
-     :user (:username cfg)
-     :password (:password cfg)}))
+;; Test helpers
+(defn component [k]
+  (sys/component (:makina/system makina-test/*sys*) k))
 
-(defn- get-db-name
-  "Extract database name from JDBC URL"
-  [url]
-  (second (re-find #"jdbc:postgresql://[^/]+/([^?]+)" url)))
-
-(defn- create-test-database!
-  "Create the test database if it doesn't exist and make the regular user the owner"
-  [db-config]
-  (let [db-name   (get-db-name (config/get config :db/url))
-        admin-cfg (db-admin-config)
-        db-user   (config/get config :db/username)]
-    (when db-name
-      (with-open [conn (jdbc/get-connection admin-cfg)]
-        (let [db-exists? (jdbc/execute! conn
-                                        ["SELECT 1 FROM pg_database WHERE datname = ?" db-name])]
-          (when (empty? db-exists?)
-            (jdbc/execute! conn [(str "CREATE DATABASE " db-name " OWNER " db-user)])))))))
-
-(defn- drop-test-database!
-  "Drop the test database"
-  [db-config]
-  (let [db-name   (get-db-name (config/get config :db/url))
-        admin-cfg (db-admin-config)
-        db-user   (config/get config :db/username)]
-    (when db-name
-      (with-open [conn (jdbc/get-connection admin-cfg)]
-        (jdbc/execute! conn [(str "DROP DATABASE IF EXISTS " db-name)])))))
-
-(defn- setup-test-schema!
-  "Set up the test database schema"
-  [db-config]
-  (with-open [conn (jdbc/get-connection db-config)]
-    (automatic-schema/evolve-schema! conn schema/schema)
-    (run! #(jdbc/execute! conn (sql/format %)) schema/indices)))
+(defn handler [] (component :system/handler))
+(defn db [] (:data-source (component :system/database)))
+(defn session-store [] (component :system/session-store))
 
 (defn ensure-jwk! []
-  (when-not (jwk/default-key *db*)
-    (jwk/create! *db* {"kty" "OKP"})))
+  (when-not (jwk/default-key (db))
+    (jwk/create! (db) {"kty" "OKP"})))
 
-(defn with-test-database
-  "Test fixture that creates a test database, sets up schema, and cleans up afterwards.
-  Usage: (use-fixtures :once (with-test-database))"
-  [f]
-  (let [config (db-config)]
-    (create-test-database! config)
-    (setup-test-schema! config)
-    (binding [*db* config]
-      (f))
-    (drop-test-database! config)))
+;; Fixtures
+(def with-system (makina-test/make-fixture-factory makina-opts))
+
+(defn with-auto-rollback []
+  (fn [t]
+    (try
+      (t)
+      (finally
+        (with-open [conn (jdbc/get-connection (db))]
+          (doseq [tbl (db/table-names conn)]
+            (jdbc/execute! (db) [(str "TRUNCATE " tbl " CASCADE")])))))))
+
+(defn with-ensure-jwk []
+  (fn [t]
+    (ensure-jwk!)
+    (t)))
 
 (comment
-  (db-config)
-  ;; => {:url "jdbc:postgresql://localhost:5432/oak_test",
-  ;;     :username "postgres",
-  ;;     :password "oak"}
-  (db-admin-config)
-  ;; => {:url "jdbc:postgresql://localhost:5432/postgres",
-  ;;     :username "postgres",
-  ;;     :password "oak"}
+  ;; for REPL use, permanently sets *sys*
+  (makina-test/start! makina-opts [:system/handler])
+  makina-test/*sys*
+
+  (doseq [tbl (#'co.gaiwan.oak.lib.automatic-schema/table-names (jdbc/get-connection (db)))]
+    (jdbc/execute! (db) [(str "TRUNCATE " tbl " CASCADE")]))
+
+  (for [tbl (#'co.gaiwan.oak.lib.automatic-schema/table-names (jdbc/get-connection (db)))]
+    (jdbc/execute! (db) [(str "SELECT count(*) FROM " tbl )]))
   )

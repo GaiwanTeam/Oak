@@ -9,9 +9,7 @@
   (log/info :http/starting {:port (:port config)})
   {:server
    (jetty/run-jetty
-    (reitit-ring/ring-handler (:router config)
-                              (reitit-ring/create-default-handler)
-                              {:middleware (:middleware config)})
+    (:handler config)
     {:host  (:host config)
      :port  (:port config)
      :join? false})})

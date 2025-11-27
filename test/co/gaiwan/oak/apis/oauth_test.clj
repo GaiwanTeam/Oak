@@ -7,14 +7,17 @@
    [co.gaiwan.oak.domain.jwk :as jwk]
    [co.gaiwan.oak.domain.oauth-client :as oauth-client]
    [co.gaiwan.oak.domain.oauth-code :as oauth-code]
-   [co.gaiwan.oak.test-harness :as harness]
+   [co.gaiwan.oak.test-harness :as harness :refer [db]]
    [co.gaiwan.oak.util.hash :as hash]
    [co.gaiwan.oak.util.jose :as jose]))
 
-(use-fixtures :once harness/with-test-database)
+(use-fixtures :once (harness/with-system [:system/handler]))
+
+(use-fixtures :each
+  (harness/with-auto-rollback)
+  (harness/with-ensure-jwk))
 
 (deftest post-exchange-token-happy-path-test
-  (harness/ensure-jwk!)
   (testing "POST /token exchange - happy path with PKCE"
     (let [identity-id        (uuid/v7)
           authorization-code "test-auth-code"
@@ -23,13 +26,13 @@
           scope              "openid profile"
           redirect-uri       "https://example.com/callback"]
 
-      (identity/create! harness/*db* {:id identity-id})
+      (identity/create! (db) {:id identity-id})
 
-      (let [oauth-client        (oauth-client/create! harness/*db* {:client-name "Test Client"})
+      (let [oauth-client        (oauth-client/create! (db) {:client-name "Test Client"})
             client-uuid         (:oauth-client/id oauth-client)
             oauth-client-id     (:oauth-client/client-id oauth-client)
             oauth-client-secret (:oauth-client/client-secret oauth-client)
-            created-code        (oauth-code/create! harness/*db*
+            created-code        (oauth-code/create! (db)
                                                     {:client-id             client-uuid
                                                      :identity-id           identity-id
                                                      :scope                 scope
@@ -37,7 +40,7 @@
                                                      :code-challenge        code-challenge
                                                      :code-challenge-method "S256"})
             response            (oauth/POST-exchange-token
-                                 {:db         harness/*db*
+                                 {:db         (db)
                                   :parameters {:form {:grant_type    "authorization_code"
                                                       :code          created-code
                                                       :redirect_uri  redirect-uri
@@ -48,12 +51,12 @@
         (is (= 200 (:status response)) "Should return 200 OK")
         (is (contains? (:body response) :access_token) "Should contain access_token")
         (is (= "Bearer" (:token_type (:body response))) "Token type should be Bearer")
-        (is (= 3600 (:expires_in (:body response))) "Should expire in 3600 seconds")
+        (is (= 1800 (:expires_in (:body response))) "Should expire in 1800 seconds")
         ;; Scope is optional in response if same as requested
         (is (= scope (:scope (:body response))) "Should return the same scope")
 
         ;; Verify the authorization code was deleted
-        (is (nil? (oauth-code/find-one harness/*db* {:code created-code :client-uuid client-uuid}))
+        (is (nil? (oauth-code/find-one (db) {:code created-code :client-uuid client-uuid}))
             "Authorization code should be deleted after use")))))
 
 (deftest post-exchange-token-refresh-token-test
@@ -63,17 +66,17 @@
           authorization-code "test-auth-code-refresh"
           code-verifier      "test-code-verifier-for-refresh-token-test"
           code-challenge     (hash/sha256-base64url code-verifier)
-          scope              "openid profile"
+          scope              "openid profile offline_access"
           redirect-uri       "https://example.com/callback"]
 
-      (identity/create! harness/*db* {:id identity-id})
+      (identity/create! (db) {:id identity-id})
 
-      (let [oauth-client        (oauth-client/create! harness/*db* {:client-name "Test Client Refresh"})
+      (let [oauth-client        (oauth-client/create! (db) {:client-name "Test Client Refresh"})
             client-uuid         (:oauth-client/id oauth-client)
             oauth-client-id     (:oauth-client/client-id oauth-client)
             oauth-client-secret (:oauth-client/client-secret oauth-client)
 
-            created-code (oauth-code/create! harness/*db*
+            created-code (oauth-code/create! (db)
                                              {:client-id             client-uuid
                                               :identity-id           identity-id
                                               :scope                 scope
@@ -83,7 +86,7 @@
 
             auth-code-response
             (oauth/POST-exchange-token
-             {:db         harness/*db*
+             {:db         (db)
               :parameters {:form {:grant_type    "authorization_code"
                                   :code          created-code
                                   :redirect_uri  redirect-uri
@@ -96,11 +99,11 @@
         (is (contains? (:body auth-code-response) :access_token) "Should contain access_token")
         (is (contains? (:body auth-code-response) :refresh_token) "Should contain refresh_token")
         (is (= "Bearer" (:token_type (:body auth-code-response))) "Token type should be Bearer")
-        (is (= 3600 (:expires_in (:body auth-code-response))) "Should expire in 3600 seconds")
+        (is (= 1800 (:expires_in (:body auth-code-response))) "Should expire in 1800 seconds")
 
         (let [refresh-token-value (:refresh_token (:body auth-code-response))
               access-token-1      (:access_token (:body auth-code-response))
-              refresh-request     {:db         harness/*db*
+              refresh-request     {:db         (db)
                                    :parameters {:form {:grant_type    "refresh_token"
                                                        :refresh_token refresh-token-value
                                                        :client_id     oauth-client-id
@@ -112,7 +115,7 @@
           (is (contains? (:body refresh-response) :access_token) "Should contain new access_token")
           (is (contains? (:body refresh-response) :refresh_token) "Should contain new refresh_token")
           (is (= "Bearer" (:token_type (:body refresh-response))) "Token type should be Bearer")
-          (is (= 3600 (:expires_in (:body refresh-response))) "Should expire in 3600 seconds")
+          (is (= 1800 (:expires_in (:body refresh-response))) "Should expire in 1800 seconds")
 
           ;; Verify the new tokens are different from the old ones (token rotation)
           (let [access-token-2  (:access_token (:body refresh-response))
@@ -121,7 +124,7 @@
             (is (not= refresh-token-value refresh-token-2) "Refresh tokens should be rotated")
 
             ;; Test that old refresh token is no longer valid
-            (let [invalid-refresh-request  {:db         harness/*db*
+            (let [invalid-refresh-request  {:db         (db)
                                             :parameters {:form {:grant_type    "refresh_token"
                                                                 :refresh_token refresh-token-value
                                                                 :client_id     oauth-client-id
@@ -131,7 +134,7 @@
               (is (= "invalid_grant" (:error (:body invalid-refresh-response))) "Should return invalid_grant error"))
 
             ;; Test refresh token with invalid client credentials
-            (let [invalid-client-request  {:db         harness/*db*
+            (let [invalid-client-request  {:db         (db)
                                            :parameters {:form {:grant_type    "refresh_token"
                                                                :refresh_token refresh-token-2
                                                                :client_id     oauth-client-id
@@ -144,12 +147,12 @@
   (harness/ensure-jwk!)
   (testing "POST /token exchange - client_credentials grant"
     (let [scope "openid profile"]
-      (let [oauth-client        (oauth-client/create! harness/*db* {:client-name "Client Credentials Client"
-                                                                    :grant-types ["client_credentials"]})
+      (let [oauth-client        (oauth-client/create! (db) {:client-name "Client Credentials Client"
+                                                            :grant-types ["client_credentials"]})
             oauth-client-id     (:oauth-client/client-id oauth-client)
             oauth-client-secret (:oauth-client/client-secret oauth-client)
             response            (oauth/POST-exchange-token
-                                 {:db         harness/*db*
+                                 {:db         (db)
                                   :parameters {:form {:grant_type    "client_credentials"
                                                       :client_id     oauth-client-id
                                                       :client_secret oauth-client-secret
@@ -158,7 +161,7 @@
         (is (= 200 (:status response)) "Should return 200 OK")
         (is (contains? (:body response) :access_token) "Should contain access_token")
         (is (= "Bearer" (:token_type (:body response))) "Token type should be Bearer")
-        (is (= 3600 (:expires_in (:body response))) "Should expire in 3600 seconds")
+        (is (= 1800 (:expires_in (:body response))) "Should expire in 1800 seconds")
         (is (= scope (:scope (:body response))) "Should return the requested scope")
 
         ;; Client credentials grant should NOT return refresh_token
@@ -166,7 +169,7 @@
 
   (testing "POST /token exchange - client_credentials grant with invalid client"
     (let [response (oauth/POST-exchange-token
-                    {:db         harness/*db*
+                    {:db         (db)
                      :parameters {:form {:grant_type    "client_credentials"
                                          :client_id     "invalid-client-id"
                                          :client_secret "invalid-secret"
@@ -175,11 +178,11 @@
       (is (= "invalid_client" (:error (:body response))) "Should return invalid_client error")))
 
   (testing "POST /token exchange - client_credentials grant with wrong secret"
-    (let [oauth-client    (oauth-client/create! harness/*db* {:client-name "Test Client"
-                                                              :grant-types ["client_credentials"]})
+    (let [oauth-client    (oauth-client/create! (db) {:client-name "Test Client"
+                                                      :grant-types ["client_credentials"]})
           oauth-client-id (:oauth-client/client-id oauth-client)
           response        (oauth/POST-exchange-token
-                           {:db         harness/*db*
+                           {:db         (db)
                             :parameters {:form {:grant_type    "client_credentials"
                                                 :client_id     oauth-client-id
                                                 :client_secret "wrong-secret"

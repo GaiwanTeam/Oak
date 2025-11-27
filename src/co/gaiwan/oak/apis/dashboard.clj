@@ -48,7 +48,8 @@
    {:form
     [:map
      [:current-password [:string {:min 1}]]
-     [:new-password [:string]]]}
+     [:new-password [:string]]
+     [:confirm-new-password [:string]]]}
    :responses
    {200 {:description "Password updated successfully"}
     400 {:description "Submission not valid"}}}

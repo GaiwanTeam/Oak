@@ -3,9 +3,13 @@
    [clojure.test :refer :all]
    [co.gaiwan.oak.domain.identifier :as identifier]
    [co.gaiwan.oak.domain.identity :as identity]
-   [co.gaiwan.oak.test-harness :as harness]))
+   [co.gaiwan.oak.test-harness :as harness :refer [db]]))
 
-(use-fixtures :once harness/with-test-database)
+(use-fixtures :once (harness/with-system [:system/database]))
+
+(use-fixtures :each
+  (harness/with-auto-rollback)
+  (harness/with-ensure-jwk))
 
 (deftest identifier-create-and-find-test
   (testing "Creating and finding identifiers"
@@ -19,14 +23,14 @@
                             :value "+1234567890"
                             :primary false}]
 
-      (identity/create! harness/*db* {:id identity-id})
+      (identity/create! (db) {:id identity-id})
 
-      (identifier/create! harness/*db* email-identifier)
-      (identifier/create! harness/*db* phone-identifier)
+      (identifier/create! (db) email-identifier)
+      (identifier/create! (db) phone-identifier)
 
-      (let [found-email (identifier/find-one harness/*db* {:type "email" :value "test@example.com"})
-            found-phone (identifier/find-one harness/*db* {:type "phone" :value "+1234567890"})
-            all-for-identity (identifier/find-one harness/*db* {:identity-id identity-id})]
+      (let [found-email (identifier/find-one (db) {:type "email" :value "test@example.com"})
+            found-phone (identifier/find-one (db) {:type "phone" :value "+1234567890"})
+            all-for-identity (identifier/find-one (db) {:identity-id identity-id})]
 
         (is found-email "Should find email identifier")
         (is found-phone "Should find phone identifier")
@@ -44,5 +48,5 @@
 
 (deftest identifier-not-found-test
   (testing "Finding non-existent identifiers returns nil"
-    (let [result (identifier/find-one harness/*db* {:type "nonexistent" :value "does@not.exist"})]
+    (let [result (identifier/find-one (db) {:type "nonexistent" :value "does@not.exist"})]
       (is (nil? result) "Should return nil for non-existent identifier"))))
