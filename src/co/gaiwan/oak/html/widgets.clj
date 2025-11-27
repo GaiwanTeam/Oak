@@ -62,7 +62,6 @@
 (o/defstyled app-logo :div
   {:display "inline-flex"
    :justify-content :center
-   :vertical-align :middle
    :align-items :center
    :width "2rem"
    :height "2rem"
@@ -71,11 +70,10 @@
    :background-color --oak-green-3}
   [:img
    {:max-width "100%"}]
-  ([uri]
-   (when uri
+  ([{:keys [uri app-name]}]
+   (if uri
      [:img {:src uri :alt "application logo"}]
-     ;; TODO render box with first letters of application
-     )))
+     (first app-name))))
 
 (o/defstyled full-center-card :div
   "Visual 'card' with rounded corners and drop shadow. Becomes seamless at
@@ -95,4 +93,6 @@
     :background-color --bg-panel
     :color            --text-panel}]
   [:h1
-   {:text-align :center}])
+   {:text-align :center}
+   [:div ["&:has(img)"
+          {:vertical-align :middle}]]])

@@ -45,14 +45,18 @@
     [:button {:type "submit", :name "allow", :value "false"} "Cancel"]]))
 
 (defn permission-dialog-html [oauth-client requested-scopes params req]
-  (let [{:keys [client_id redirect_uri response_type scope state code_challenge code_challenge_method]} params]
+  (let [{:keys [client_id redirect_uri response_type scope state code_challenge code_challenge_method]} params
+        logo-uri (:oauth-client/logo-uri oauth-client)
+        app-name (:oauth-client/client-name oauth-client)]
     [layout
      [w/full-center-card
       [:h1
-       [w/app-logo (when (:oauth-client/logo-uri oauth-client)
-                     (routing/url-for req :proxy/image {:client-id (:oauth-client/client-id oauth-client)}))]
-       (:oauth-client/client-name oauth-client) " wants to access your " (config/get :org/name) " account"]
-      [:p "This will allow " (:oauth-client/client-name oauth-client) " to:"]
+       [w/app-logo
+        {:uri (when logo-uri
+                (routing/url-for req :proxy/image {:client-id (:oauth-client/client-id oauth-client)}))
+         :app-name app-name}]
+       app-name " wants to access your " (config/get :org/name) " account"]
+      [:p "This will allow " app-name " to:"]
       [:ul
        (for [s requested-scopes]
          [:li (scope/desc s)])]
