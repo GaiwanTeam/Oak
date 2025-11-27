@@ -1,6 +1,18 @@
 # Oak IAM
 
-Rooted in Standards, Built to Last 
+**Rooted in Standards, Built to Last**
+
+Oak is a Free and Open Source Identity Provider that you can host yourself, it implements
+
+- OAuth 2.0
+- OpenID Connect
+- JWT with custom claims
+- Two-factor Authentication via TOTP (Time-Based One-Time Passwords)
+
+Oak is headless, all administration and user management is done through a command line interface.
+
+## Getting Started
+
 
 
 ## Dev
