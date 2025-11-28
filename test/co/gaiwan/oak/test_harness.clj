@@ -22,9 +22,8 @@
    :handlers {}})
 
 ;; Test helpers
-(defn component [k]
-  (sys/component (:makina/system makina-test/*sys*) k))
 
+(def component makina-test/component)
 (defn handler [] (component :system/handler))
 (defn db [] (:data-source (component :system/database)))
 (defn session-store [] (component :system/session-store))
@@ -34,7 +33,7 @@
     (jwk/create! (db) {"kty" "OKP"})))
 
 ;; Fixtures
-(def with-system (makina-test/make-fixture-factory makina-opts))
+(def with-system (makina-test/make-fixture-fn makina-opts))
 
 (defn with-auto-rollback []
   (fn [t]
@@ -60,4 +59,6 @@
 
   (for [tbl (#'co.gaiwan.oak.lib.automatic-schema/table-names (jdbc/get-connection (db)))]
     (jdbc/execute! (db) [(str "SELECT count(*) FROM " tbl )]))
+
+  (lambdaisland.makina.app/load* (lambdaisland.makina.app/create* makina-opts))
   )

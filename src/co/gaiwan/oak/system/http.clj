@@ -16,7 +16,7 @@
 
 (def component
   {:start start
-   :stop (fn [o] (prn o) (.stop (:server o)))})
+   :stop (fn [o] (.stop (:server o)))})
 
 (comment
   (user/restart! :system/http))
