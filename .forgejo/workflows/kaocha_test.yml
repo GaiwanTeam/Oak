@@ -1,0 +1,67 @@
+name: Kaocha Test Runner
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  run_kaocha:
+    runs-on: node-20-bookworm
+    steps:
+      - name: Checkout the code
+        uses: actions/checkout@v4
+
+      - name: install podman
+        run: |
+          apt-get update && apt-get install podman -y && apt-get install podman-compose -y
+
+      - name: Start Podman services
+        run: podman-compose up -d --no-recreate
+
+      - name: Wait for services
+        run: |
+          for i in {1..30}; do
+            if podman compose ps 2>/dev/null | grep -q "running"; then
+              echo "Services are ready"
+              break
+            fi
+            sleep 1
+          done
+
+      - name: Prepare Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Install Clojure Tools Manually
+        run: |
+          curl -L -O https://github.com/clojure/brew-install/releases/latest/download/linux-install.sh
+          chmod +x linux-install.sh
+          ./linux-install.sh
+          # handling the path variables
+          BIN_PATH="/usr/local/bin"
+          echo "$BIN_PATH" >> $GITHUB_PATH
+          # verify
+          $BIN_PATH/clojure -version
+          echo "Clojure CLI Tools installation completed."
+
+      - name: run Kaocha
+        run: |
+          chmod +x ./bin/kaocha
+          echo "--- run kaocha test ---"
+          ./bin/kaocha --focus 'co.gaiwan.oak.apis.dashboard-test/password-minimum-length-test'
+          # ./bin/kaocha
+
+      - name: finish it
+        run: echo "Kaocha workflow execution finished."
+
+      - name: Stop services
+        if: always()
+        run: |
+          podman-compose down

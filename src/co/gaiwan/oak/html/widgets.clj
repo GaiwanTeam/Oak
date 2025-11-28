@@ -47,7 +47,6 @@
    :gap            "1rem"}
   [:>* {:margin-top    0
         :margin-bottom 0}]
-  [:h3 {:color --oak-green-12}]
   {:border-radius    --radius-3
    :box-shadow       --shadow-2
    :background-color --bg-panel
@@ -63,7 +62,6 @@
 (o/defstyled app-logo :div
   {:display "inline-flex"
    :justify-content :center
-   :vertical-align :middle
    :align-items :center
    :width "2rem"
    :height "2rem"
@@ -72,8 +70,10 @@
    :background-color --oak-green-3}
   [:img
    {:max-width "100%"}]
-  ([uri]
-   [:img {:src uri :alt "app's logo"}]))
+  ([{:keys [uri app-name]}]
+   (if uri
+     [:img {:src uri :alt "application logo"}]
+     (first app-name))))
 
 (o/defstyled full-center-card :div
   "Visual 'card' with rounded corners and drop shadow. Becomes seamless at
@@ -93,4 +93,6 @@
     :background-color --bg-panel
     :color            --text-panel}]
   [:h1
-   {:text-align :center}])
+   {:text-align :center}
+   [:div ["&:has(img)"
+          {:vertical-align :middle}]]])

@@ -9,7 +9,8 @@
    (config/get :http/origin)
    (let [{:keys [headers authority scheme host]} req
          scheme (or (get headers "x-forwarded-proto") ;; behind proxy
-                    (name scheme))
+                    (and scheme (name scheme))
+                    "http")
          host (or (get headers "x-forwarded-host")    ;; behind proxy
                   (get headers "host")                ;; HTTP 1.1
                   authority)]                         ;; HTTP 2.0

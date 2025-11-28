@@ -286,14 +286,14 @@
             :else
             (if-let [refresh-token-entity (refresh-token/find-one db refresh_token client-uuid)]
               (let [at-claims (:refresh-token/access-token-claims refresh-token-entity)
-                    id-claims (:refresh-token/access-token-claims refresh-token-entity)
+                    id-claims (:refresh-token/id-token-claims refresh-token-entity)
                     scope (get at-claims "scope")]
                 (if-let [jwk (:jwk/full-key (jwk/default-key db))]
                   (let [claim-opts {:now (System/currentTimeMillis)
                                     :hash-alg (jwk/hash-alg jwk)}
                         at-claims (jwt/update-at-claims at-claims claim-opts)
-                        id-claims (jwt/update-id-claims id-claims claim-opts)
                         access-token (jose/build-jwt jwk at-claims)
+                        id-claims (jwt/update-id-claims id-claims (assoc claim-opts :access-token access-token))
                         id-token (when id-claims (jose/build-jwt jwk id-claims))
                         new-refresh-token (refresh-token/create! db
                                                                  {:client-id client-uuid

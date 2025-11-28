@@ -20,6 +20,10 @@
    (java.time Instant)))
 
 (defn GET-setup
+  {:summary "Display TOTP setup page"
+   :description "Generate a new TOTP secret, display its QR code, and prepare the user to add it to their authenticator app"
+   :tags ["2FA" "TOTP"]
+   :responses {200 {:description "Setup page with QR code displayed"}}}
   [{:keys [db session] :as req}]
   (let [secret      (totp/secret
                      (config/get :totp/hash-alg)
@@ -37,10 +41,15 @@
                    :issuer (config/get :application/name)})}]}))
 
 (defn POST-setup
-  {:parameters
+  {:summary "Verify and enable TOTP"
+   :description "Verify the TOTP code provided by user, store the secret as a credential if valid, and remove it from session"
+   :tags ["2FA" "TOTP"]
+   :parameters
    {:form
     [:map
-     [:code string?]]}}
+     [:code string?]]}
+   :responses {200 {:description "TOTP successfully enabled"}
+               400 {:description "Invalid or missing TOTP code"}}}
   [{:keys [db session parameters] :as req}]
   (let [code   (-> parameters :form :code)
         secret (-> session :totp/secret)
@@ -63,6 +72,10 @@
                        :issuer (config/get :application/name)})}]}))))
 
 (defn GET-check
+  {:summary "Display TOTP verification page"
+   :description "Show the form for user to enter their TOTP code during login"
+   :tags ["2FA" "TOTP"]
+   :responses {200 {:description "2FA verification form displayed"}}}
   [{:keys [db session] :as req}]
   (let [secret (totp/secret
                 (config/get :totp/hash-alg)
@@ -75,8 +88,15 @@
      :html/body [totp-html/check-page {}]}))
 
 (defn POST-check
-  {:parameters {:form [:map
-                       [:code string?]]}}
+  {:summary "Verify TOTP code during login"
+   :description "Verify the TOTP code submitted by user during login authentication, update session if valid, and redirect accordingly"
+   :tags ["2FA" "TOTP"]
+   :parameters
+   {:form [:map
+           [:code string?]]}
+   :responses {200 {:description "Authentication successful, TOTP verified"}
+               302 {:description "Authentication successful, redirecting to originally requested page"}
+               400 {:description "Invalid, expired, or missing TOTP code"}}}
   [{:keys [db session parameters] :as req}]
   (let [code        (-> parameters :form :code)
         identity-id (:identity session)]

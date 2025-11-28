@@ -34,7 +34,8 @@
 
 (defn access-token-claims
   "Generate JWT claims for an access token"
-  [{:keys [issuer identity-id client-id now scope]}]
+  [{:keys [issuer identity-id client-id now scope]
+    :or {now (System/currentTimeMillis)}}]
   {:pre [identity-id client-id scope]}
   {"iss"   issuer
    "sub"   (str identity-id)
@@ -64,7 +65,7 @@
 (defn update-at-claims [claims {:keys [now]}]
   (assoc claims "iat" (iat now) "exp" (at-exp now)))
 
-(defn update-id-claims [claims {:keys [now hash-alg access-token]}]
+(defn update-id-claims [claims {:keys [now hash-alg access-token] :as opts}]
   (assoc claims
          "iat" (iat now)
          "exp" (at-exp now)

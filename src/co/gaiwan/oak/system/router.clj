@@ -15,6 +15,7 @@
    [reitit.ring.coercion :as ring-coercion]
    [reitit.ring.middleware.muuntaja :as reitit-muuntaja]
    [reitit.ring.middleware.parameters :as reitit-params]
+   [ring.middleware.flash :as ring-flash]
    [ring.middleware.session :as ring-session]
    [ring.util.response :as res]))
 
@@ -89,26 +90,7 @@
 
 (defn fixed-routes []
   ["" {}
-   ["/ping" {:get (constantly {:status 200 :body "pong"})}]
-   ])
-
-(defn- hidden-method
-  [request]
-  (some-> (or (get-in request [:form-params "_method"])
-              (get-in request [:multipart-params "_method"]))
-          str/lower-case
-          keyword))
-
-(def wrap-hidden-method
-  "Support the _method form field to mimic a non-POST request from a standard
-  browser form."
-  {:name ::wrap-hidden-method
-   :wrap (fn [handler]
-           (fn [request]
-             (if-let [fm (and (= :post (:request-method request))
-                              (hidden-method request))]
-               (handler (assoc request :request-method fm))
-               (handler request))))})
+   ["/ping" {:get (constantly {:status 200 :body "pong"})}]])
 
 (defn component [{:keys [routes request-filters session-store]}]
   (let [request-filter (apply comp (keep :http/request-filter request-filters))
@@ -122,7 +104,6 @@
       {:coercion   (reitit.coercion.malli/create malli-coercion-options)
        :muuntaja   (muuntaja-instance)
        :middleware [reitit-openapi/openapi-feature
-                    reitit-params/parameters-middleware
                     reitit-muuntaja/format-negotiate-middleware
                     reitit-muuntaja/format-response-middleware
                     reitit-muuntaja/format-request-middleware
@@ -138,12 +119,11 @@
                                :same-site :strict}
                         (config/get :http-session/secure-cookie)
                         (assoc :secure true))}]
+                    ring-flash/wrap-flash
                     wrap-log-request
                     ring-csp/wrap-content-security-policy
-                    wrap-404
-                    wrap-hidden-method]}})))
+                    wrap-404]}})))
 
 (comment
   (user/restart!)
-  (user/restart! :system/router)
-  )
+  (user/restart! :system/router))

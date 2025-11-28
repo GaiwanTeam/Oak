@@ -1,0 +1,93 @@
+name: API Doc Generation
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/**'
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  generate_docs:
+    if: false # turn this job off for now, it's not working yet
+    runs-on: node-20-bookworm
+
+    steps:
+      - name: Checkout the code
+        uses: actions/checkout@v4
+
+      - name: Install Podman and Podman Compose
+        run: |
+          apt-get update && apt-get install podman -y && apt-get install podman-compose -y
+
+      - name: Start Podman services
+        run: podman-compose up -d --no-recreate
+
+      - name: Wait for Podman services to be ready
+        run: |
+          for i in {1..30}; do
+            if podman compose ps 2>/dev/null | grep -q "running"; then
+              echo "Services are ready"
+              break
+            fi
+            sleep 1
+          done
+
+      - name: Prepare Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Install Clojure Tools Manually
+        run: |
+          curl -L -O https://github.com/clojure/brew-install/releases/latest/download/linux-install.sh
+          chmod +x linux-install.sh
+          ./linux-install.sh
+          BIN_PATH="/usr/local/bin"
+          echo "$BIN_PATH" >> $GITHUB_PATH
+          $BIN_PATH/clojure -version
+          echo "Clojure CLI Tools installation completed."
+
+      - name: Wait for Clojure Web App API Endpoint
+        run: |
+          for i in {1..60}; do
+            if curl -s -f http://127.0.0.1:4800/openapi.json; then
+              echo "Clojure API is ready to serve openapi.json"
+              break
+            fi
+            echo "Waiting for http://127.0.0.1:4800/openapi.json..."
+            sleep 1
+            if [ $i -eq 60 ]; then
+                echo "Timeout waiting for API endpoint."
+                exit 1
+            fi
+          done
+
+      - name: Generate Redoc Static HTML
+        run: |
+          echo "Installing Redocly CLI..."
+          npm install @redocly/cli
+          echo "Generating documentation..."
+          npx @redocly/cli build-docs 'http://127.0.0.1:4800/openapi.json' --output redoc-static.html
+          curl http://127.0.0.1:4800/openapi.json -o openapi.json
+
+
+      - name: Upload Generated Docs Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-documentation-${{ github.sha }}
+          path: |
+            redoc-static.html
+            openapi.json
+          retention-days: 7
+
+
+      - name: Stop Podman services
+        if: always()
+        run: |
+          podman-compose down

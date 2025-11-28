@@ -9,15 +9,14 @@
   (log/info :http/starting {:port (:port config)})
   {:server
    (jetty/run-jetty
-    (reitit-ring/ring-handler (:router config)
-                              (reitit-ring/create-default-handler))
+    (:handler config)
     {:host  (:host config)
      :port  (:port config)
      :join? false})})
 
 (def component
   {:start start
-   :stop (fn [o] (prn o) (.stop (:server o)))})
+   :stop (fn [o] (.stop (:server o)))})
 
 (comment
   (user/restart! :system/http))

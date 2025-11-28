@@ -2,7 +2,10 @@
   "Global CSS declarations"
   (:require
    [co.gaiwan.oak.html.tokens :refer :all]
-   [lambdaisland.ornament :as o]))
+   [lambdaisland.ornament :as o]
+   [lambdaisland.hiccup :as hiccup]))
+
+(swap! hiccup/kebab-prefixes conj "oak-")
 
 (o/defrules base-styles
   [#{"*" "*::before" "*::after"}
@@ -23,6 +26,9 @@
     :right    "1em"
     :z-index  "-1"
     :color    --text-subtle}]
+
+  [#{:h1 :h2 :h3 :h4 :h5}
+   {:color --text-heading}]
 
   [#{"input[type=\"email\"]"
      "input[type=\"password\"]"
@@ -47,6 +53,11 @@
     {:background-color --button-color-hover}]
    [:&:active
     {:background-image --button-color-dark}]]
+
+  [:.ghost
+   ["&:not(:hover)" {:background-color "transparent"
+                     :border-color "transparent"
+                     :color --text-panel}]]
 
   [:input.cautious-action
    {:background-color --white

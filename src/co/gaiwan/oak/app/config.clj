@@ -10,6 +10,7 @@
    [lambdaisland.makina.app :as app]))
 
 (def prefix "oak")
+(def ns-prefix "co.gaiwan.oak")
 
 (defonce cli-opts (atom {}))
 
@@ -26,9 +27,10 @@
 
 (defonce system
   (app/create
-   {:prefix prefix
-    :ns-prefix "co.gaiwan.oak"
-    :data-readers {'config get}}))
+   {:prefix       prefix
+    :ns-prefix    ns-prefix
+    :data-readers {'config get}
+    :profile      (:env config)}))
 
 (def load! (partial app/load! system))
 (def start! (partial app/start! system))

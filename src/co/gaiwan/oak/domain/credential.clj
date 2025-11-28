@@ -78,6 +78,13 @@
                  :expires-at (.plus (Instant/now) (long expiry-hours) ChronoUnit/HOURS)})
     nonce))
 
+(defn verify-password
+  "verify password to identity-id"
+  [db {:keys [identity-id password]}]
+  (let [hsh (:credential/value (find-one db {:identity-id identity-id
+                                             :type type-password}))]
+    (password4j/check-password password hsh)))
+
 (defn set-password!
   "Set the password hash for a identity/user, creating a new credential, or
   updating the existing one."

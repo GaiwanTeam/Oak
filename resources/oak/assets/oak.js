@@ -53,15 +53,31 @@ function visibilityToggle_onClick(e) {
 // user.
 
 function handleConfirmationDialog(el) {
-  $on(el, 'click', ()=>confirm(el.dataset.confirm))
+  $on(el, 'click', ()=>confirm($attr(el, "oak-confirm")))
 }
+
+//////////////////////////////////////////////////////////////////////
+// Selector: [data-do-remove]
+
+function handleRemove(el) {
+  $on(el, 'click', ()=>{
+    const remove = $attr(el, "oak-remove")
+    if ("self" === remove) {
+      el.remove()
+    } else if ("parent" === remove) {
+      el.parentElement.remove()
+    } // else selector based, implement if needed
+  })
+}
+
 
 //////////////////////////////////////////////////////////////////////
 // Selector-based dispatch
 
 const SELECTORS = {
   '[type=password]': handlePasswordField,
-  '[data-confirm]': handleConfirmationDialog
+  '[oak-confirm]': handleConfirmationDialog,
+  '[oak-remove]': handleRemove,
 }
 
 function onDOMReady(_event) {
