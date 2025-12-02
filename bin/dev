@@ -40,6 +40,11 @@
     (print "copy resources, ") (flush)
     (build/copy-dir {:src-dirs   ["resources"]
                      :target-dir target-dir})
+    (print "compile, ") (flush)
+    (build/compile-clj {:basis        basis
+                        :src-dirs     ["src"]
+                        :class-dir    target-dir
+                        :compile-opts {:elide-meta [:doc]}})
     (print "build uberjar, ") (flush)
     (build/uber {:class-dir         target-dir
                  :uber-file         (str target-dir "/oak-uberjar.jar")
