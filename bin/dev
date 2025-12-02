@@ -25,7 +25,7 @@
   (let [f (io/file target-dir "oak/assets/styles.css")]
     (.mkdirs (io/file (.getParent f)))
     (config/load!)
-    (print "wrote" (str f) (count (o/defined-styles)) "bytes, ")
+    (println "  - Wrote" (str f) (count (o/defined-styles)) "bytes")
     (spit f (o/defined-styles))))
 
 (defn uberjar
@@ -33,25 +33,30 @@
   {:flags ["--target-dir" {:doc "Target directory" :default "target"}]}
   [{:keys [target-dir] :as opts}]
   (let [basis (build/create-basis {:project "deps.edn"})]
-    (print "Clean target, ") (flush)
-    (sh/sh "rm" "-rf" (str target-dir "/*"))
-    (print "write styles, ") (flush)
+    (println "- Cleaning target/")
+    (sh/sh "sh" "-c" (str "rm  -rf " target-dir "/*"))
+
+    (println "- Writing oak/assets/styles.css")
     (write-styles opts)
-    (print "copy resources, ") (flush)
+
+    (println "- Copying resources/* to target/")
     (build/copy-dir {:src-dirs   ["resources"]
                      :target-dir target-dir})
-    (print "compile, ") (flush)
+
+    (println "- Compiling Clojure")
     (build/compile-clj {:basis        basis
                         :src-dirs     ["src"]
                         :class-dir    target-dir
                         :compile-opts {:elide-meta [:doc]}})
-    (print "build uberjar, ") (flush)
+
+    (println "- Building target/oak-uberjar.jar")
     (build/uber {:class-dir         target-dir
                  :uber-file         (str target-dir "/oak-uberjar.jar")
                  :basis             basis
                  :main              'co.gaiwan.oak.app.admin-cli
                  :conflict-handlers log4j2-conflict-handler})
-    (println "done.")))
+
+    (println "Ready.")))
 
 (def commands
   ["init" #'initialize-local-files
