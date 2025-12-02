@@ -42,12 +42,34 @@
     (some #(when (= type (:type %)) %)
           (get-in session [:authentications identity]))))
 
+(defn update-session-auth! [session auth]
+  (let [{:keys [_ identity]} session
+        {:keys [type _]} auth]
+    (with-meta
+      (-> session
+          (update-in [:authentications identity]
+                     #(set (remove (fn [a] (= (:type a) type)) %)))
+          (update-in [:authentications identity]
+                     (fnil conj #{})
+                     auth))
+      {:recreate true})))
+
 (comment
+  (update-session-auth!
+   {:authentications
+    {"abc" #{{:type "password"
+              :created-at (java.time.Instant/now)}}}
+    :identity "abc"}
+
+   {:type "password"
+    :created-at (java.time.Instant/now)
+    :v 2})
+
   (get-session-auth
-   {:session {:authentications
-              {"abc" #{{:type "password"
-                        :created-at (java.time.Instant/now)}}}
-              :identity "abc"}}
+   {:authentications
+    {"abc" #{{:type "password"
+              :created-at (java.time.Instant/now)}}}
+    :identity "abc"}
    credential/type-password))
 
 ;; (defn wrap-authentications
@@ -78,6 +100,12 @@
 ;;      req
 ;;      (get-in session [:authentications identity-id]))))
 
+(defn before-or-equal
+  "Return true if t1 <= t2"
+  [t1 t2]
+  (or (.isBefore ^java.time.Instant t1 t2)
+      (.equals ^java.time.Instant t1 t2)))
+
 (defn wrap-session-auth
   "If an `:identity` key is set in the session, this will look up the user with
   that uuid, and set it (the identity record) as the `:identity` key on the
@@ -91,8 +119,8 @@
           totp-auth   (get-session-auth session credential/type-totp)
           pwd-cred    (when identity (credential/find-one db {:identity-id identity-id :type credential/type-password}))
           totp-cred   (when identity (credential/find-one db {:identity-id identity-id :type credential/type-totp}))
-          pwd-valid?  (and pwd-auth pwd-cred (.isBefore ^java.time.Instant (:credential/updated-at pwd-cred) (:created-at pwd-auth)))
-          totp-valid? (and totp-auth totp-cred (.isBefore ^java.time.Instant (:credential/updated-at totp-cred) (:created-at totp-auth)))]
+          pwd-valid?  (and pwd-auth pwd-cred (before-or-equal (:credential/updated-at pwd-cred) (:created-at pwd-auth)))
+          totp-valid? (and totp-auth totp-cred (before-or-equal (:credential/updated-at totp-cred) (:created-at totp-auth)))]
       (h
        ;; Logged in with password, and either no 2FA configured, or we have a
        ;; valid 2FA login

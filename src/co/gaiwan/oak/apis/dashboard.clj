@@ -76,11 +76,16 @@
       (dashboard-response req {:confirm-password-error "The new password and confirmation password do not match"})
 
       :else
-      (do
-        (cred/set-password! db {:identity-id identity-id :password new-pass})
+      (let [_ (cred/set-password! db {:identity-id identity-id :password new-pass})
+            pwd-cred (cred/find-one db {:identity-id identity-id :type cred/type-password})
+            pwd-auth (auth-mw/get-session-auth session cred/type-password)
+            updated-pwd-auth (assoc pwd-auth
+                                    :created-at (:credential/updated-at pwd-cred))
+            session (auth-mw/update-session-auth! session updated-pwd-auth)]
         {:status 303
          :flash {:success "Your password updated successfully"}
-         :headers {"Location" (routing/url-for req :home/dash)}}))))
+         :headers {"Location" (routing/url-for req :home/dash)}
+         :session session}))))
 
 (defn DELETE-auth-app
   {:summary "Revoke application authorization"
