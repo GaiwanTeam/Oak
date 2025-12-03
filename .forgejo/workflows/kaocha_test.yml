@@ -55,8 +55,7 @@ jobs:
         run: |
           chmod +x ./bin/kaocha
           echo "--- run kaocha test ---"
-          ./bin/kaocha --focus 'co.gaiwan.oak.apis.dashboard-test/password-minimum-length-test'
-          # ./bin/kaocha
+          ./bin/kaocha
 
       - name: finish it
         run: echo "Kaocha workflow execution finished."
