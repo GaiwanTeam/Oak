@@ -84,24 +84,29 @@
       (is (re-find #"The new password should be at least" (:body resp)))
       (is (credential/verify-password (db) {:identity-id identity-id :password old-password})))))
 
-;; (deftest post-2fa-enable-test
-;;   (with-redefs [routing/url-for (fn [req route] (case route :totp/setup "/totp/setup"))]
-;;     (let [req {:db harness/*db*
-;;                :identity {:identity/id *identity-id*}
-;;                :parameters {:form {:enable-2fa true}}}
-;;           response (dashboard/POST-2fa req)
-;;           headers (:headers response)]
-;;       (is (= 303 (:status response)))
-;;       (is (= "/totp/setup" (get headers "Location"))))))
+(deftest post-2fa-enable
+  (let [identity-id  (uuid/v7)
+        old-password (random/secure-base62-str 128)
+        identity (identity/create! (db) {:id identity-id})]
+    (credential/set-password! (db) {:identity-id identity-id :password old-password})
+    (is (match? {:status 303
+                 :headers {"Location" "http://localhost/2fa/setup"}}
+                (mock/with-session (mock/pwd-auth-sess identity-id)
+                  (-> (mock/request :post "/dashboard/2fa")
+                      (mock/body {:enable-2fa true})
+                      (mock/fetch)))))))
 
-;; (deftest post-2fa-disable-test
-;;   (with-redefs [routing/url-for (fn [req route] (case route :home/dash "/dashboard"))]
-;;     (cred/enable-totp! harness/*db* {:identity-id *identity-id* :secret "secret"})
-;;     (let [req {:db harness/*db*
-;;                :identity {:identity/id *identity-id*}
-;;                :parameters {:form {:enable-2fa false}}}
-;;           response (dashboard/POST-2fa req)
-;;           headers (:headers response)]
-;;       (is (= 303 (:status response)))
-;;       (is (= "/dashboard" (get headers "Location")))
-;;       (is (nil? (cred/exist-totp? harness/*db* {:identity-id *identity-id*}))))))
+(deftest post-2fa-disable
+  (let [identity-id  (uuid/v7)
+        old-password (random/secure-base62-str 128)
+        secret (random/secure-base62-str 128)
+        identity (identity/create! (db) {:id identity-id})]
+    (credential/set-password! (db) {:identity-id identity-id :password old-password})
+    (credential/enable-totp! (db) {:identity-id identity-id :secret secret})
+    (let [resp (mock/with-session (mock/totp-auth-sess identity-id)
+                 (-> (mock/request :post "/dashboard/2fa")
+                     (mock/body {:enable-2fa false})
+                     (mock/fetch)))]
+      (is (match? {:status 303
+                   :headers {"Location" "http://localhost/"}} resp))
+      (is (nil? (credential/exist-totp? (db) {:identity-id identity-id}))))))
