@@ -1,6 +1,7 @@
 (ns co.gaiwan.oak.html.login-page
   (:require
    [co.gaiwan.oak.html.forms :as f]
+   [co.gaiwan.oak.html.layout :as layout]
    [co.gaiwan.oak.html.tokens :refer :all]
    [co.gaiwan.oak.html.widgets :as w]
    [co.gaiwan.oak.util.routing :as routing]
@@ -33,6 +34,8 @@
    [:<>
     [w/leaf-bg]
     [w/full-center-card
+     (let [{:keys [info]} (:flash req)]
+       (when info [layout/flash-info info]))
      [:h1 "Login"]
      [f/form {:method "POST"}
       [f/input-group

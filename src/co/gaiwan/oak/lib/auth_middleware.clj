@@ -31,6 +31,7 @@
       (handler req)
       {:status 302
        :headers {"Location" (routing/url-for req :auth/login)}
+       :flash {:info (str "Required login to continue.")}
        :session (assoc session :redirect-after-login (:uri req))})))
 
 (comment

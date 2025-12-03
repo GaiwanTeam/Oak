@@ -137,13 +137,16 @@
    ["" {}
     ["/2fa" {:html/layout layout/layout}
      ["/setup" {:name :totp/setup
-                :middleware  [ring-csrf/wrap-anti-forgery
-                              auth-mw/wrap-session-auth
+                :middleware  [auth-mw/wrap-session-auth
+                              auth-mw/wrap-enforce-login
+                              ring-csrf/wrap-anti-forgery
                               hiccup-mw/wrap-render]
                 :get  #'GET-setup
                 :post #'POST-setup}]]
     ["/2fa/check" {:html/layout layout/layout
-                   :middleware  [ring-csrf/wrap-anti-forgery
+                   :middleware  [auth-mw/wrap-session-auth
+                                 auth-mw/wrap-enforce-login
+                                 ring-csrf/wrap-anti-forgery
                                  hiccup-mw/wrap-render]
                    :name        :totp/check
                    :get         #'GET-check
