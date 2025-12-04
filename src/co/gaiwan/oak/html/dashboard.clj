@@ -5,6 +5,7 @@
    [co.gaiwan.oak.html.forms :as f]
    [co.gaiwan.oak.html.tokens :refer :all]
    [co.gaiwan.oak.html.widgets :as w]
+   [co.gaiwan.oak.html.graphics :as g]
    [co.gaiwan.oak.html.forms :as form]
    [co.gaiwan.oak.lib.time :as time]
    [co.gaiwan.oak.util.routing :as routing]
@@ -25,6 +26,15 @@
    :grid-template-columns "repeat( auto-fit, minmax(20rem, 1fr) )"
    :gap "1.5rem"})
 
+(o/defstyled logout :div
+  [:a {:display :flex
+       :align-items :center
+       :text-align :center}]
+  ([uri]
+   [:a {:href uri}
+    [g/logout]
+    [:span "Logout"]]))
+
 (o/defstyled dash-header w/column-card
   {:margin-bottom "2rem"
    --bg-panel "rgba(255,255,255,20%)"
@@ -35,21 +45,23 @@
           :gap "1rem"}]
   [:.user-details {:margin 0
                    :padding 0}]
+  [:.push-right {:margin-right "auto"}]
   [:h2 {:margin-top 0
         :margin-bottom "0.25rem"
         :padding 0}]
   [:p {:color --gray-8
        :margin 0
        :padding 0}]
-  ([{:keys [username email]}]
+  ([{:keys [username email]} uri]
    [:div.user-info
     [w/avatar]
-    [:div.user-details
+    [:div.user-details.push-right
      (if username
        [:<>
         [:h2 username]
         [:p email]]
-       [:h2 email])]]))
+       [:h2 email])]
+    [logout uri]]))
 
 (o/defstyled security-header :div
   {:display :flex
@@ -106,7 +118,7 @@
      [:<>
       (when error [layout/flash-error error])
       (when success [layout/flash-success success])])
-   [dash-header identifiers]
+   [dash-header identifiers logout-url]
    [card-container
     [w/column-card
      [:h3 "Account Security"]
