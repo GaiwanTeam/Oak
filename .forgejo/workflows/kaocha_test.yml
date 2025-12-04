@@ -21,7 +21,7 @@ jobs:
           apt-get update && apt-get install podman -y && apt-get install podman-compose -y
 
       - name: Start Podman services
-        run: podman-compose up -d --no-recreate
+        run: podman-compose -f docker-compose.yml -f docker-compose.test.yml up -d --no-recreate
 
       - name: Wait for services
         run: |
