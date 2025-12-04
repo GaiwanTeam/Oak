@@ -21,14 +21,15 @@
   (let [identity-id  (uuid/v7)
         old-password (random/secure-base62-str 128)
         new-password (random/secure-base62-str 128)
-        identity     (identity/create! (db) {:id identity-id})]
+        identity     (identity/create! (db) {:id identity-id})
+        http-origin  (harness/get-config :http/origin)]
     (credential/set-password! (db) {:identity-id identity-id :password old-password})
     (is (match?
          {:status 303
           :flash {:success "Your password updated successfully"}
-          :headers {"Location" "http://localhost/"}}
+          :headers {"Location" (str http-origin "/")}}
          (mock/with-session (mock/pwd-auth-sess identity-id)
-           (-> (mock/request :post "/dashboard/password")
+           (-> (mock/request :post (str http-origin "/dashboard/password"))
                (mock/body {:current-password     old-password
                            :new-password         new-password
                            :confirm-new-password new-password})
@@ -39,10 +40,11 @@
         old-password (random/secure-base62-str 128)
         wrong-password (random/secure-base62-str 128)
         new-password (random/secure-base62-str 128)
+        http-origin  (harness/get-config :http/origin)
         identity     (identity/create! (db) {:id identity-id})]
     (credential/set-password! (db) {:identity-id identity-id :password old-password})
     (let [resp (mock/with-session (mock/pwd-auth-sess identity-id)
-                 (-> (mock/request :post "/dashboard/password")
+                 (-> (mock/request :post (str http-origin "/dashboard/password"))
                      (mock/body {:current-password     wrong-password
                                  :new-password         new-password
                                  :confirm-new-password new-password})
@@ -55,10 +57,11 @@
   (let [identity-id  (uuid/v7)
         old-password (random/secure-base62-str 128)
         new-password old-password
+        http-origin  (harness/get-config :http/origin)
         identity     (identity/create! (db) {:id identity-id})]
     (credential/set-password! (db) {:identity-id identity-id :password old-password})
     (let [resp (mock/with-session (mock/pwd-auth-sess identity-id)
-                 (-> (mock/request :post "/dashboard/password")
+                 (-> (mock/request :post (str http-origin "/dashboard/password"))
                      (mock/body {:current-password     old-password
                                  :new-password         new-password
                                  :confirm-new-password new-password})
@@ -72,10 +75,11 @@
         old-password (random/secure-base62-str 128)
         min-length   (harness/get-config :password/min-length)
         new-password (subs (random/secure-base62-str 128) 0 (dec min-length))
+        http-origin  (harness/get-config :http/origin)
         identity     (identity/create! (db) {:id identity-id})]
     (credential/set-password! (db) {:identity-id identity-id :password old-password})
     (let [resp (mock/with-session (mock/pwd-auth-sess identity-id)
-                 (-> (mock/request :post "/dashboard/password")
+                 (-> (mock/request :post (str http-origin "/dashboard/password"))
                      (mock/body {:current-password     old-password
                                  :new-password         new-password
                                  :confirm-new-password new-password})
@@ -87,12 +91,13 @@
 (deftest post-2fa-enable
   (let [identity-id  (uuid/v7)
         old-password (random/secure-base62-str 128)
+        http-origin  (harness/get-config :http/origin)
         identity (identity/create! (db) {:id identity-id})]
     (credential/set-password! (db) {:identity-id identity-id :password old-password})
     (is (match? {:status 303
-                 :headers {"Location" "http://localhost/2fa/setup"}}
+                 :headers {"Location" (str http-origin "/2fa/setup")}}
                 (mock/with-session (mock/pwd-auth-sess identity-id)
-                  (-> (mock/request :post "/dashboard/2fa")
+                  (-> (mock/request :post (str http-origin "/dashboard/2fa"))
                       (mock/body {:enable-2fa true})
                       (mock/fetch)))))))
 
@@ -100,13 +105,14 @@
   (let [identity-id  (uuid/v7)
         old-password (random/secure-base62-str 128)
         secret (random/secure-base62-str 128)
+        http-origin  (harness/get-config :http/origin)
         identity (identity/create! (db) {:id identity-id})]
     (credential/set-password! (db) {:identity-id identity-id :password old-password})
     (credential/enable-totp! (db) {:identity-id identity-id :secret secret})
     (let [resp (mock/with-session (mock/totp-auth-sess identity-id)
-                 (-> (mock/request :post "/dashboard/2fa")
+                 (-> (mock/request :post (str http-origin "/dashboard/2fa"))
                      (mock/body {:enable-2fa false})
                      (mock/fetch)))]
       (is (match? {:status 303
-                   :headers {"Location" "http://localhost/"}} resp))
+                   :headers {"Location" (str http-origin "/")}} resp))
       (is (nil? (credential/exist-totp? (db) {:identity-id identity-id}))))))
