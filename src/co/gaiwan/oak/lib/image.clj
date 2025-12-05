@@ -28,7 +28,10 @@
       (log/error e "Failed to save image to" file-path)
       false)))
 
-(defn fetch-and-resize [uri])
+(defn fetch-and-resize [uri]
+  (-> uri
+      fetch-image
+      #(img-resize/resize-to-height % 32)))
 
 (comment
   (def test-uri "https://gaiwan.co/content/images/2024/01/Gaiwan-logo-transparent-bg.png")

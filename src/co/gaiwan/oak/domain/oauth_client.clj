@@ -7,6 +7,7 @@
    [malli.error :as me]
    [malli.transform :as mt]
    [malli.util :as mu]
+   [co.gaiwan.oak.lib.image :as image]
    [co.gaiwan.oak.lib.db :as db]))
 
 (def attributes
@@ -23,6 +24,7 @@
    [:response_types :jsonb]
    [:scope :text]
    [:logo_uri :text]
+   [:logo_image :bytea]
    [:client_uri :text]
 
    ;; More RFC7591 fields we don't currently implement
@@ -99,21 +101,24 @@
                      :malli/errors errors}))
     (let [coerced-opts (m/coerce ClientOpts opts (mt/default-value-transformer {::mt/add-optional-keys true}))
           {:keys [client-name redirect-uris token-endpoint-auth-method grant-types response-types scope
-                  client-uri logo-uri]} coerced-opts]
+                  client-uri logo-uri]} coerced-opts
+          logo-image (when logo-uri (image/fetch-and-resize logo-uri))
+          entity {:id                         (uuid/v7)
+                  :client_id                  (str (random/secure-base62-str 64) ".oak.client")
+                  :client_secret              (new-client-secret)
+                  :client_name                client-name
+                  :redirect_uris              redirect-uris
+                  :token_endpoint_auth_method token-endpoint-auth-method
+                  :grant_types                grant-types
+                  :response_types             response-types
+                  :scope                      scope
+                  :client_uri                 client-uri
+                  :logo_uri                   logo-uri
+                  :logo_image                 logo-image}]
       (db/insert!
        db
        "oauth_client"
-       {:id                         (uuid/v7)
-        :client_id                  (str (random/secure-base62-str 64) ".oak.client")
-        :client_secret              (new-client-secret)
-        :client_name                client-name
-        :redirect_uris              redirect-uris
-        :token_endpoint_auth_method token-endpoint-auth-method
-        :grant_types                grant-types
-        :response_types             response-types
-        :scope                      scope
-        :client_uri                 client-uri
-        :logo_uri                   logo-uri}))))
+       entity))))
 
 (defn list-all [db]
   (db/execute-honey!
@@ -149,7 +154,8 @@
                                opts)
         {:keys [client-name client-secret redirect-uris
                 token-endpoint-auth-method grant-types response-types scope
-                client-uri logo-uri]} coerced-opts]
+                client-uri logo-uri]} coerced-opts
+        logo-image (when logo-uri (image/fetch-and-resize logo-uri))]
     (db/update!
      db
      {:update :oauth-client
@@ -163,7 +169,8 @@
                 response-types             (assoc :response_types [:lift response-types])
                 scope                      (assoc :scope scope)
                 client-uri                 (assoc :client_uri client-uri)
-                logo-uri                   (assoc :logo_uri logo-uri))})))
+                logo-uri                   (assoc :logo_uri logo-uri)
+                logo-image                 (assoc :logo_image logo-image))})))
 
 (comment
   (create! (user/db) {:client-name "My client"
