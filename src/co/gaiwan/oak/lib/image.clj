@@ -3,7 +3,7 @@
             [co.gaiwan.oak.util.log :as log]
             [clojure.java.io :as io]
             [image-resizer.core :as img-resize])
-  (:import [java.io ByteArrayInputStream]
+  (:import [java.io ByteArrayInputStream ByteArrayOutputStream]
            [java.awt.image BufferedImage]
            [javax.imageio ImageIO]))
 
@@ -28,13 +28,23 @@
       (log/error e "Failed to save image to" file-path)
       false)))
 
+(defn buffered-image->bytes
+  [^BufferedImage image format-name]
+  (when image
+    (with-open [baos (ByteArrayOutputStream.)]
+      (ImageIO/write image format-name baos)
+      (.toByteArray baos))))
+
 (defn fetch-and-resize [uri]
-  (-> uri
-      fetch-image
-      #(img-resize/resize-to-height % 32)))
+  (as-> uri x
+    (fetch-image x)
+    (img-resize/resize-to-height x 32)
+    (buffered-image->bytes x "png")))
 
 (comment
   (def test-uri "https://gaiwan.co/content/images/2024/01/Gaiwan-logo-transparent-bg.png")
   (def image-result (fetch-image test-uri))
   (def resized-img (img-resize/resize-to-height image-result 32))
+  (fetch-and-resize test-uri)
+
   (save-image-to-file resized-img "png" "./gaiwan-bg.png"))
