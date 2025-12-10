@@ -129,6 +129,24 @@
          (assoc req :identity identity)
          req)))))
 
+(defn wrap-2fa-in-progress
+  "Middleware that redirects to login page if the user has not passed id/pw check"
+  [h]
+  (fn [{:keys [session db] :as req}]
+    (let [identity-id (:identity session)
+          identity    (and identity-id (identity/find-one db {:id identity-id}))
+          pwd-auth    (get-session-auth session credential/type-password)
+          pwd-cred    (when identity (credential/find-one db {:identity-id identity-id :type credential/type-password}))
+          pwd-valid?  (and pwd-auth pwd-cred (before-or-equal (:credential/updated-at pwd-cred) (:created-at pwd-auth)))]
+
+      ;; Logged in with password
+      (if pwd-valid?
+        (h req)
+        {:status 302
+         :headers {"Location" (routing/url-for req :auth/login)}
+         :flash {:info (str "2FA required login to continue.")}
+         :session (assoc session :redirect-after-login (:uri req))}))))
+
 (defn wrap-bearer-auth
   "Accept Authorization: Bearer style authentication.
 

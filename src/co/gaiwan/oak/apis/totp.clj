@@ -144,8 +144,7 @@
                 :get  #'GET-setup
                 :post #'POST-setup}]]
     ["/2fa/check" {:html/layout layout/layout
-                   :middleware  [auth-mw/wrap-session-auth
-                                 auth-mw/wrap-enforce-login
+                   :middleware  [auth-mw/wrap-2fa-in-progress
                                  ring-csrf/wrap-anti-forgery
                                  hiccup-mw/wrap-render]
                    :name        :totp/check
