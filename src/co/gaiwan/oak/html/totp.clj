@@ -1,5 +1,6 @@
 (ns co.gaiwan.oak.html.totp
   (:require
+   [charred.api :as charred]
    [co.gaiwan.oak.html.forms :as f]
    [co.gaiwan.oak.html.widgets :as w]
    [co.gaiwan.oak.util.routing :as routing]
@@ -18,11 +19,23 @@
     [w/leaf-bg]
     (into [w/full-center-card] children)]))
 
-(defn success-page [req]
+(defn success-page [req codes]
   [totp-layout
    [:<>
     [:h1 "2FA Enabled"]
     [:div "Your authenticator app has been successfully linked."]
+    [:h3 "Backup Codes"]
+    [:div.alert-warning
+     "Please save these backup codes into save place. You can use these codes to login when you lost your authenticator device."]
+    ;; show the backup codes
+    [:ul.backup-codes
+     (for [code codes]
+       [:li code])]
+    ;; Button to download the backup codes
+    [:button#download-backup-code.btn-primary
+     {:oak-download (charred/write-json-str codes)}
+     "Download backup codes (.txt)"]
+    [:hr]
     [:p [:a.subtle {:href (routing/url-for req :auth/login)} "Back to login"]]]])
 
 (o/defstyled qr-img :img

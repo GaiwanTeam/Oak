@@ -1,5 +1,6 @@
 (ns co.gaiwan.oak.html.dashboard
   (:require
+   [charred.api :as charred]
    [co.gaiwan.oak.app.config :as config]
    [co.gaiwan.oak.html.layout :as layout]
    [co.gaiwan.oak.html.forms :as f]
@@ -190,4 +191,7 @@
        [:h1 "Debug"]
        [:a {:href totp-setup-url} "Setup 2FA"]
        [:a {:href logout-url} "Sign out"]
+       [:button#download-backup-code.btn-primary
+        {:oak-download (charred/write-json-str ["aaaa" "bbb"])}
+        "Download backup codes (.txt)"]
        [:p (pr-str (:identity req))]])]])

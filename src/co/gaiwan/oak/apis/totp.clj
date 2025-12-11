@@ -8,6 +8,7 @@
    [co.gaiwan.oak.app.config :as config]
    [co.gaiwan.oak.domain.credential :as credential]
    [co.gaiwan.oak.domain.identifier :as identifier]
+   [co.gaiwan.oak.domain.backup-code :as backup-code]
    [co.gaiwan.oak.html.auth :as auth-html]
    [co.gaiwan.oak.html.layout :as layout]
    [co.gaiwan.oak.html.totp :as totp-html]
@@ -57,10 +58,11 @@
     (if (and code secret (totp/verify-code secret code))
       (do
         (credential/enable-totp! db {:identity-id identity-id :secret secret})
-        {:status  200
-         :session (dissoc session :totp/secret)
-         :html/body
-         [totp-html/success-page req]})
+        (let [codes (backup-code/generate! db {:identity-id identity-id})]
+          {:status  200
+           :session (dissoc session :totp/secret)
+           :html/body
+           [totp-html/success-page req codes]}))
       (let [identifier  (identifier/find-one db {:identity-id identity-id :type "email" :primary true})
             user-email  (:identifier/value identifier)]
         {:status 400
@@ -110,11 +112,9 @@
             valid?  (when cred (totp/verify-code (:credential/value cred) code))
             session (if (not valid?)
                       session
-                      (-> session
-                          (update-in [:authentications identity-id]
-                                     (fnil conj #{})
-                                     {:type       credential/type-totp
-                                      :created-at (Instant/now)})))]
+                      (auth-mw/update-session-auth!
+                       session {:type       credential/type-totp
+                                :created-at (Instant/now)}))]
         (cond
           (not valid?)
           {:status 400

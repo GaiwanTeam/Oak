@@ -38,14 +38,11 @@
   (let [identity-id (identity/validate-login db (:form parameters))
         totp-cred   (when identity-id (credential/find-one db {:identity-id identity-id :type credential/type-totp}))
         session     (if identity-id
-                      (with-meta
-                        (-> session
-                            (assoc :identity identity-id)
-                            (update-in [:authentications identity-id]
-                                       (fnil conj #{})
-                                       {:type       credential/type-password
-                                        :created-at (Instant/now)}))
-                        {:recreate true})
+                      (let [session (assoc session
+                                           :identity identity-id)]
+                        (auth-mw/update-session-auth!
+                         session  {:type       credential/type-password
+                                   :created-at (Instant/now)}))
                       session)]
     (cond
       ;; login failed, show form again, don't touch session
