@@ -72,4 +72,24 @@
       :aria-describedby "totp-desc"
       :autofocus        "autofocus"
       :error            error}]
-    [f/submit {:type "submit" :value "Verify 2FA"}]]])
+    [f/submit {:type "submit" :value "Verify 2FA"}]]
+   [:div
+    [:p "Having trouble? "
+     [:a {:href "/backup-code"}
+      "Use a backup code"]]]])
+
+(defn backup-code-page [{:keys [error]}]
+  [totp-layout
+   [:h1 "Verify Backup Code"]
+   [:p#totp-desc "Enter one of your backup codes to continue"]
+   [f/form {:method "POST"}
+    [f/input-group
+     {:label            "backup code"
+      :id               "code"
+      :type             "text"
+      :name             "code"
+      :required         "required"
+      :aria-describedby "totp-desc"
+      :autofocus        "autofocus"
+      :error            error}]
+    [f/submit {:type "submit" :value "Verify backup code"}]]])

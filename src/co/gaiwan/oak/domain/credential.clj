@@ -24,6 +24,7 @@
 (def type-password "password")
 (def type-password-reset-nonce "password_reset_nonce")
 (def type-totp "Time-base one time password" "totp")
+(def type-backup-code "backup code used when authenticator lost" "backup")
 
 (defn create! [db {:keys [id identity-id type value expires-at] :as opts}]
   (db/insert!

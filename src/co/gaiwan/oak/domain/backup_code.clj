@@ -39,6 +39,11 @@
                                 :from :backup_code
                                 :where (where-sql opts)})))
 
+(defn find-all [db opts]
+  (db/execute-honey! db {:select [:*]
+                         :from :backup_code
+                         :where (where-sql opts)}))
+
 (def backup-code-count 10)
 
 (defn gen-code []
@@ -49,16 +54,36 @@
    (doall
     (repeatedly backup-code-count gen-code))))
 
+(defn code->hash [code]
+  (password4j/hash-password
+   code
+   (keyword (config/get :password/hash-type))))
+
 ;;;;;;;;;;;; API ;;;;;;;;;;;;
+
+(defn valid-count
+  [db {:keys [identity-id]}]
+  (let [entities (find-all db {:identity-id identity-id
+                               :used false})]
+    (count entities)))
+
+(defn verify-code
+  "verify code to identity-id"
+  [db {:keys [identity-id code]}]
+  (let [entities (find-all db {:identity-id identity-id
+                               :used false})]
+    (some
+     (fn [{:backup-code/keys [id code-hash]}]
+       (when (password4j/check-password code code-hash)
+         id))
+     entities)))
 
 (defn generate!
   "generate the backup codes and store their hash"
   [db {:keys [identity-id]}]
   (let [codes (gen-codes)
         hashes (map
-                #(password4j/hash-password
-                  %
-                  (keyword (config/get :password/hash-type)))
+                code->hash
                 codes)]
     (db/with-transaction [conn db]
       (db/execute-honey!
@@ -78,11 +103,16 @@
 (defn delete! [db opts]
   (db/execute-honey! db {:delete-from :backup_code :where (where-sql opts)}))
 
-(defn update! [db {:keys [id identity-id :code-hash :used] :as opts}]
+(defn update! [db {:keys [id :used] :as opts}]
   (db/execute-honey! db {:update :backup_code
                          :set {:used used}
                          :where [:= id :id]}))
 
 (comment
-  (def tmp-id #uuid "019a3f14-8f0e-70c4-b65f-d902cc13d111")
+  (def tmp-id #uuid "019a3f16-6c58-7061-ba9b-b240921b3f46")
+  (def code "4HxJHEErEv")
+
+  (def id (verify-code (user/db) {:identity-id tmp-id :code code}))
+  (update! (user/db) {:id id :used true})
+
   (generate! (user/db) {:identity-id tmp-id}))
