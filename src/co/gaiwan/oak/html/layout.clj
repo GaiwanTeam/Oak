@@ -44,7 +44,13 @@
    [:<>
     props
     message
-    [:button.ghost {:oak-remove "parent"} "close"]]))
+    [:button.ghost {:oak-remove "parent"} "x"]]))
+
+(defn flash-info [msg]
+  [flash-box
+   {:style
+    {t/--bg-panel t/--blue-0
+     t/--text-panel t/--blue-6}} msg])
 
 (defn flash-error [msg]
   [flash-box
@@ -54,6 +60,7 @@
 
 (defn flash-success [msg]
   [flash-box
-   {:style {t/--bg-panel t/--oak-green-2
-            t/--text-panel t/--oak-green-13}}
+   {:style
+    {t/--bg-panel t/--oak-green-2
+     t/--text-panel t/--oak-green-13}}
    msg])

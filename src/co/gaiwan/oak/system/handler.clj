@@ -2,6 +2,7 @@
   "HTTP handler, Ring-based"
   (:require
    [clojure.string :as str]
+   [co.gaiwan.oak.lib.auth-middleware :as auth-mw]
    [reitit.ring :as reitit-ring]
    [reitit.ring.middleware.parameters :as reitit-params]))
 

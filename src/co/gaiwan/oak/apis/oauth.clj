@@ -115,7 +115,6 @@
 (defn GET-authorize
   {:summary "Authorize a client"
    :description "Starting point of the oauth flow, request authorization."
-   :middleware [auth-mw/wrap-session-auth]
    :parameters {:query [:map
                         [:client_id {:optional true} string?]
                         [:redirect_uri {:optional true} string?]
@@ -449,15 +448,18 @@
   {:routes
    [["/.well-known/oauth-authorization-server"
      {:name :oauth/authorization-server-metadata
+      :auth-claim :public
       :get #'GET-authorization-server-metadata}]
     ["/oauth" {:openapi {:tags ["oauth"]}}
      ["/authorize" {:name :oauth/authorize
+                    :auth-claim :basic
                     :html/layout layout/layout
                     :middleware [hiccup-mw/wrap-render]
                     :get #'GET-authorize
                     :post #'POST-authorize}]
      ["/token" {}
       ["" {:name :oauth/token
+           :auth-claim :api
            :post #'POST-exchange-token}]
       #_["/revoke" {:post {}}]]
 

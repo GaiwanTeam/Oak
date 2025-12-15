@@ -6,8 +6,10 @@
       - if code is valid, store secret as credential, remove from session"
   (:require
    [co.gaiwan.oak.app.config :as config]
+   [co.gaiwan.oak.domain.backup-code :as backup-code]
    [co.gaiwan.oak.domain.credential :as credential]
    [co.gaiwan.oak.domain.identifier :as identifier]
+   [co.gaiwan.oak.domain.backup-code :as backup-code]
    [co.gaiwan.oak.html.auth :as auth-html]
    [co.gaiwan.oak.html.layout :as layout]
    [co.gaiwan.oak.html.totp :as totp-html]
@@ -57,10 +59,11 @@
     (if (and code secret (totp/verify-code secret code))
       (do
         (credential/enable-totp! db {:identity-id identity-id :secret secret})
-        {:status  200
-         :session (dissoc session :totp/secret)
-         :html/body
-         [totp-html/success-page req]})
+        (let [codes (backup-code/generate! db {:identity-id identity-id})]
+          {:status  200
+           :session (dissoc session :totp/secret)
+           :html/body
+           [totp-html/success-page req codes]}))
       (let [identifier  (identifier/find-one db {:identity-id identity-id :type "email" :primary true})
             user-email  (:identifier/value identifier)]
         {:status 400
@@ -110,11 +113,9 @@
             valid?  (when cred (totp/verify-code (:credential/value cred) code))
             session (if (not valid?)
                       session
-                      (-> session
-                          (update-in [:authentications identity-id]
-                                     (fnil conj #{})
-                                     {:type       credential/type-totp
-                                      :created-at (Instant/now)})))]
+                      (auth-mw/update-session-auth!
+                       session {:type       credential/type-totp
+                                :created-at (Instant/now)}))]
         (cond
           (not valid?)
           {:status 400
@@ -132,19 +133,83 @@
                        [:p "You passed two-factor authentication!"]]
            :session   session})))))
 
+(defn GET-backup-code
+  {:summary "Display backup-code verification page"
+   :description "Show the form for user to enter their backup code during login"
+   :tags ["2FA" "backup-code"]
+   :responses {200 {:description "2FA backup code verification form displayed"}}}
+  [{:keys [db session] :as req}]
+  {:status 200
+   :html/body [totp-html/backup-code-page {}]})
+
+(defn POST-backup-code
+  {:summary "Verify backup code during login"
+   :description "Verify the backup code submitted by user during login authentication, update session if valid, and redirect accordingly"
+   :tags ["2FA" "backup-code"]
+   :parameters
+   {:form [:map
+           [:code string?]]}
+   :responses {200 {:description "Authentication successful, backup code verified"}
+               302 {:description "Authentication successful, redirecting to originally requested page"}
+               400 {:description "Invalid, expired, or missing TOTP code"}}}
+  [{:keys [db session parameters] :as req}]
+  (let [code        (-> parameters :form :code)
+        identity-id (:identity session)]
+    (if-not (and code identity-id)
+      {:status    400
+       :html/body [auth-html/error-page req "backup code failed: bad request or session. Please try logging in again."]}
+      (let [id (backup-code/verify-code db {:identity-id identity-id :code code})
+            valid? id
+            session (if (not valid?)
+                      session
+                      (auth-mw/update-session-auth!
+                       session {:type       credential/type-totp
+                                :created-at (Instant/now)}))]
+        (when valid?
+          (backup-code/update! db {:id id
+                                   :used true}))
+        (cond
+          (not valid?)
+          {:status 400
+           :html/body [totp-html/backup-code-page {:error "Invalid or expired code"}]}
+
+          (:redirect-after-login session)
+          {:status  302
+           :headers {"Location" (:redirect-after-login session)}
+           :session (dissoc session :redirect-after-login)}
+
+          :else
+          {:status    200
+           :html/body [auth-html/success-page req
+                       {:title "Successfully authenticated"}
+                       [:p "You passed two-factor authentication using backup code!"]
+                       (let [unused-code (backup-code/valid-count db {:identity-id identity-id})]
+                         (when (< unused-code 5)
+                           [:p "You have only " unused-code " backup code left."]))]
+
+           :session   session})))))
+
 (defn component [opts]
   {:routes
    ["" {}
     ["/2fa" {:html/layout layout/layout}
      ["/setup" {:name :totp/setup
+                :auth-claim :strong
                 :middleware  [ring-csrf/wrap-anti-forgery
-                              auth-mw/wrap-session-auth
                               hiccup-mw/wrap-render]
                 :get  #'GET-setup
                 :post #'POST-setup}]]
     ["/2fa/check" {:html/layout layout/layout
+                   :auth-claim  :open
                    :middleware  [ring-csrf/wrap-anti-forgery
                                  hiccup-mw/wrap-render]
                    :name        :totp/check
                    :get         #'GET-check
-                   :post        #'POST-check}]]})
+                   :post        #'POST-check}]
+    ["/backup-code" {:html/layout layout/layout
+                     :middleware  [ring-csrf/wrap-anti-forgery
+                                   hiccup-mw/wrap-render]
+                     :name        :backup-code/check
+                     :auth-claim  :open
+                     :get         #'GET-backup-code
+                     :post        #'POST-backup-code}]]})

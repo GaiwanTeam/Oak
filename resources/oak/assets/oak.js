@@ -70,7 +70,27 @@ function handleRemove(el) {
   })
 }
 
+//////////////////////////////////////////////////////////////////////
+// Backup Codes
 
+function handleDownload(el) {
+  $on(el, 'click', ()=>{
+    const dataStr  = $attr(el, "oak-download")
+    const codes = JSON.parse(dataStr);
+    // Alignment: a row for a code
+    const codesString = codes.join('\n');
+    const filename = $attr(el, "oak-download-filename")
+    const blob = new Blob([codesString], { type: 'text/plain' });
+
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  })
+}
 //////////////////////////////////////////////////////////////////////
 // Selector-based dispatch
 
@@ -78,6 +98,7 @@ const SELECTORS = {
   '[type=password]': handlePasswordField,
   '[oak-confirm]': handleConfirmationDialog,
   '[oak-remove]': handleRemove,
+  '[oak-download]': handleDownload,
 }
 
 function onDOMReady(_event) {

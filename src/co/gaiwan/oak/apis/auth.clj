@@ -38,14 +38,11 @@
   (let [identity-id (identity/validate-login db (:form parameters))
         totp-cred   (when identity-id (credential/find-one db {:identity-id identity-id :type credential/type-totp}))
         session     (if identity-id
-                      (with-meta
-                        (-> session
-                            (assoc :identity identity-id)
-                            (update-in [:authentications identity-id]
-                                       (fnil conj #{})
-                                       {:type       credential/type-password
-                                        :created-at (Instant/now)}))
-                        {:recreate true})
+                      (let [session (assoc session
+                                           :identity identity-id)]
+                        (auth-mw/update-session-auth!
+                         session  {:type       credential/type-password
+                                   :created-at (Instant/now)}))
                       session)]
     (cond
       ;; login failed, show form again, don't touch session
@@ -162,23 +159,26 @@
    ["/auth" {}
     ["/login"
      {:name :auth/login
+      :auth-claim :open
       :html/layout layout/layout
       :middleware [ring-csrf/wrap-anti-forgery
-                   auth-mw/wrap-session-auth
                    hiccup-mw/wrap-render]
       :get #'GET-login
       :post #'POST-login}]
     ["/logout"
      {:name :auth/logout
+      :auth-claim :open
       :get #'GET-logout}]
     ["/reset-password" {:html/layout layout/layout
                         :middleware [ring-csrf/wrap-anti-forgery
                                      hiccup-mw/wrap-render]}
      [""
       {:name :auth/password-reset
+       :auth-claim :strong
        :get #'GET-request-password-reset
        :post #'POST-request-password-reset}]
      ["/:nonce"
       {:name :auth/submit-password-reset
+       :auth-claim :open
        :get #'GET-submit-password-reset
        :post #'POST-submit-password-reset}]]]})

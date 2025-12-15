@@ -1,10 +1,12 @@
 (ns co.gaiwan.oak.html.dashboard
   (:require
+   [charred.api :as charred]
    [co.gaiwan.oak.app.config :as config]
    [co.gaiwan.oak.html.layout :as layout]
    [co.gaiwan.oak.html.forms :as f]
    [co.gaiwan.oak.html.tokens :refer :all]
    [co.gaiwan.oak.html.widgets :as w]
+   [co.gaiwan.oak.html.graphics :as g]
    [co.gaiwan.oak.html.forms :as form]
    [co.gaiwan.oak.lib.time :as time]
    [co.gaiwan.oak.util.routing :as routing]
@@ -25,6 +27,16 @@
    :grid-template-columns "repeat( auto-fit, minmax(20rem, 1fr) )"
    :gap "1.5rem"})
 
+(o/defstyled logout :div
+  :mr-3
+  [:a {:display :flex
+       :align-items :center
+       :text-align :center}]
+  ([uri]
+   [:a {:href uri}
+    [g/logout]
+    [:span "Logout"]]))
+
 (o/defstyled dash-header w/column-card
   {:margin-bottom "2rem"
    --bg-panel "rgba(255,255,255,20%)"
@@ -35,21 +47,23 @@
           :gap "1rem"}]
   [:.user-details {:margin 0
                    :padding 0}]
+  [:.push-right {:margin-right "auto"}]
   [:h2 {:margin-top 0
         :margin-bottom "0.25rem"
         :padding 0}]
   [:p {:color --gray-8
        :margin 0
        :padding 0}]
-  ([{:keys [username email]}]
+  ([{:keys [username email]} uri]
    [:div.user-info
     [w/avatar]
-    [:div.user-details
+    [:div.user-details.push-right
      (if username
        [:<>
         [:h2 username]
         [:p email]]
-       [:h2 email])]]))
+       [:h2 email])]
+    [logout uri]]))
 
 (o/defstyled security-header :div
   {:display :flex
@@ -99,31 +113,33 @@
                     :font-weight :bold
                     :color --oak-green-9}])
 
-(defn dash-page [{:keys [req identifiers debug? enable-2fa? authorized-apps totp-setup-url logout-url
+(defn dash-page [{:keys [req identifiers debug? totp-enabled? authorized-apps totp-setup-url logout-url
                          params password-error new-password-error confirm-error]}]
   [dash-layout
-   (let [{:keys [error success]} (:flash req)]
+   (let [{:keys [error success info]} (:flash req)]
      [:<>
+      (when info [layout/flash-info info])
       (when error [layout/flash-error error])
       (when success [layout/flash-success success])])
-   [dash-header identifiers]
+   [dash-header identifiers logout-url]
    [card-container
     [w/column-card
      [:h3 "Account Security"]
      [security-header
-      [:div.status-indicator (if enable-2fa?
+      [:div.status-indicator (if totp-enabled?
                                {:class "status-active"}
                                {:class "status-inactive"})]
-      [:span (str "Two-Factor Authentication: " (if enable-2fa?
+      [:span (str "Two-Factor Authentication: " (if totp-enabled?
                                                   "Active"
                                                   "Inactive"))]]
-     [:p "Enhance your account security with two-factor authentication."]
+     (when-not totp-enabled?
+       [:p "Enhance your account security with two-factor authentication."])
      [security-actions
       [f/form {:method "POST" :action "/dashboard/2fa"}
        [f/input-group {:type "hidden"
                        :name "enable-2fa"
-                       :value (str (not enable-2fa?))}]
-       (if enable-2fa?
+                       :value (str (not totp-enabled?))}]
+       (if totp-enabled?
          [f/submit-disable {:type "submit" :value "Disable 2FA"}]
          [f/submit-disable {:type "submit" :value "Enable 2FA"}])]]]
     [w/column-card
@@ -178,4 +194,7 @@
        [:h1 "Debug"]
        [:a {:href totp-setup-url} "Setup 2FA"]
        [:a {:href logout-url} "Sign out"]
+       [:button#download-backup-code.btn-primary
+        {:oak-download (charred/write-json-str ["aaaa" "bbb"])}
+        "Download backup codes (.txt)"]
        [:p (pr-str (:identity req))]])]])

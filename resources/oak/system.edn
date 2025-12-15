@@ -1,6 +1,6 @@
 {:system/http
- {:port   #config :http/port
-  :host   #config :http/host
+ {:port    #config :http/port
+  :host    #config :http/host
   :handler #makina/ref :system/handler}
 
  :system/handler {:router #makina/ref :system/router}
@@ -20,11 +20,11 @@
 
  :system/session-store
  {:makina/type #profile {:default :system/redis-store
-                         :test :system/memory-store}
-  :host       #config :redis/host
-  :port       #config :redis/port
-  :timeout-ms #config :redis/timeout-ms
-  :password   #config :redis/password}
+                         :test    :system/memory-store}
+  :host        #config :redis/host
+  :port        #config :redis/port
+  :timeout-ms  #config :redis/timeout-ms
+  :password    #config :redis/password}
 
  :system/security-providers
  {:prepend #config :java.security.provider/prepend
@@ -38,4 +38,6 @@
  :apis/oidc      {:makina/type :http/api}
  :apis/openapi   {:makina/type :http/api}
  :apis/totp      {:makina/type :http/api}
- :apis/proxy     {:makina/type :http/api}}
+ :apis/proxy     {:makina/type :http/api}
+ :apis/inspect   {:makina/type :http/api
+                  :enabled #profile {:default false :dev true}}}

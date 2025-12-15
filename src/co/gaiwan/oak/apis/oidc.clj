@@ -77,10 +77,11 @@
 
 (defn component [opts]
   {:routes
-   [["/.well-known/openid-configuration"
-     {:name :oauth/openid-configuration
-      :get #'GET-openid-configuration}]
+    [["/.well-known/openid-configuration"
+      {:name :oauth/openid-configuration
+       :auth-claim :public
+       :get #'GET-openid-configuration}]
     ["/oidc" {:openapi {:tags ["oauth" "openid"]}}
-     ["/userinfo" {:name :oidc/userinfo
-                   :get #'GET-userinfo
-                   :middleware [auth-mw/wrap-bearer-auth]}]]]})
+      ["/userinfo" {:name :oidc/userinfo
+                    :auth-claim :api
+                    :get #'GET-userinfo}]]]})

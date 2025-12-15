@@ -34,7 +34,7 @@
        {:req req
         :identifiers (get-primary-identifiers db identity-id)
         :debug? (some? (get-in req [:params :debug]))
-        :enable-2fa? (some? (cred/exist-totp? db {:identity-id identity-id}))
+        :totp-enabled? (some? (cred/exist-totp? db {:identity-id identity-id}))
         :authorized-apps (oauth-authorization/get-apps db {:identity-id identity-id})
         :totp-setup-url (routing/url-for req :totp/setup)
         :logout-url (routing/url-for req :auth/logout)}
@@ -76,11 +76,16 @@
       (dashboard-response req {:confirm-password-error "The new password and confirmation password do not match"})
 
       :else
-      (do
-        (cred/set-password! db {:identity-id identity-id :password new-pass})
+      (let [_ (cred/set-password! db {:identity-id identity-id :password new-pass})
+            pwd-cred (cred/find-one db {:identity-id identity-id :type cred/type-password})
+            pwd-auth (auth-mw/get-session-auth session cred/type-password)
+            updated-pwd-auth (assoc pwd-auth
+                                    :created-at (:credential/updated-at pwd-cred))
+            session (auth-mw/update-session-auth! session updated-pwd-auth)]
         {:status 303
          :flash {:success "Your password updated successfully"}
-         :headers {"Location" (routing/url-for req :home/dash)}}))))
+         :headers {"Location" (routing/url-for req :home/dash)}
+         :session session}))))
 
 (defn DELETE-auth-app
   {:summary "Revoke application authorization"
@@ -139,25 +144,21 @@
   {:routes
    ["" {:html/layout layout/layout}
     ["/" {:name :home/dash
+          :auth-claim :basic
           :middleware [wrap-params
                        wrap-keyword-params
                        ring-csrf/wrap-anti-forgery
-                       auth-mw/wrap-session-auth
-                       auth-mw/wrap-enforce-login
                        hiccup-mw/wrap-render]
           :get #'GET-dashboard}]
     ["/dashboard/password" {:name :home/dash-password
-                            :middleware [auth-mw/wrap-session-auth
-                                         auth-mw/wrap-enforce-login
-                                         hiccup-mw/wrap-render]
+                            :auth-claim :basic
+                            :middleware [hiccup-mw/wrap-render]
                             :post #'POST-password}]
     ["/dashboard/2fa" {:name :home/dash-2fa
-                       :middleware [auth-mw/wrap-session-auth
-                                    auth-mw/wrap-enforce-login
-                                    hiccup-mw/wrap-render]
+                       :auth-claim :strong
+                       :middleware [hiccup-mw/wrap-render]
                        :post #'POST-2fa}]
     ["/authorizations/app" {:name :authorizations/app
-                            :middleware [auth-mw/wrap-session-auth
-                                         auth-mw/wrap-enforce-login
-                                         hiccup-mw/wrap-render]
+                            :auth-claim :strong
+                            :middleware [hiccup-mw/wrap-render]
                             :delete #'DELETE-auth-app}]]})

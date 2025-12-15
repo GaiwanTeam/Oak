@@ -18,71 +18,55 @@
   (:import
    (java.time Instant)))
 
-(defn authenticated?
+(defn- redirect-auth [{:keys [session uri] :as req} route]
+  {:status 302
+   :headers {"Location" (routing/url-for req route)}
+   :session (assoc session :redirect-after-login uri)})
+
+(defn- authenticated?
   "make sure the user is logged in"
   [req]
   (some? (:identity req)))
-
-(defn wrap-enforce-login
-  "Middleware that redirects to login page if the user is not logged in"
-  [handler]
-  (fn [{:keys [session] :as req}]
-    (if (authenticated? req)
-      (handler req)
-      {:status 302
-       :headers {"Location" (routing/url-for req :auth/login)}
-       :session (assoc session :redirect-after-login (:uri req))})))
-
-(comment
-  (def h (wrap-enforce-login (constantly 1)))
-  (h {}))
 
 (defn get-session-auth [session type]
   (let [{:keys [authentications identity]} session]
     (some #(when (= type (:type %)) %)
           (get-in session [:authentications identity]))))
 
-(comment
-  (get-session-auth
-   {:session {:authentications
-              {"abc" #{{:type "password"
-                        :created-at (java.time.Instant/now)}}}
-              :identity "abc"}}
-   credential/type-password))
+(defn update-session-auth! [session auth]
+  (let [{:keys [_ identity]} session
+        {:keys [type _]} auth]
+    (with-meta
+      (-> session
+          (update-in [:authentications identity]
+                     #(set (remove (fn [a] (= (:type a) type)) %)))
+          (update-in [:authentications identity]
+                     (fnil conj #{})
+                     auth))
+      {:recreate true})))
 
-;; (defn wrap-authentications
-;;   "Upon a successful authentication challenge, like password or totp, we add an
-;;   entry in the session under `[:authentications identity-id]` (this is a set of
-;;   maps with :type and :created-at).
+(defn before-or-equal
+  "Return true if t1 <= t2"
+  [t1 t2]
+  (or (.isBefore ^java.time.Instant t1 t2)
+      (.equals ^java.time.Instant t1 t2)))
 
-;;   This middleware compares the time the authentication happened to the last time
-;;   the credential changed. If the credential changed after the auth happened, we
-;;   reject the auth, and remove it from the session, otherwise we add it to the
-;;   request under `:authn`, for easier consumption downstream.
+(defn wrap-open-auth
+  [h]
+  (fn [{:keys [session db] :as req}]
+    (let [identity-id (:identity session)
+          identity    (and identity-id (identity/find-one db {:id identity-id}))
+          pwd-auth    (get-session-auth session credential/type-password)
+          totp-auth   (get-session-auth session credential/type-totp)
+          pwd-cred    (when identity (credential/find-one db {:identity-id identity-id :type credential/type-password}))
 
-;;   {:request-method :get
-;;    :authn {\"password\" {:created-at ...}}}"
-;;   [{:keys [session db] :as req}]
-;;   (let [identity-id (:identity session)
-;;         identity    (and identity-id (identity/find-one db {:id identity-id}))]
-;;     ;; check if authentication is (still) valid
-;;     ;; - if valid: add to request
-;;     ;; - if invalid: remove from session
-;;     (reduce
-;;      (fn [acc {:keys [type created-at] :as authn}]
-;;        (let [cred   (when identity (credential/find-one db {:identity-id identity-id :type type}))
-;;              valid? (and cred (< (:credential/updated-at cred) created-at))]
-;;          (if valid?
-;;            (assoc-in req [:authn type] authn)
-;;            (update-in req [:session :authentications identity-id] #(into #{} (remove #{authn}) %)))))
-;;      req
-;;      (get-in session [:authentications identity-id]))))
+          pwd-valid?  (and pwd-auth pwd-cred (before-or-equal (:credential/updated-at pwd-cred) (:created-at pwd-auth)))
+          ]
+      (if pwd-valid?
+        (h (assoc req :identity identity))
+        (h req)))))
 
-(defn wrap-session-auth
-  "If an `:identity` key is set in the session, this will look up the user with
-  that uuid, and set it (the identity record) as the `:identity` key on the
-  request, as well as propagating the `:auth-time` key from the request to the
-  session."
+(defn wrap-basic-auth
   [h]
   (fn [{:keys [session db] :as req}]
     (let [identity-id (:identity session)
@@ -91,16 +75,41 @@
           totp-auth   (get-session-auth session credential/type-totp)
           pwd-cred    (when identity (credential/find-one db {:identity-id identity-id :type credential/type-password}))
           totp-cred   (when identity (credential/find-one db {:identity-id identity-id :type credential/type-totp}))
-          pwd-valid?  (and pwd-auth pwd-cred (.isBefore ^java.time.Instant (:credential/updated-at pwd-cred) (:created-at pwd-auth)))
-          totp-valid? (and totp-auth totp-cred (.isBefore ^java.time.Instant (:credential/updated-at totp-cred) (:created-at totp-auth)))]
-      (h
-       ;; Logged in with password, and either no 2FA configured, or we have a
-       ;; valid 2FA login
-       (if (and pwd-valid? (or (not totp-cred) totp-valid?))
-         (assoc req :identity identity)
-         req)))))
+          pwd-valid?  (and pwd-auth pwd-cred (before-or-equal (:credential/updated-at pwd-cred) (:created-at pwd-auth)))
+          totp-valid? (and totp-auth totp-cred (before-or-equal (:credential/updated-at totp-cred) (:created-at totp-auth)))]
 
-(defn wrap-bearer-auth
+      (if pwd-valid?
+        (if-not totp-cred
+          (h (assoc req :identity identity))
+          (if-not totp-valid?
+            (redirect-auth req :totp/check)
+            (h (assoc req :identity identity))))
+        (redirect-auth req :auth/login)))))
+
+(defn wrap-strong-auth
+  [h]
+  (fn [{:keys [session db] :as req}]
+    (let [identity-id (:identity session)
+          identity    (and identity-id (identity/find-one db {:id identity-id}))
+          pwd-auth    (get-session-auth session credential/type-password)
+          totp-auth   (get-session-auth session credential/type-totp)
+          pwd-cred    (when identity (credential/find-one db {:identity-id identity-id :type credential/type-password}))
+          totp-cred   (when identity (credential/find-one db {:identity-id identity-id :type credential/type-totp}))
+          pwd-valid?  (and pwd-auth pwd-cred (before-or-equal (:credential/updated-at pwd-cred) (:created-at pwd-auth)))
+          totp-valid? (and totp-auth totp-cred (before-or-equal (:credential/updated-at totp-cred) (:created-at totp-auth)))
+          recent?     (before-or-equal (.minus (java.time.Instant/now) (java.time.Duration/ofMinutes 5))
+                                       (:created-at (or totp-auth pwd-auth)))]
+      (if pwd-valid?
+        (if-not totp-cred
+          (if-not recent?
+            (redirect-auth req :auth/login)
+            (h (assoc req :identity identity)))
+          (if-not (and totp-valid? recent?)
+            (redirect-auth req :totp/check)
+            (h (assoc req :identity identity))))
+        (redirect-auth req :auth/login)))))
+
+(defn wrap-api-auth
   "Accept Authorization: Bearer style authentication.
 
   Will verify that the token parses according to one of our JWK, and is not expired.  "
@@ -125,5 +134,45 @@
           (if (= :jwt-verification/failed (:type (ex-data e)))
             {:status 401
              :body ""}))))))
+
+(defn- route-data [{:keys [request-method] :as req}]
+  (let [data (-> req :reitit.core/match :data)]
+    (merge (dissoc data :get :put :post :delete)
+           (get data request-method))))
+
+(defn wrap-auth-claims
+  "Consolidated authorization handler with step-up
+
+  Requires an `:auth-claim` key in the route metadata
+
+  - `:public` - route is publicly accessible, identity is not resolved
+  - `:open`   - route is publicly accessible, identity is resolved
+  - `:basic`  - default level of access for web-based routes, require 2FA if
+                configured, but allow password-auth if not
+  - `:strong` - require a recent (< 5 min) second factor challenge, if not,
+                performs a step-up
+  - `:api`    - authenticate via Authorization: Bearer, session is ignored
+  "
+  [handler]
+  (fn [req]
+    (let [{:keys [auth-claim]} (route-data req)]
+      (case auth-claim
+        :public
+        (handler req)
+
+        :open
+        ((wrap-open-auth handler) req)
+
+        :basic
+        ((wrap-basic-auth handler) req)
+
+        :strong
+        ((wrap-strong-auth handler) req)
+
+        :api
+        ((wrap-api-auth handler) req)
+
+        (throw (ex-info (str "Illegal `:auth-claim` value: " auth-claim)
+                        (:reitit.core/match req)))))))
 
 ;; TODO: use RFC7807 style error responses?

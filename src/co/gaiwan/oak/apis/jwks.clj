@@ -22,6 +22,7 @@
 (defn component [opts]
   {:routes
    ["/.well-known/jwks.json" {:name :jwks/jwks
+                              :auth-claim :public
                               :get #'GET-jwks}]})
 
 (comment
