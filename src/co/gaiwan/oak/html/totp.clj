@@ -28,13 +28,14 @@
     [:div.alert-warning
      "Please save these backup codes into save place. You can use these codes to login when you lost your authenticator device."]
     ;; show the backup codes
-    [:ul.backup-codes
+    [:pre
      (for [code codes]
-       [:li code])]
+       (str code "\n"))]
     ;; Button to download the backup codes
     [:button#download-backup-code.btn-primary
-     {:oak-download (charred/write-json-str codes)}
-     "Download backup codes (.txt)"]
+     {:oak-download (charred/write-json-str codes)
+      :oak-download-filename "2fa-backup-codes.txt"}
+     "Download"]
     [:hr]
     [:p [:a.subtle {:href (routing/url-for req :auth/login)} "Back to login"]]]])
 

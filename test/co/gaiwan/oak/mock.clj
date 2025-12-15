@@ -24,17 +24,17 @@
 (def body mock/body)
 (def json-body mock/json-body)
 
-(alter-var-root #'ring-store/write-session
-                (fn [f]
-                  (fn [store key data]
-                    (println "STORE" key data store)
-                    (f store key data))))
+;; (alter-var-root #'ring-store/write-session
+;;                 (fn [f]
+;;                   (fn [store key data]
+;;                     (println "STORE" key data store)
+;;                     (f store key data))))
 
-(alter-var-root #'ring-store/read-session
-                (fn [f]
-                  (fn [store key]
-                    (println "READ" key store)
-                    (f store key))))
+;; (alter-var-root #'ring-store/read-session
+;;                 (fn [f]
+;;                   (fn [store key]
+;;                     (println "READ" key store)
+;;                     (f store key))))
 
 (defn swap-session! [sess-id f & args]
   (let [store (harness/session-store)]

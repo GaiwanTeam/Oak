@@ -32,7 +32,8 @@
      "If you didn’t request a password reset, you can safely ignore this email."]]])
 
 (comment
-  {:name "Arne"
-   :org-name (co.gaiwan.oak.app.config/get :org/name)
-   :reset-link "http://example.com"
-   :expiry-hours 4})
+  (reset-html
+   {:name "Arne"
+    :org-name (co.gaiwan.oak.app.config/get :org/name)
+    :reset-link "http://example.com"
+    :expiry-hours 4}))

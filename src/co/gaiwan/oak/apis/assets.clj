@@ -35,7 +35,7 @@
 
 (defn component [_]
   {:routes
-   ["" {}
+   ["" {:auth-claim :public}
     ["/styles.css" {:get #'GET-styles-css}]
     ["/favicon.ico" {:get #'GET-favicon-ico}]
     ["/scripts/oak.js" {:get #'GET-oak-js}]]})

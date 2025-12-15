@@ -28,6 +28,7 @@
    :gap "1.5rem"})
 
 (o/defstyled logout :div
+  :mr-3
   [:a {:display :flex
        :align-items :center
        :text-align :center}]
@@ -112,11 +113,12 @@
                     :font-weight :bold
                     :color --oak-green-9}])
 
-(defn dash-page [{:keys [req identifiers debug? enable-2fa? authorized-apps totp-setup-url logout-url
+(defn dash-page [{:keys [req identifiers debug? totp-enabled? authorized-apps totp-setup-url logout-url
                          params password-error new-password-error confirm-error]}]
   [dash-layout
-   (let [{:keys [error success]} (:flash req)]
+   (let [{:keys [error success info]} (:flash req)]
      [:<>
+      (when info [layout/flash-info info])
       (when error [layout/flash-error error])
       (when success [layout/flash-success success])])
    [dash-header identifiers logout-url]
@@ -124,19 +126,20 @@
     [w/column-card
      [:h3 "Account Security"]
      [security-header
-      [:div.status-indicator (if enable-2fa?
+      [:div.status-indicator (if totp-enabled?
                                {:class "status-active"}
                                {:class "status-inactive"})]
-      [:span (str "Two-Factor Authentication: " (if enable-2fa?
+      [:span (str "Two-Factor Authentication: " (if totp-enabled?
                                                   "Active"
                                                   "Inactive"))]]
-     [:p "Enhance your account security with two-factor authentication."]
+     (when-not totp-enabled?
+       [:p "Enhance your account security with two-factor authentication."])
      [security-actions
       [f/form {:method "POST" :action "/dashboard/2fa"}
        [f/input-group {:type "hidden"
                        :name "enable-2fa"
-                       :value (str (not enable-2fa?))}]
-       (if enable-2fa?
+                       :value (str (not totp-enabled?))}]
+       (if totp-enabled?
          [f/submit-disable {:type "submit" :value "Disable 2FA"}]
          [f/submit-disable {:type "submit" :value "Enable 2FA"}])]]]
     [w/column-card

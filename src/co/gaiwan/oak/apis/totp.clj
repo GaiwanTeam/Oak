@@ -194,23 +194,22 @@
    ["" {}
     ["/2fa" {:html/layout layout/layout}
      ["/setup" {:name :totp/setup
-                :middleware  [auth-mw/wrap-session-auth
-                              auth-mw/wrap-enforce-login
-                              ring-csrf/wrap-anti-forgery
+                :auth-claim :strong
+                :middleware  [ring-csrf/wrap-anti-forgery
                               hiccup-mw/wrap-render]
                 :get  #'GET-setup
                 :post #'POST-setup}]]
     ["/2fa/check" {:html/layout layout/layout
-                   :middleware  [auth-mw/wrap-2fa-in-progress
-                                 ring-csrf/wrap-anti-forgery
+                   :auth-claim  :open
+                   :middleware  [ring-csrf/wrap-anti-forgery
                                  hiccup-mw/wrap-render]
                    :name        :totp/check
                    :get         #'GET-check
                    :post        #'POST-check}]
     ["/backup-code" {:html/layout layout/layout
-                     :middleware  [auth-mw/wrap-2fa-in-progress
-                                   ring-csrf/wrap-anti-forgery
+                     :middleware  [ring-csrf/wrap-anti-forgery
                                    hiccup-mw/wrap-render]
                      :name        :backup-code/check
+                     :auth-claim  :open
                      :get         #'GET-backup-code
                      :post        #'POST-backup-code}]]})

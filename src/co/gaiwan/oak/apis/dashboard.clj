@@ -34,7 +34,7 @@
        {:req req
         :identifiers (get-primary-identifiers db identity-id)
         :debug? (some? (get-in req [:params :debug]))
-        :enable-2fa? (some? (cred/exist-totp? db {:identity-id identity-id}))
+        :totp-enabled? (some? (cred/exist-totp? db {:identity-id identity-id}))
         :authorized-apps (oauth-authorization/get-apps db {:identity-id identity-id})
         :totp-setup-url (routing/url-for req :totp/setup)
         :logout-url (routing/url-for req :auth/logout)}
@@ -144,25 +144,21 @@
   {:routes
    ["" {:html/layout layout/layout}
     ["/" {:name :home/dash
+          :auth-claim :basic
           :middleware [wrap-params
                        wrap-keyword-params
                        ring-csrf/wrap-anti-forgery
-                       auth-mw/wrap-session-auth
-                       auth-mw/wrap-enforce-login
                        hiccup-mw/wrap-render]
           :get #'GET-dashboard}]
     ["/dashboard/password" {:name :home/dash-password
-                            :middleware [auth-mw/wrap-session-auth
-                                         auth-mw/wrap-enforce-login
-                                         hiccup-mw/wrap-render]
+                            :auth-claim :basic
+                            :middleware [hiccup-mw/wrap-render]
                             :post #'POST-password}]
     ["/dashboard/2fa" {:name :home/dash-2fa
-                       :middleware [auth-mw/wrap-session-auth
-                                    auth-mw/wrap-enforce-login
-                                    hiccup-mw/wrap-render]
+                       :auth-claim :strong
+                       :middleware [hiccup-mw/wrap-render]
                        :post #'POST-2fa}]
     ["/authorizations/app" {:name :authorizations/app
-                            :middleware [auth-mw/wrap-session-auth
-                                         auth-mw/wrap-enforce-login
-                                         hiccup-mw/wrap-render]
+                            :auth-claim :strong
+                            :middleware [hiccup-mw/wrap-render]
                             :delete #'DELETE-auth-app}]]})

@@ -5,7 +5,7 @@
    [co.gaiwan.oak.lib.auth-middleware :as auth-mw]
    [co.gaiwan.oak.domain.oauth-client :as oauth-client]))
 
-(defn proxy-image-handler
+(defn GET-proxy-image
   "Verify this feature:
    using path parameter
    http get to URI: http://localhost:4800/proxy/image/${oauth-client-id}"
@@ -23,6 +23,5 @@
   {:routes
    ["" {}
     ["/proxy/image/:client-id" {:name :proxy/image
-                                :middleware [auth-mw/wrap-session-auth
-                                             auth-mw/wrap-enforce-login]
-                                :get #'proxy-image-handler}]]})
+                                :auth-claim :public
+                                :get #'GET-proxy-image}]]})

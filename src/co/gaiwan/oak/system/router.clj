@@ -1,12 +1,11 @@
 (ns co.gaiwan.oak.system.router
   "HTTP router and middleware setup"
   (:require
-   [clojure.java.io :as io]
    [clojure.string :as str]
    [co.gaiwan.oak.app.config :as config]
+   [co.gaiwan.oak.lib.auth-middleware :as auth-mw]
    [co.gaiwan.oak.lib.ring-csp :as ring-csp]
    [co.gaiwan.oak.util.log :as log]
-   [lambdaisland.ornament :as o]
    [muuntaja.core :as muuntaja]
    [muuntaja.format.charred :as muuntaja-charred]
    [reitit.coercion.malli]
@@ -14,7 +13,6 @@
    [reitit.ring :as ring]
    [reitit.ring.coercion :as ring-coercion]
    [reitit.ring.middleware.muuntaja :as reitit-muuntaja]
-   [reitit.ring.middleware.parameters :as reitit-params]
    [ring.middleware.flash :as ring-flash]
    [ring.middleware.session :as ring-session]
    [ring.util.response :as res]))
@@ -119,6 +117,7 @@
                                :same-site :strict}
                         (config/get :http-session/secure-cookie)
                         (assoc :secure true))}]
+                    auth-mw/wrap-auth-claims
                     ring-flash/wrap-flash
                     wrap-log-request
                     ring-csp/wrap-content-security-policy

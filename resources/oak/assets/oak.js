@@ -79,8 +79,7 @@ function handleDownload(el) {
     const codes = JSON.parse(dataStr);
     // Alignment: a row for a code
     const codesString = codes.join('\n');
-    const filename = "2fa-backup-codes.txt";
-
+    const filename = $attr(el, "oak-download-filename")
     const blob = new Blob([codesString], { type: 'text/plain' });
 
     const a = document.createElement('a');
@@ -90,8 +89,6 @@ function handleDownload(el) {
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-
-    alert('Backup codes are downloaded! Please save this file properly.');
   })
 }
 //////////////////////////////////////////////////////////////////////
@@ -111,4 +108,3 @@ function onDOMReady(_event) {
 }
 
 document.addEventListener('DOMContentLoaded', onDOMReady);
-

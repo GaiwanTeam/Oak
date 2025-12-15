@@ -34,8 +34,6 @@
    [:<>
     [w/leaf-bg]
     [w/full-center-card
-     (let [{:keys [info]} (:flash req)]
-       (when info [layout/flash-info info]))
      [:h1 "Login"]
      [f/form {:method "POST"}
       [f/input-group

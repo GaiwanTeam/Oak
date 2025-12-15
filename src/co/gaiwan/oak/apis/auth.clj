@@ -159,23 +159,26 @@
    ["/auth" {}
     ["/login"
      {:name :auth/login
+      :auth-claim :open
       :html/layout layout/layout
       :middleware [ring-csrf/wrap-anti-forgery
-                   auth-mw/wrap-session-auth
                    hiccup-mw/wrap-render]
       :get #'GET-login
       :post #'POST-login}]
     ["/logout"
      {:name :auth/logout
+      :auth-claim :open
       :get #'GET-logout}]
     ["/reset-password" {:html/layout layout/layout
                         :middleware [ring-csrf/wrap-anti-forgery
                                      hiccup-mw/wrap-render]}
      [""
       {:name :auth/password-reset
+       :auth-claim :strong
        :get #'GET-request-password-reset
        :post #'POST-request-password-reset}]
      ["/:nonce"
       {:name :auth/submit-password-reset
+       :auth-claim :open
        :get #'GET-submit-password-reset
        :post #'POST-submit-password-reset}]]]})
