@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>co.gaiwan</groupId>
   <artifactId>oak</artifactId>
-  <version>0.2.216-rc</version>
+  <version>0.3.219-rc</version>
   <name>oak</name>
   <description>Oak IAM/IdP</description>
   <url>https://github.com/gaiwan/Oak</url>
@@ -25,7 +25,7 @@
     <url>https://github.com/gaiwan/Oak</url>
     <connection>scm:git:git://github.com/gaiwan/Oak.git</connection>
     <developerConnection>scm:git:ssh://git@github.com/gaiwan/Oak.git</developerConnection>
-    <tag>7438019202295e0cabdd1aa468cbe6ca2a2449d1</tag>
+    <tag>47cb778279977a74bca7917874b4cb375a1a7253</tag>
   </scm>
   <dependencies>
     <dependency>
@@ -224,7 +224,7 @@
         <configuration>
           <archive>
             <manifestEntries>
-              <git-revision>7438019202295e0cabdd1aa468cbe6ca2a2449d1</git-revision>
+              <git-revision>47cb778279977a74bca7917874b4cb375a1a7253</git-revision>
             </manifestEntries>
           </archive>
         </configuration>
