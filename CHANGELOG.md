@@ -1,4 +1,4 @@
-# Unreleased
+# 0.5.227-rc (2025-12-16 / fc2b1f1)
 
 ## Added
 
