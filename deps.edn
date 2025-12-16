@@ -58,10 +58,10 @@
 
   :test
   {:extra-paths ["test"]
-   :extra-deps  {org.clojure/tools.gitlibs  {:mvn/version "2.6.206"}
-                 lambdaisland/kaocha        {:mvn/version "1.91.1392"}
-                 ring/ring-mock             {:mvn/version "0.6.2"}
-                 nubank/matcher-combinators {:mvn/version "3.9.2"}}}
+   :extra-deps  {org.clojure/tools.gitlibs                       {:mvn/version "2.6.206"}
+                 lambdaisland/kaocha                             {:mvn/version "1.91.1392"}
+                 ring/ring-mock                                  {:mvn/version "0.6.2"}
+                 nubank/matcher-combinators                      {:mvn/version "3.9.2"}}}
 
   :bouncycastle
   {:extra-deps {org.bouncycastle/bcprov-jdk18on {:mvn/version "1.83"}}}

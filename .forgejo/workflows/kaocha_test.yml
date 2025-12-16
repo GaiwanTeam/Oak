@@ -16,28 +16,18 @@ jobs:
       - name: Checkout the code
         uses: actions/checkout@v4
 
-      - name: install podman
+      - name: Configure and install postgres
         run: |
-          apt-get update && apt-get install podman -y && apt-get install podman-compose -y
-
-      - name: Start Podman services
-        run: podman-compose -f docker-compose.yml -f docker-compose.test.yml up -d --no-recreate
-
-      - name: Wait for services
-        run: |
-          for i in {1..30}; do
-            if podman compose ps 2>/dev/null | grep -q "running"; then
-              echo "Services are ready"
-              break
-            fi
-            sleep 1
-          done
+         apt update
+         apt install -y postgresql
+         service postgresql start
+         echo "ALTER USER postgres WITH PASSWORD 'oak'; CREATE USER oak WITH LOGIN PASSWORD 'oak'; CREATE DATABASE oak_test OWNER oak;" | su - postgres -c "psql -U postgres -d postgres"
 
       - name: Prepare Java
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '17'
+          java-version: '25'
 
       - name: Install Clojure Tools Manually
         run: |
@@ -52,15 +42,7 @@ jobs:
           echo "Clojure CLI Tools installation completed."
 
       - name: run Kaocha
-        run: |
-          chmod +x ./bin/kaocha
-          echo "--- run kaocha test ---"
-          ./bin/kaocha
+        run: ./bin/kaocha
 
       - name: finish it
         run: echo "Kaocha workflow execution finished."
-
-      - name: Stop services
-        if: always()
-        run: |
-          podman-compose down
