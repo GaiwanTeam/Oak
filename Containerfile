@@ -7,7 +7,7 @@ COPY src ./src/
 COPY resources ./resources/
 COPY bin ./bin/
 
-RUN ./bin/dev uberjar
+RUN ./bin/build uberjar
 
 #-----------------------------------------------#
 
