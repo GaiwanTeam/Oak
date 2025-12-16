@@ -20,10 +20,30 @@ jobs:
 
       - name: Build and push
         run: |
-          IMAGE_TAG="git.gaiwan.co/gaiwan/oak:latest"
+          IMAGE_BASE="git.gaiwan.co/gaiwan/oak"
+          
+          # Determine which tags to use based on the Git Reference. We check if
+          # the ref starts with "refs/tags/v" followed by a digit.
+          if [[ "$GITHUB_REF" =~ ^refs/tags/v[0-9].* ]]; then
+            echo "Event: Version Tag Detected ($GITHUB_REF_NAME)"
+            
+            # Use the tag name (e.g., v1.0.1) and "latest"
+            TAG_PRIMARY="$IMAGE_BASE:$GITHUB_REF_NAME"
+            TAG_SECONDARY="$IMAGE_BASE:latest"
+            
+          else
+            echo "Event: Standard Commit"
+            
+            # Use the short SHA and "daily"
+            SHORT_SHA=$(echo $GITHUB_SHA | cut -c1-7)
+            TAG_PRIMARY="$IMAGE_BASE:$SHORT_SHA"
+            TAG_SECONDARY="$IMAGE_BASE:daily"
+          fi
 
-          echo "Building $IMAGE_TAG"
-          podman build -t $IMAGE_TAG .
+          echo "Primary Tag: $TAG_PRIMARY"
+          echo "Secondary Tag: $TAG_SECONDARY"
 
-          echo "Pushing $IMAGE_TAG"
-          podman push $IMAGE_TAG
+          podman build -t $TAG_PRIMARY -t $TAG_SECONDARY .
+          podman push $TAG_PRIMARY
+          podman push $TAG_SECONDARY
+
