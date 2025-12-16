@@ -5,9 +5,27 @@
    [clojure.java.io :as io]
    [clojure.java.shell :as sh]
    [lambdaisland.cli :as cli]
-   [clojure.java.shell :as sh]))
+   [lioss.git :as git]
+   [lioss.pom :as pom]
+   [lioss.version :as version]
+   [lioss.util :as util]
+   [lioss.release :as release]
+   ))
 
-(def init {})
+(def init
+  {:license        :apache
+   :inception-year 2025
+   :description    "Oak IAM/IdP"
+   :group-id       "co.gaiwan"
+   :name           "oak"
+   :org-name       "Gaiwan"
+   :org-url        "https://gaiwan.co"
+
+   :sha            (git/current-sha)
+   :gh-project     (str (git/org-name) "/" (git/project-name))
+   :date           (str (java.time.LocalDate/now))
+   :latest-version (or (git/last-released-version) "0.0.0")
+   :paths          ["src"]})
 
 (defn initialize-local-files
   "Create local files which are not checked in"
@@ -16,6 +34,8 @@
 
 (def commands
   ["init" #'initialize-local-files
+   "pom" #'pom/spit-poms
+   "release" #'release/do-release
    ])
 
 (def flags
@@ -26,7 +46,11 @@
  {:name "bin/dev"
   :init init
   :flags flags
-  :commands commands})
+  :commands commands
+  :middleware [(fn [cmd]
+                 (fn [opts]
+                   (cmd
+                    (version/add-version-info (merge (util/read-deps) opts)))))]})
 
 ;; Local Variables:
 ;; mode:clojure

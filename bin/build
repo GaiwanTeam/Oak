@@ -8,8 +8,7 @@
    [lambdaisland.cli :as cli]
    [lambdaisland.ornament :as o]
    [co.gaiwan.oak.app.config :as config]
-   [org.corfield.log4j2-conflict-handler :refer [log4j2-conflict-handler]]
-   [clojure.java.shell :as sh]))
+   [org.corfield.log4j2-conflict-handler :refer [log4j2-conflict-handler]]))
 
 (def init {})
 
