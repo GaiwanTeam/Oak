@@ -1,5 +1,0 @@
-services:
-  oak-postgres:
-    volumes:
-      - ./data/pg-data:/var/lib/postgresql/data
-      - ./infra/test/init_postgres.sql:/docker-entrypoint-initdb.d/init.sql
