@@ -2,6 +2,7 @@ name: Build And Publish OCI Container
 
 on:
   push:
+    branches: [ "main" ]
 
 jobs:
   build:
@@ -25,19 +26,27 @@ jobs:
           # Determine which tags to use based on the Git Reference. We check if
           # the ref starts with "refs/tags/v" followed by a digit.
           if [[ "$GITHUB_REF" =~ ^refs/tags/v[0-9].* ]]; then
-            echo "Event: Version Tag Detected ($GITHUB_REF_NAME)"
-            
-            # Use the tag name (e.g., v1.0.1) and "latest"
+            echo "Version Tag Detected ($GITHUB_REF_NAME)"
             TAG_PRIMARY="$IMAGE_BASE:$GITHUB_REF_NAME"
-            TAG_SECONDARY="$IMAGE_BASE:latest"
+            
+            # Check if the tag name contains a hyphen
+            if [[ "$GITHUB_REF_NAME" == *-* ]]; then
+               # Extract everything after the first hyphen
+               # e.g., v0.1.2-beta -> beta
+               # e.g., v0.1.2-rc -> rc
+               SUFFIX=${GITHUB_REF_NAME#*-}
+               TAG_SECONDARY="$IMAGE_BASE:$SUFFIX"
+            else
+               # No hyphen found (e.g., v0.1.2), so it is a stable release
+               TAG_SECONDARY="$IMAGE_BASE:latest"
+            fi           
             
           else
-            echo "Event: Standard Commit"
-            
-            # Use the short SHA and "daily"
+            echo "Detected Non-release Commit"
+            # Use the short SHA and "snapshot"
             SHORT_SHA=$(echo $GITHUB_SHA | cut -c1-7)
             TAG_PRIMARY="$IMAGE_BASE:$SHORT_SHA"
-            TAG_SECONDARY="$IMAGE_BASE:daily"
+            TAG_SECONDARY="$IMAGE_BASE:snapshot"
           fi
 
           echo "Primary Tag: $TAG_PRIMARY"
