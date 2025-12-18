@@ -5,13 +5,13 @@
    [reitit.ring :as reitit-ring]
    [ring.adapter.jetty :as jetty]))
 
-(defn start [config]
-  (log/info :http/starting {:port (:port config)})
+(defn start [{:keys [port host handler]}]
+  (log/info :http/starting {:port port})
   {:server
    (jetty/run-jetty
-    (:handler config)
-    {:host  (:host config)
-     :port  (:port config)
+    handler
+    {:host  host
+     :port  (if (string? port) (parse-long port) port)
      :join? false})})
 
 (def component
