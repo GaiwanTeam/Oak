@@ -455,15 +455,15 @@ EOF
     echo "Generating docker-compose.yml in current directory..."
 
     COMPOSE_YML=$(cat <<EOF
- version: '3.8'
- services:
-   oak-postgres:
-     image: $POSTGRES_IMG
-     restart: always
-     environment:
-       POSTGRES_PASSWORD: $POSTGRES_PASSWORD
-       POSTGRES_USER: $POSTGRES_USER
-       POSTGRES_DB: $POSTGRES_DB_NAME
+version: '3.8'
+services:
+  oak-postgres:
+    image: $POSTGRES_IMG
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: $POSTGRES_PASSWORD
+      POSTGRES_USER: $POSTGRES_USER
+      POSTGRES_DB: $POSTGRES_DB_NAME
     volumes:
       - oak_data:/var/lib/postgresql/data
 
