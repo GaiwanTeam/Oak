@@ -1,7 +1,4 @@
-{:http/origin     "http://oak.example.com"
- :db/url          "jdbc:postgresql://localhost:5432/oak_test"
- :db/username     "oak"
- :db/password     "oak"
- :db/admin-config {:url      "jdbc:postgresql://localhost:5432/postgres"
-                   :username "postgres"
-                   :password "oak"}}
+{:http/origin "http://oak.example.com"
+ :db/url      "jdbc:postgresql://localhost:5432/oak_test"
+ :db/username "postgres" ;; run tests with postgres so we can CREATE/DROP the DB
+ :db/password "oak"}

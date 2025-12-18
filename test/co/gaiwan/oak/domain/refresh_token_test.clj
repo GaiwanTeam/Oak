@@ -8,7 +8,7 @@
 (use-fixtures :once (harness/with-system [:system/database]))
 
 (use-fixtures :each
-  (harness/with-auto-rollback)
+  (harness/with-auto-truncate)
   (harness/with-ensure-jwk))
 
 (deftest refresh-token-crud-test

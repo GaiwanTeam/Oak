@@ -21,7 +21,7 @@ jobs:
          apt update
          apt install -y postgresql
          service postgresql start
-         echo "ALTER USER postgres WITH PASSWORD 'oak'; CREATE USER oak WITH LOGIN PASSWORD 'oak'; CREATE DATABASE oak_test OWNER oak;" | su - postgres -c "psql -U postgres -d postgres"
+         echo "ALTER USER postgres WITH PASSWORD 'oak';" | su - postgres -c "psql -U postgres -d postgres"
 
       - name: Prepare Java
         uses: actions/setup-java@v4

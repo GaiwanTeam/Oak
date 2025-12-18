@@ -46,10 +46,7 @@
   clojure.java-time/clojure.java-time {:mvn/version "1.4.3"}
 
   ;; Email
-  toyokumo/tarayo {:mvn/version "0.2.8"}
-
-  ;; Image manipulation
-  image-resizer/image-resizer {:mvn/version "0.1.10"}}
+  toyokumo/tarayo {:mvn/version "0.2.8"}}
 
  :aliases
  {:dev

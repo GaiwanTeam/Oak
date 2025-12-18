@@ -12,3 +12,5 @@ node_modules/
 *.local.*
 data
 logs/*.log
+AGENTS.md
+repl_sessions/mcp_repl_log.clj

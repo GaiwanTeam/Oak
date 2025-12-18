@@ -14,9 +14,26 @@
  :system/middleware {}
 
  :system/database
- {:config {:url      #config :db/url
-           :username #config :db/username
-           :password #config :db/password}}
+ {:url #config :db/url
+  :username #config :db/username
+  :password #config :db/password
+
+  :catalog #config :db/catalog
+  :connection-init-sql #config :db/connection-init-sql
+  :connection-test-query #config :db/connection-test-query
+  :connection-timeout #config :db/connection-timeout
+  :idle-timeout #config :db/idle-timeout
+  :initialization-fail-timeout #config :db/initialization-fail-timeout
+  :keepalive-time #config :db/keepalive-time
+  :leak-detection-threshold #config :db/leak-detection-threshold
+  :max-lifetime #config :db/max-lifetime
+  :maximum-pool-size #config :db/maximum-pool-size
+  :minimum-idle #config :db/minimum-idle
+  :pool-name #config :db/pool-name
+  :read-only #config :db/read-only
+  :register-mbeans #config :db/register-mbeans
+  :schema #config :db/schema
+  :validation-timeout #config :db/validation-timeout}
 
  :system/session-store
  {:makina/type #profile {:default :system/redis-store

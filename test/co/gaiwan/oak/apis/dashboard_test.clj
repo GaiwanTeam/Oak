@@ -14,7 +14,7 @@
   (harness/with-system [:system/handler]))
 
 (use-fixtures :each
-  (harness/with-auto-rollback)
+  (harness/with-auto-truncate)
   (harness/with-ensure-jwk))
 
 (deftest password-reset-happy-path

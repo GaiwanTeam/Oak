@@ -1,6 +1,7 @@
 {:dev/route-var-handlers true
  :dev/allow-debug?       true
- :db/url "jdbc:postgresql://localhost:15432/oak"
+
+ :db/url "jdbc:postgresql://localhost:5432/oak"
  :db/username "oak"
  :db/password "oak"
 
