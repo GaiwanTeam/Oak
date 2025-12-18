@@ -466,6 +466,8 @@ services:
       POSTGRES_DB: $POSTGRES_DB_NAME
     volumes:
       - oak_data:/var/lib/postgresql/data
+    ports:
+      - "4800:4800"
 
   oak-redis:
     image: $REDIS_IMG
