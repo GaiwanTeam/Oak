@@ -157,14 +157,71 @@ write_file() {
     local filepath="$2"
     local sudo_required="$3" # "true" or "false"
 
-    echo -e "   ✏️ \033[1;36mGenerating $filepath\033[0m"
+    # Check if file exists and compare contents
     if [ "$sudo_required" = "true" ]; then
-        if ! echo "$content" | sudo tee "$filepath" > /dev/null; then
-            echo "Error: Failed to write file using sudo. Check permissions."
-            exit 1
+        if sudo [ -f "$filepath" ]; then
+            local existing_content
+            existing_content=$(sudo cat "$filepath")
+            if [ "$content" = "$existing_content" ]; then
+                return 0
+            fi
+
+            echo -e "   ⚠️ \033[1;33mFile already exists: $filepath\033[0m"
+            echo ""
+            diff -u --color=auto <(echo "$existing_content") <(echo "$content")
+            echo ""
+            read -r -p $'   \033[1;36mFile already exists, overwrite? [y/n/q]: \033[0m' overwrite_choice
+            case $overwrite_choice in
+                [Yy])
+                    if ! echo "$content" | sudo tee "$filepath" > /dev/null; then
+                        echo "Error: Failed to write file using sudo. Check permissions."
+                        exit 1
+                    fi
+                    ;;
+                q)
+                    echo "Aborting."
+                    ;;
+                *)
+                    echo "   ⏭️  Skipping existing file: $filepath"
+                    return 0
+                    ;;
+            esac
+        else
+            echo -e "   ✏️ \033[1;36m$filepath\033[0m"
+            if ! echo "$content" | sudo tee "$filepath" > /dev/null; then
+                echo "Error: Failed to write file using sudo. Check permissions."
+                exit 1
+            fi
         fi
     else
-        echo "$content" > "$filepath"
+        if [ -f "$filepath" ]; then
+            local existing_content
+            existing_content=$(cat "$filepath")
+            if [ "$content" = "$existing_content" ]; then
+                return 0
+            fi
+
+            echo -e "   ⚠️ \033[1;33mFile already exists: $filepath\033[0m"
+            echo ""
+            diff -u --color=auto <(echo "$existing_content") <(echo "$content")
+            echo ""
+            read -r -p $'   \033[1;36mFile already exists, overwrite? [y/n/q]: \033[0m' overwrite_choice
+            case $overwrite_choice in
+                [Yy])
+                    echo "$content" > "$filepath"
+                    ;;
+                q)
+                    echo "Aborting."
+                    ;;
+                *)
+                    echo "   ⏭️  Skipping existing file: $filepath"
+                    return 0
+                    ;;
+            esac
+        else
+            echo -e "   ✏️ \033[1;36m$filepath\033[0m"
+            echo "$content" > "$filepath"
+        fi
     fi
 }
 
