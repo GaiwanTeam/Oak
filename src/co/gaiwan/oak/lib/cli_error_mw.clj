@@ -9,6 +9,10 @@
     (pretty/print-exception e)
     (do
       (println "Error:" (ex-message e))
+      (loop [e (ex-cause e)]
+        (when e
+          (println "Caused by:" (ex-message e))
+          (recur (ex-cause e))))
       (when-let [d (ex-data e)]
         (pprint/pprint d))
       (println "Use --show-trace to see the full error trace."))))
