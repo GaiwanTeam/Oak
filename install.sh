@@ -120,7 +120,7 @@ while [[ $# -gt 0 ]]; do
             echo "  --help                       Display this help message and exit"
             echo ""
             echo $'\033[1mEXAMPLES:\033[0m'
-            echo "  ./install.sh                                           # Interactive installation with defaults"
+            echo "  ./install.sh                                          # Interactive installation with defaults"
             echo "  ./install.sh --postgres-password secret               # Custom password"
             echo "  ./install.sh --snapshot --postgres-user myuser        # Development build with custom username"
             echo "  ./install.sh --docker-compose                         # Skip menu, use Docker Compose"
@@ -168,6 +168,36 @@ write_file() {
     fi
 }
 
+# Detect OS and handle macOS limitations
+detect_os() {
+    case "$(uname -s)" in
+        Darwin*)
+            if [ -z "$INSTALL_TYPE" ] || [ "$INSTALL_TYPE" != "docker-compose" ]; then
+                echo -e "\033[1;33mOS X detected: only --docker-compose option is supported\033[0m"
+                echo -e "\033[1;33mPodman/systemd quadlets are not available on macOS\033[0m"
+                if [ -z "$INSTALL_TYPE" ]; then
+                    read -r -p "Continue to create a docker-compose.yml? [y/N]: " confirm
+                    if [[ "$confirm" =~ ^[Yy]$ ]]; then
+                        INSTALL_TYPE="docker-compose"
+                    else
+                        echo "Exiting."
+                        exit 0
+                    fi
+                else
+                    echo -e "\033[1;31m✗ OS X only supports --docker-compose\033[0m"
+                    exit 1
+                fi
+            fi
+            ;;
+        *)
+            # Linux - full functionality available
+            ;;
+    esac
+}
+
+# Check OS and handle accordingly
+detect_os
+
 # Skip menu if installation type specified via flags
 if [ -n "$INSTALL_TYPE" ]; then
     echo "Using installation method: $INSTALL_TYPE"
@@ -201,8 +231,6 @@ fi
 
 case $choice in
   1|2)
-    echo -e "\033[1;34m📦 Pulling latest image with podman...\033[0m"
-    podman pull "$OAK_IMG"
     SUDO_REQUIRED="false"
     if [ "$choice" == "1" ]; then
         TARGET_DIR="$HOME/.config/containers/systemd"
@@ -214,6 +242,32 @@ case $choice in
         # Create directory using sudo if necessary
         sudo mkdir -p "$TARGET_DIR" 2>/dev/null
     fi
+
+    echo ""
+    echo -e "\033[1;35m📋 Configuration Summary:\033[0m"
+    echo -e "\033[1;33mWill write:\033[0m"
+    echo -e "   - \033[1;36m${TARGET_DIR}/oak-net.network\033[0m"
+    echo -e "   - \033[1;36m${TARGET_DIR}/oak-postgres.container\033[0m"
+    echo -e "   - \033[1;36m${TARGET_DIR}/oak-redis.container\033[0m"
+    echo -e "   - \033[1;36m${TARGET_DIR}/oak.container\033[0m"
+    echo ""
+    echo -e "\033[1;33mConfiguration:\033[0m"
+    echo "   - HTTP Port: $HTTP_PORT"
+    echo "   - Postgres DB: $POSTGRES_DB_NAME"
+    echo "   - Postgres User: $POSTGRES_USER"
+    echo "   - Postgres Password: [hidden]"
+    echo "   - Postgres Image: $POSTGRES_IMG"
+    echo "   - Redis Image: $REDIS_IMG"
+    echo "   - Oak Image: $OAK_IMG"
+    echo ""
+    read -r -p $'\033[1;36mContinue to create these files? [y/N]: \033[0m' confirm
+    if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
+        echo "Installation cancelled."
+        exit 0
+    fi
+
+    echo -e "\033[1;34m📦 Pulling latest image with podman...\033[0m"
+    podman pull "$OAK_IMG"
 
     echo ""
     echo "Generating Quadlets in $TARGET_DIR..."
@@ -320,6 +374,26 @@ EOF
   3)
     echo -e "\033[1;34m📦 Pulling latest image with docker...\033[0m"
     docker pull "$OAK_IMG"
+    echo ""
+    echo -e "\033[1;35m📋 Configuration Summary:\033[0m"
+    echo -e "\033[1;33mWill write:\033[0m"
+    echo -e "   ✏️ \033[1;36m./docker-compose.yml\033[0m"
+    echo ""
+    echo -e "\033[1;33mConfiguration:\033[0m"
+    echo "   - HTTP Port: $HTTP_PORT"
+    echo "   - Postgres DB: $POSTGRES_DB_NAME"
+    echo "   - Postgres User: $POSTGRES_USER"
+    echo "   - Postgres Password: [hidden]"
+    echo "   - Postgres Image: $POSTGRES_IMG"
+    echo "   - Redis Image: $REDIS_IMG"
+    echo "   - Oak Image: $OAK_IMG"
+    echo ""
+    read -r -p $'\033[1;36mContinue to create this file? [y/N]: \033[0m' confirm
+    if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
+        echo "Installation cancelled."
+        exit 0
+    fi
+
     echo ""
     echo "Generating docker-compose.yml in current directory..."
 
