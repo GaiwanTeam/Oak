@@ -116,7 +116,7 @@ while [[ $# -gt 0 ]]; do
             echo "  --oak-img IMG                Oak container image (overrides --snapshot flag)"
             echo "  --quadlet-rootless           Skip menu and use rootless Podman quadlets"
             echo "  --quadlet-root               Skip menu and use root Podman quadlets"
-            echo "  --docker-compose              Skip menu and use Docker Compose"
+            echo "  --docker-compose             Skip menu and use Docker Compose"
             echo "  --help                       Display this help message and exit"
             echo ""
             echo $'\033[1mEXAMPLES:\033[0m'

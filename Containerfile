@@ -17,5 +17,11 @@ COPY --from=builder /app/target/oak-uberjar.jar /
 
 EXPOSE 4800
 
+RUN <<EOF
+echo '#!/bin/sh' >> /usr/bin/oakadm
+echo 'exec java -jar /oak-uberjar.jar "$@"' >> /usr/bin/oakadm
+chmod +x /usr/bin/oakadm
+EOF
+
 ENTRYPOINT ["java", "-jar", "/oak-uberjar.jar"]
 CMD ["run"]
