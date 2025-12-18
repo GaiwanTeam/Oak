@@ -13,11 +13,14 @@ Oak has two additional dependencies: PostgreSQL as its primary data store, and
 Redis to maintain session information, so in a typical setup you run three
 separate containers: `oak`, `postgres`, and `redis`.
 
+## Install Script
+
 To make this easy for you we provide an install script, which lets you choose
 between Podman Quadlets (rootless), Podman Quadlets (root), or Docker Compose.
 Linux users who want to evaluate Oak on their own machine should use rootless
 quadlets. When setting up a server, either rootless or rootfull quadlets are
-suitable. On Mac OS X only Docker Compose is supported.
+suitable. On Mac OS X only Docker Compose is supported. Windows user can use
+either method through WSL2.
 
 ```shell
 bash <(curl -sL https://git.gaiwan.co/gaiwan/Oak/raw/branch/main/install.sh)
@@ -134,4 +137,150 @@ Override the Oak container image entirely. This flag takes precedence over `--sn
 
 Display comprehensive help information including all available options, usage patterns, and example commands.
 
+## Podman Quadlets
 
+Podman Quadlets are systemd service files that describe containers. They allow
+Podman containers to integrate seamlessly with systemd, providing services that
+start on boot, restart on failure, and can be managed with standard `systemctl`
+commands.
+
+These files either go into `~/.config/containers/systemd/`, for a "rootless"
+setup (running as your regular user), or into `/etc/containers/systemd`, to run
+as root.
+
+### Creating Quadlets Manually
+
+If you prefer to create the quadlets yourself or need custom configurations
+beyond what the installer provides, here are the individual quadlet files you
+need:
+
+#### 1. Network Quadlet (`oak-net.network`)
+
+Creates a dedicated Docker bridge network for Oak services. This isn't strictly
+necessary, but it makes things easier since podman doesn't have DNS resolution
+of container names on its default network.
+
+```ini
+[Unit]
+Description=Oak network
+
+[Network]
+NetworkName=oak-net
+Driver=bridge
+
+[Install]
+WantedBy=multi-user.target default.target
+```
+
+**Location:**
+- Rootless: `~/.config/containers/systemd/oak-net.network`
+- Root: `/etc/containers/systemd/oak-net.network`
+
+#### 2. PostgreSQL Quadlet (`oak-postgres.container`)
+
+Runs PostgreSQL with persistent storage.
+
+```ini
+[Unit]
+Description=Postgres 17 Database Service
+
+[Container]
+Image=docker.io/postgres:17
+ContainerName=oak-postgres
+Environment=POSTGRES_PASSWORD="your-password"
+Environment=POSTGRES_USER=oak
+Environment=POSTGRES_DB=oak
+Volume=oak_data:/var/lib/postgresql/data:Z
+Network=oak-net
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=multi-user.target default.target
+```
+
+#### 3. Redis Quadlet (`oak-redis.container`)
+
+Provides caching and session storage.
+
+```ini
+[Unit]
+Description=Redis
+
+[Container]
+Image=docker.io/redis:8.2.1-alpine
+ContainerName=oak-redis
+Network=oak-net
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=multi-user.target default.target
+```
+
+#### 4. Oak IAM Quadlet (`oak.container`)
+
+The main Oak application container. 
+
+```ini
+[Unit]
+Description=Oak IAM
+Requires=oak-postgres.service oak-redis.service oak-net-network.service
+After=oak-postgres.service oak-redis.service oak-net-network.service
+
+[Container]
+Image=git.gaiwan.co/gaiwan/oak:latest
+ContainerName=oak
+Environment=OAK__ENV=prod
+Environment=OAK__DB__URL=jdbc:postgresql://oak-postgres:5432/oak
+Environment=OAK__DB__USERNAME=oak
+Environment=OAK__DB__PASSWORD="your-password"
+Environment=OAK__REDIS__HOST=oak-redis
+Environment=OAK__HTTP__PORT=4800
+Network=oak-net
+PublishPort=4800:4800
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=multi-user.target default.target
+```
+
+### Starting / Enabling the Services
+
+Once you have the `.container`/`.network` files in place, they need to be
+converted to systemd `.service` files. `systemctl daemon-reload` handles that.
+
+```bash
+systemctl --user daemon-reload  # rootless
+# or
+sudo systemctl daemon-reload    # root
+```
+
+Now you can start the Oak service, it will automatically start its dependencies,
+so you don't need to manually start redis/postgres.
+
+```bash
+systemctl --user enable --now oak.service  # rootless
+# or
+sudo systemctl enable --now oak.service    # root
+```
+
+Some useful commands. All of these will need either `--user` (rootless) or `sudo` (root).
+
+- `systemctl start <service>` - starts the service once
+- `systemctl enable <service>` - starts the service and enables it, so it automatically starts at boot
+- `systemctl stop <service>` - stop the service
+- `systemctl restart <service>` - restart the service
+- `journalctl -u <service>` - see logs for a given service
+- `journalctl -f -u <service>` - "follow" (stream) the logs for a given service
+
+## Cleaning up
+
+- Stop the systemd services (`oak`, `oak-postgres`, `oak-redis`, `oak-net-network`)
+- Remove the quadlet files
+- Re-run `systemctl daemon-reload`
+- Remove the persistent volume: `podman volume rm oak_data`
