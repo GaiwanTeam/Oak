@@ -513,11 +513,13 @@ EOF
     if [ "$choice" == "1" ]; then
       progress "🚀 To start rootless podman services:"
       echo -e "   \033[1;36msystemctl --user daemon-reload"
-      echo -e "   \033[1;36msystemctl --user enable --now oak.container\033[0m"
+      echo -e "   \033[1;36msystemctl --user start --now oak.service\033[0m"
+      progress "⚠️ To make sure containers restart on boot:"
+      echo -e "   \033[1;36mloginctl enable-linger $USER\033[0m"
     else
       progress "🚀 To start root podman services:"
       echo -e "   \033[1;36msudo systemctl daemon-reload"
-      echo -e "   \033[1;36msudo systemctl enable --now oak.container\033[0m"
+      echo -e "   \033[1;36msudo systemctl start --now oak.service\033[0m"
     fi
     echo
     ;;

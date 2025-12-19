@@ -312,15 +312,21 @@ Now you can start the Oak service, it will automatically start its dependencies,
 so you don't need to manually start redis/postgres.
 
 ```bash
-systemctl --user enable --now oak.service  # rootless
+systemctl --user start oak.service  # rootless
 # or
-sudo systemctl enable --now oak.service    # root
+sudo systemctl start oak.service    # root
+```
+
+For rootless containers, in order to make sure they start automatically on
+reboot, you need to enable "lingering"
+
+```bash
+loginctl enable-linger $USER
 ```
 
 Some useful commands. All of these will need either `--user` (rootless) or `sudo` (root).
 
 - `systemctl start <service>` - starts the service once
-- `systemctl enable <service>` - starts the service and enables it, so it automatically starts at boot
 - `systemctl stop <service>` - stop the service
 - `systemctl restart <service>` - restart the service
 - `journalctl -u <service>` - see logs for a given service

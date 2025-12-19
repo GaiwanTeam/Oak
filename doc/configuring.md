@@ -202,4 +202,4 @@ Default: `6`
 
 ----
 
-Next: [Initial Setup](./setup.md)
+< Previous [Installing Oak](./install.md) | Next: [Initial Setup](./setup.md) >
