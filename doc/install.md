@@ -7,7 +7,7 @@ The following tags are available:
 
 - `git.gaiwan.co/gaiwan/oak:latest` - latest stable release
 - `git.gaiwan.co/gaiwan/oak:snapshot` - built directly from `main`, may be unstable
-- `git.gaiwan.co/gaiwan/oak:v0.5.23` - tags pinned to a fixed version
+- `git.gaiwan.co/gaiwan/oak:v1.0.246` - tags pinned to a fixed version
 
 Oak has two additional dependencies: PostgreSQL as its primary data store, and
 Redis to maintain session information, so in a typical setup you run three
