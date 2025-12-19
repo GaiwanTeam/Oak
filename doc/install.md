@@ -167,6 +167,17 @@ Override the Oak container image entirely. This flag takes precedence over
 `--snapshot` and allows using custom builds, private registries, or specific
 version tags. Useful for testing custom builds or using internal mirrors.
 
+#### `--config-file FILE`
+
+Specify a custom configuration file path to mount as a container volume to
+`/etc/oak.edn` inside the Oak container. The file should be a valid Oak EDN
+configuration file, see [Configuring Oak](./configuring.md).
+
+If this flag is omitted, the configuration will include a commented-out line so
+you can easily add a configuration file later on. Make sure to `systemctl --user
+daemon-reload` or `sudo systemctl daemon-reload` when making changes to the
+quadlet files.
+
 #### `--help`
 
 Display comprehensive help information.

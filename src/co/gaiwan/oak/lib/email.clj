@@ -7,16 +7,16 @@
    [tarayo.core :as smtp]))
 
 (defn smtp-config []
-  (let [host (config/get :email/smtp-host)
-        user (config/get :email/smtp-user)
+  (let [host     (config/get :email/smtp-host)
+        user     (config/get :email/smtp-user)
         password (config/get :email/smtp-password)
-        port (config/get :email/smtp-port)
-        type (config/get :email/smtp-type)]
+        port     (Long. (config/get :email/smtp-port)) ;; handle string or number
+        type     (config/get :email/smtp-type)]
     (assert host)
     (cond-> {:host host}
-      user (assoc :user user)
-      password (assoc :password password)
-      port (assoc :port port)
+      user          (assoc :user user)
+      password      (assoc :password password)
+      port          (assoc :port port)
       (= :ssl type) (assoc :ssl true)
       (= :tls type) (assoc :tls true))))
 

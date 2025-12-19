@@ -29,6 +29,7 @@
 #   --postgres-db-name NAME      Database name (default: oak)
 #   --http-port PORT             Oak HTTP server port (default: 4800)
 #   --oak-img IMG                Oak container image (overrides --snapshot flag)
+#   --config-file FILE           Path to custom oak.edn configuration file
 #   --help                       Show this help message
 #
 ##############################################################
@@ -43,6 +44,7 @@ HTTP_PORT="4800"
 OAK_IMG=""
 USE_SNAPSHOT=false
 INSTALL_TYPE=""  # "quadlet-rootless", "quadlet-root", "docker-compose"
+CONFIG_FILE=""  # Path to custom oak.edn configuration file
 
 # Parse command line arguments
 while [[ $# -gt 0 ]]; do
@@ -77,6 +79,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         --oak-img)
             OAK_IMG="$2"
+            shift 2
+            ;;
+        --config-file)
+            CONFIG_FILE="$2"
             shift 2
             ;;
         --quadlet-rootless)
@@ -114,6 +120,7 @@ while [[ $# -gt 0 ]]; do
             echo "  --postgres-db-name NAME      Database name (default: oak)"
             echo "  --http-port PORT             Oak HTTP server port (default: 4800)"
             echo "  --oak-img IMG                Oak container image (overrides --snapshot flag)"
+            echo "  --config-file FILE           Path to custom oak.edn configuration file"
             echo "  --quadlet-rootless           Skip menu and use rootless Podman quadlets"
             echo "  --quadlet-root               Skip menu and use root Podman quadlets"
             echo "  --docker-compose             Skip menu and use Docker Compose"
@@ -151,6 +158,50 @@ if [ -z "$OAK_IMG" ]; then
         OAK_IMG="git.gaiwan.co/gaiwan/oak:latest"
     fi
 fi
+
+# Helper function to format config file path for different formats
+format_config_volume() {
+    local path="$1"
+    local format="$2"  # "quadlet-rootless", "quadlet-root", "docker-compose"
+
+    # Expand ~ to home directory
+    path=$(echo "$path" | sed "s|^~|$HOME|")
+
+    case "$format" in
+        "quadlet-rootless")
+            # Replace home directory with %h
+            local formatted_path=$(echo "$path" | sed "s|$HOME|%h|")
+            echo "Volume=${formatted_path}:/etc/oak.edn:Z"
+            ;;
+        "quadlet-root")
+            # Use path as-is
+            echo "Volume=${path}:/etc/oak.edn:Z"
+            ;;
+        "docker-compose")
+            # Replace home directory with ${HOME}
+            local formatted_path=$(echo "$path" | sed "s|$HOME|\${HOME}|")
+            echo "      - \"${formatted_path}:/etc/oak.edn:ro\""
+            ;;
+    esac
+}
+
+# Helper function to format commented config line
+format_config_comment() {
+    local format="$1"  # "quadlet-rootless", "quadlet-root", "docker-compose"
+
+    case "$format" in
+        "quadlet-rootless")
+            echo "# Volume=%h/path/to/oak.edn:/etc/oak.edn:Z"
+            ;;
+        "quadlet-root")
+            echo "# Volume=/etc/oak.edn:/etc/oak.edn:Z"
+            ;;
+        "docker-compose")
+            echo "    # volumes:"
+            echo "    #   - \"${HOME}/path/to/oak.edn:/etc/oak.edn:ro\""
+            ;;
+    esac
+}
 
 # Prompt function with consistent coloring
 prompt() {
@@ -234,9 +285,10 @@ write_file() {
                     ;;
                 q)
                     echo "Aborting."
+                    exit 0
                     ;;
                 *)
-                    echo "   ⏭️  Skipping existing file: $filepath"
+                    echo "⏭️  Skipping existing file: $filepath"
                     return 0
                     ;;
             esac
@@ -408,6 +460,26 @@ EOF
 )
     write_file "$REDIS_QUADLET" "$TARGET_DIR/oak-redis.container" "$SUDO_REQUIRED"
 
+    # Prepare config file volume for quadlets
+    CONFIG_VOLUME_LINE=""
+    if [ -n "$CONFIG_FILE" ]; then
+        expanded_path=$(echo "$CONFIG_FILE" | sed "s|^~|$HOME|")
+        if [ "$choice" == "1" ]; then
+            # rootless quadlet: replace home with %h
+            formatted_path=$(echo "$expanded_path" | sed "s|$HOME|%h|")
+            CONFIG_VOLUME_LINE="Volume=$(echo "$formatted_path"):/etc/oak.edn:Z"
+        else
+            # root quadlet: use path as-is
+            CONFIG_VOLUME_LINE="Volume=$(echo "$expanded_path"):/etc/oak.edn:Z"
+        fi
+    else
+        if [ "$choice" == "1" ]; then
+            CONFIG_VOLUME_LINE="# Volume=%h/path/to/oak.edn:/etc/oak.edn:Z"
+        else
+            CONFIG_VOLUME_LINE="# Volume=/path/to/oak.edn:/etc/oak.edn:Z"
+        fi
+    fi
+
     OAK_QUADLET=$(cat <<EOF
 [Unit]
 Description=Oak IAM
@@ -424,6 +496,7 @@ Environment=OAK__REDIS__HOST=oak-redis
 Environment=OAK__HTTP__PORT=${HTTP_PORT}
 Network=oak-net
 PublishPort=${HTTP_PORT}:${HTTP_PORT}
+${CONFIG_VOLUME_LINE}
 
 [Service]
 Restart=always
@@ -477,6 +550,17 @@ EOF
     progress "✏ Generating docker-compose.yml in current directory..."
     echo ""
 
+    # Prepare config file volume for docker-compose
+    if [ -n "$CONFIG_FILE" ]; then
+        expanded_path=$(echo "$CONFIG_FILE" | sed "s|^~|$HOME|")
+        formatted_path=$(echo "$expanded_path" | sed "s|$HOME|\${HOME}|g")
+        volume_line="    volumes:
+      - \"${formatted_path}:/etc/oak.edn:ro\""
+    else
+        volume_line="    # volumes:
+    #   - \"\${HOME}/path/to/oak.edn:/etc/oak.edn:ro\""
+    fi
+
     COMPOSE_YML=$(cat <<EOF
 version: '3.8'
 services:
@@ -505,6 +589,7 @@ services:
       OAK__DB__USERNAME: ${POSTGRES_USER}
       OAK__DB__PASSWORD: ${POSTGRES_PASSWORD}
       OAK__REDIS__HOST: oak-redis
+$volume_line
 
 volumes:
   oak_data:
