@@ -1,4 +1,4 @@
-# Installing Oak IAM
+# Installing Oak
 
 Oak is distributed as a OCI-compatible container (podman, docker), through our
 Forgejo instance. See [Packages: Oak](https://git.gaiwan.co/gaiwan/-/packages/container/oak/snapshot)
@@ -12,6 +12,14 @@ The following tags are available:
 Oak has two additional dependencies: PostgreSQL as its primary data store, and
 Redis to maintain session information, so in a typical setup you run three
 separate containers: `oak`, `postgres`, and `redis`.
+
+You can run the container any way you like. We're big fan of Podman Quadlets,
+since they provide a way to declaratively set up containers and manage them
+through standard systemd tools. The install script can set these up for you, or
+alternatively will create a `docker-compose.yml`. For detailed instructions on
+how to set things up with Podman, skip to "Manual setup with Podman Quadlets".
+If you don't need help running a container, you can move on to [Configuring
+Oak](configuring.md).
 
 ## Install Script
 
@@ -85,59 +93,89 @@ Generating Quadlets in /home/arne/.config/containers/systemd...
    systemctl --user enable --now oak.container</span>
 </pre>
 
-## Command Line Options
+### Command Line Options
 
-The installer supports full command line interface for automation and scripting. All configuration options are available as flags that bypass the interactive menu.
+The installer supports full CLI flags for automation and scripting. All
+configuration options are available as flags that bypass the interactive menu.
 
-### `--quadlet-rootless`
+#### `--quadlet-rootless`
 
-Skip the interactive menu and immediately generate rootless Podman quadlets in `~/.config/containers/systemd/`. This creates user-level systemd services that run without root privileges. Perfect for personal development environments or when you don't have sudo access.
+Skip the interactive menu and immediately generate rootless Podman quadlets in
+`~/.config/containers/systemd/`. This creates user-level systemd services that
+run without root privileges.
 
-### `--quadlet-root`
+#### `--quadlet-root`
 
-Skip the interactive menu and generate root-level Podman quadlets in `/etc/containers/systemd/`. This creates system-wide systemd services that typically require sudo privileges. Ideal for production server deployments.
+Skip the interactive menu and generate root-level Podman quadlets in
+`/etc/containers/systemd/`. This creates system-wide systemd services that
+typically require sudo privileges. Ideal for production server deployments.
 
-### `--docker-compose`
+#### `--docker-compose`
 
-Skip the interactive menu and create a `docker-compose.yml` file in the current directory. This works with both Docker Desktop and Podman Docker compatibility mode. The only option supported on macOS due to systemd limitations.
+Skip the interactive menu and create a `docker-compose.yml` file in the current
+directory. This works with both Docker Desktop and Podman Docker compatibility
+mode.
 
-### `--snapshot`
+#### `--snapshot`
 
-Install the development snapshot (`git.gaiwan.co/gaiwan/oak:snapshot`) instead of the latest stable release. This pulls the most recent build directly from the main branch, which may include new features or bug fixes, but could also be unstable.
+Install the development snapshot (`git.gaiwan.co/gaiwan/oak:snapshot`) instead
+of the latest stable release. Snapshot builds track the most recent changes on
+the main development branch, which may include new features or bug fixes, but
+could also be unstable.
 
-### `--postgres-img IMAGE`
+#### `--postgres-img IMAGE`
 
-Override the default PostgreSQL container image. Useful for using specific versions, optimized images, or internal registries. The downloader will respect the provided image name exactly as given.
+Override the default PostgreSQL container image. Useful for using specific
+versions, optimized images, or internal registries. The downloader will respect
+the provided image name exactly as given.
 
-### `--redis-img IMAGE`
+#### `--redis-img IMAGE`
 
-Override the default Redis container image. Supports any OCI-compatible Redis image including Alpine variants, custom registries, or specific version tags.
+Override the default Redis container image. Supports any OCI-compatible Redis
+image including Alpine variants, custom registries, or specific version tags.
 
-### `--postgres-user USER` (default: `oak`)
+#### `--postgres-user USER` (default: `oak`)
 
-Set the PostgreSQL username that Oak will use to connect to the database. This gets passed down to the PostgreSQL container as `POSTGRES_USER` which means it overrides the default "root" user.
+Set the PostgreSQL username that Oak will use to connect to the database. This
+gets passed down to the PostgreSQL container as `POSTGRES_USER` which means it
+overrides the default "postgres" super-user.
 
-### `--postgres-password PASS` (default: `oak`)
+#### `--postgres-password PASS` (default: `oak`)
 
-Set the PostgreSQL password for the database user. This gets added to the quadlet files for Oak and PostgreSQL. Ensure this is a strong password for production deployments.
+Set the PostgreSQL password for the database user. This gets added to the
+quadlet files for Oak and PostgreSQL. Ensure this is a strong password for
+production deployments.
 
-### `--postgres-db-name NAME` (default: `oak`)
+#### `--postgres-db-name NAME` (default: `oak`)
 
-Specify the PostgreSQL database name that Oak will use to store all persistent data. This creates a dedicated database within PostgreSQL rather than using the default database.
+Specify the PostgreSQL database name that Oak will use to store all persistent
+data. The PostgreSQL container will create this database on startup, Oak will
+create the necessary tables and columns when it starts.
 
-### `--http-port PORT` (default: 4800)
 
-Configure the HTTP port where Oak will listen for connections. Useful when port 4800 is already in use or when running multiple Oak instances on the same machine. This both instructs Oak on which port it should listen, and maps that port to `localhost` so it is accessible.
+#### `--http-port PORT` (default: 4800)
 
-### `--oak-img IMAGE` (default: `git.gaiwan.co/gaiwan/oak:latest` or `snapshot`)  
+Configure the HTTP port where Oak will listen for connections. This both
+instructs Oak on which port it should listen, and maps the container port to
+`localhost` so it is accessible from the host. In production setups you would
+typically use Nginx/Caddy/Traefik as a reverse proxy, redirecting traffic to
+this port.
 
-Override the Oak container image entirely. This flag takes precedence over `--snapshot` and allows using custom builds, private registries, or specific version tags. Useful for testing custom builds or using internal mirrors.
+#### `--oak-img IMAGE` (default: `git.gaiwan.co/gaiwan/oak:latest` or `snapshot`)  
 
-### `--help`
+Override the Oak container image entirely. This flag takes precedence over
+`--snapshot` and allows using custom builds, private registries, or specific
+version tags. Useful for testing custom builds or using internal mirrors.
 
-Display comprehensive help information including all available options, usage patterns, and example commands.
+#### `--help`
 
-## Podman Quadlets
+Display comprehensive help information.
+
+## Manual setup with Podman Quadlets
+
+Previous sections explained how to use the installer script. If you prefer to
+set things up yourself, or want to understand what the installer script does,
+then this section is for you.
 
 Podman Quadlets are systemd service files that describe containers. They allow
 Podman containers to integrate seamlessly with systemd, providing services that
@@ -278,9 +316,76 @@ Some useful commands. All of these will need either `--user` (rootless) or `sudo
 - `journalctl -u <service>` - see logs for a given service
 - `journalctl -f -u <service>` - "follow" (stream) the logs for a given service
 
-## Cleaning up
+## Cleaning up Podman setup
 
-- Stop the systemd services (`oak`, `oak-postgres`, `oak-redis`, `oak-net-network`)
-- Remove the quadlet files
-- Re-run `systemctl daemon-reload`
-- Remove the persistent volume: `podman volume rm oak_data`
+If you want to remove Oak, or clean things up so you can start from a clean
+slate, these are the steps.
+
+### Stop and disable the systemd services
+
+For rootless:
+
+```shell
+systemctl --user disable --now oak.service
+systemctl --user disable --now oak-postgres.service
+systemctl --user disable --now oak-redis.service
+systemctl --user disable --now oak-net-network.service
+```
+
+For root:
+
+```shell
+sudo systemctl disable --now oak.service
+sudo systemctl disable --now oak-postgres.service
+sudo systemctl disable --now oak-redis.service
+sudo systemctl disable --now oak-net-network.service
+```
+
+### Remove the quadlet files
+
+Rootless
+
+```shell
+rm ~/.config/containers/systemd/oak.container \
+   ~/.config/containers/systemd/oak-net.network \
+   ~/.config/containers/systemd/oak-postgres.container \
+   ~/.config/containers/systemd/oak-redis.container
+```
+
+Root
+
+```shell
+sudo rm \
+   /etc/containers/systemd/oak.container \
+   /etc/containers/systemd/oak-net.network \
+   /etc/containers/systemd/oak-postgres.container \
+   /etc/containers/systemd/oak-redis.container
+```
+
+### Reload systemd services
+
+Rootless
+
+```shell
+systemctl --user daemon-reload
+```
+
+Root
+
+```shell
+sudo systemctl daemon-reload
+```
+
+### Remove the persistent volume 
+
+Rootless
+
+```shell
+podman volume rm oak_data
+```
+
+Root
+
+```shell
+sudo podman volume rm oak_data
+```
