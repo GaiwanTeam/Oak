@@ -38,7 +38,9 @@ podman exec -it oak oakadm jwk create --kty RSA --size 2048 --alg RS256 --defaul
 
 RSA is generally the most widely recognized key type, if you have other services
 that need to be able to validate Oak's tokens and if they don't yet understand
-the OKP key, then you can use RSA instead.
+the OKP key, then you can use RSA instead. Oak publishes its set of public keys
+under the standard entrypoint `/.well-known/jwks.json`, allowing others to
+verify tokens signed by oak.
 
 The `--default` flag makes this key the primary one used for signing new tokens. List all JWKs with:
 

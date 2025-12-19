@@ -110,7 +110,7 @@ Typically this is in the format `jdbc:postgresql://host:port/dbname`.
 
 ### `:db/username` / `OAK__DB__USERNAME` ; `:db/password` / `OAK__DB__PASSWORD`
 
-Username and to connect to PostgreSQL. Can be omitted, e.g. when using PAM authentication.
+Username and password to connect to PostgreSQL. Can be omitted, e.g. when using PAM authentication.
 
 Default: `"oak"` / `"oak"`
 
@@ -146,7 +146,7 @@ Default: `4800`
 
 ### `:http/origin` / `OAK__HTTP__ORIGIN`
 
-Used for generating OAuth 2.0/OIDC discovery metadata. Can generally be omitted, in which case we determine the hostname from the request. If behind a proxy which doesn't properly propagate the hostname the request is made on, then this may need to be set. Honors the `Host`, `x-forwarded-proto`, and `x-forwarded-host` headers, or the HTTP 2.0 "authority".
+Used for generating OAuth 2.0/OIDC discovery metadata. Can generally be omitted, in which case we determine the scheme and hostname from the request. If Oak sits behind a proxy which doesn't properly propagate the scheme (protocol) and hostname of the request, then this may need to be set. If omitted, it checks the `Host`, `x-forwarded-proto`, and `x-forwarded-host` headers, or the HTTP 2.0 "authority".
 
 Example: `"https://auth.example.com"`
 
