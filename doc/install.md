@@ -271,7 +271,6 @@ After=oak-postgres.service oak-redis.service oak-net-network.service
 [Container]
 Image=git.gaiwan.co/gaiwan/oak:latest
 ContainerName=oak
-Environment=OAK__ENV=prod
 Environment=OAK__DB__URL=jdbc:postgresql://oak-postgres:5432/oak
 Environment=OAK__DB__USERNAME=oak
 Environment=OAK__DB__PASSWORD="your-password"
@@ -389,3 +388,7 @@ Root
 ```shell
 sudo podman volume rm oak_data
 ```
+
+----
+
+Next: [Configuring Oak](configuring.md).

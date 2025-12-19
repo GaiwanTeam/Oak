@@ -152,6 +152,28 @@ if [ -z "$OAK_IMG" ]; then
     fi
 fi
 
+# Prompt function with consistent coloring
+prompt() {
+    local message="$1"
+    local options="$2"
+    local result_var="$3"
+    read -r -p $'\033[1;36m'"$message"$'\033[0m \033[1;33m'"$options"$'\033[0m: ' "$result_var"
+}
+
+# Yellow message
+heading() {
+    local message="$1"
+    echo -e "\033[1;33m$message\033[0m"
+}
+
+# Blue message
+progress() {
+    local message="$1"
+    echo -e "\033[1;33m$message\033[0m"
+}
+
+# Create a file with the given contents, optionally using `sudo`. If the file
+# exists, the difference is shown, and the user is asked how to proceed.
 write_file() {
     local content="$1"
     local filepath="$2"
@@ -166,11 +188,11 @@ write_file() {
                 return 0
             fi
 
-            echo -e "   ⚠️ \033[1;33mFile already exists: $filepath\033[0m"
             echo ""
+            heading "⚠️ File already exists: $filepath"
             diff -u --color=auto <(echo "$existing_content") <(echo "$content")
             echo ""
-            read -r -p $'   \033[1;36mFile already exists, overwrite? [y/n/q]: \033[0m' overwrite_choice
+            prompt "File already exists, overwrite?" "[y/N/q]" overwrite_choice
             case $overwrite_choice in
                 [Yy])
                     if ! echo "$content" | sudo tee "$filepath" > /dev/null; then
@@ -182,7 +204,7 @@ write_file() {
                     echo "Aborting."
                     ;;
                 *)
-                    echo "   ⏭️  Skipping existing file: $filepath"
+                    echo "⏭️  Skipping existing file: $filepath"
                     return 0
                     ;;
             esac
@@ -201,11 +223,11 @@ write_file() {
                 return 0
             fi
 
-            echo -e "   ⚠️ \033[1;33mFile already exists: $filepath\033[0m"
             echo ""
+            heading "⚠️ File already exists: $filepath"
             diff -u --color=auto <(echo "$existing_content") <(echo "$content")
             echo ""
-            read -r -p $'   \033[1;36mFile already exists, overwrite? [y/n/q]: \033[0m' overwrite_choice
+            prompt "File already exists, overwrite?" "[y/N/q]" overwrite_choice
             case $overwrite_choice in
                 [Yy])
                     echo "$content" > "$filepath"
@@ -230,10 +252,10 @@ detect_os() {
     case "$(uname -s)" in
         Darwin*)
             if [ -z "$INSTALL_TYPE" ] || [ "$INSTALL_TYPE" != "docker-compose" ]; then
-                echo -e "\033[1;33mOS X detected: only --docker-compose option is supported\033[0m"
-                echo -e "\033[1;33mPodman/systemd quadlets are not available on macOS\033[0m"
+                heading "OS X detected: only --docker-compose option is supported"
+                heading "Podman/systemd quadlets are not available on macOS"
                 if [ -z "$INSTALL_TYPE" ]; then
-                    read -r -p "Continue to create a docker-compose.yml? [y/N]: " confirm
+                    prompt "Continue to create a docker-compose.yml?" "[y/N]" confirm
                     if [[ "$confirm" =~ ^[Yy]$ ]]; then
                         INSTALL_TYPE="docker-compose"
                     else
@@ -265,11 +287,14 @@ if [ -n "$INSTALL_TYPE" ]; then
         docker-compose) choice=3 ;;
     esac
 else
-    echo -e "\033[1;36m┌────────────────────────────────────────┐\033[0m"
-    echo -e "\033[1;36m│\033[0m        🌳 \033[1;32mOak IAM Installer\033[0m 🌳         \033[1;36m│\033[0m"
-    echo -e "\033[1;36m└────────────────────────────────────────┘\033[0m"
-    echo
-    echo -e "\033[1;33mSelect installation method:\033[0m"
+    echo -e '\033[32m  ____        _      _____           _        _ _           \033[0m'
+    echo -e '\033[32m / __ \      | |    |_   _|         | |      | | |          \033[0m'
+    echo -e '\033[32m| |  | | __ _| | __   | |  _ __  ___| |_ __ _| | | ___ _ __ \033[0m'
+    echo -e '\033[32m| |  | |/ _` | |/ /   | | | ._ \/ __| __/ _` | | |/ _ \ .__|\033[0m'
+    echo -e '\033[32m| |__| | (_| |   <   _| |_| | | \__ \ || (_| | | |  __/ |   \033[0m'
+    echo -e '\033[32m \____/ \__,_|_|\_\ |_____|_| |_|___/\__\__,_|_|_|\___|_|    \033[0m'
+   echo
+    heading "Select installation method:"
     echo
     echo -e "  1) \033[1;35mPodman\033[0m (Rootless)"
     echo -e "     ↪ ~/.config/containers/systemd/"
@@ -283,7 +308,7 @@ else
     echo -e "     ↪ docker-compose.yml in current directory"
     echo -e "     ↪ Traditional container orchestration"
     echo
-    read -r -p $'\033[1;36m Select installation method \033[1;33m[1-3]\033[0m: ' choice
+    prompt "Select installation method" "[1-3]" choice
 fi
 
 case $choice in
@@ -301,14 +326,13 @@ case $choice in
     fi
 
     echo ""
-    echo -e "\033[1;35m📋 Configuration Summary:\033[0m"
-    echo -e "\033[1;33mWill write:\033[0m"
-    echo -e "   - \033[1;36m${TARGET_DIR}/oak-net.network\033[0m"
-    echo -e "   - \033[1;36m${TARGET_DIR}/oak-postgres.container\033[0m"
-    echo -e "   - \033[1;36m${TARGET_DIR}/oak-redis.container\033[0m"
-    echo -e "   - \033[1;36m${TARGET_DIR}/oak.container\033[0m"
+    heading "📋 Configuration Summary:"
     echo ""
-    echo -e "\033[1;33mConfiguration:\033[0m"
+    heading "Will pull:"
+    echo -e "   📦️ \033[1;36m${OAK_IMG}\033[0m"
+    heading "Will write:"
+    echo -e "   ✏️ \033[1;36m./docker-compose.yml\033[0m"
+    heading "Configuration:"
     echo "   - HTTP Port: $HTTP_PORT"
     echo "   - Postgres DB: $POSTGRES_DB_NAME"
     echo "   - Postgres User: $POSTGRES_USER"
@@ -317,13 +341,13 @@ case $choice in
     echo "   - Redis Image: $REDIS_IMG"
     echo "   - Oak Image: $OAK_IMG"
     echo ""
-    read -r -p $'\033[1;36mContinue to create these files? [y/N]: \033[0m' confirm
+    prompt "Continue to create this file?" "[y/N]" confirm
     if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
         echo "Installation cancelled."
         exit 0
     fi
 
-    echo -e "\033[1;34m📦 Pulling latest image with podman...\033[0m"
+    progress "📦 Pulling latest image with podman..."
     podman pull "$OAK_IMG"
 
     echo ""
@@ -393,7 +417,6 @@ After=oak-postgres.service oak-redis.service oak-net-network.service
 [Container]
 Image=$OAK_IMG
 ContainerName=oak
-Environment=OAK__ENV=prod
 Environment=OAK__DB__URL=jdbc:postgresql://oak-postgres:5432/${POSTGRES_DB_NAME}
 Environment=OAK__DB__USERNAME=${POSTGRES_USER}
 Environment=OAK__DB__PASSWORD="${POSTGRES_PASSWORD}"
@@ -412,16 +435,14 @@ EOF
     write_file "$OAK_QUADLET" "$TARGET_DIR/oak.container" "$SUDO_REQUIRED"
 
     echo ""
-    echo -e "\033[1;32m╔══════════════════════════════════════════════╗\033[0m"
-    echo -e "\033[1;32m║\033[0m  ✅ \033[1;32mSuccessfully generated quadlet files!\033[0m    \033[1;32m║\033[0m"
-    echo -e "\033[1;32m╚══════════════════════════════════════════════╝\033[0m"
+    echo -e "✅ \033[1;32mSuccessfully generated quadlet files!\033[0m"
     echo
     if [ "$choice" == "1" ]; then
-      echo -e "\033[1;34m🚀 To start rootless podman services:\033[0m"
+      progress "🚀 To start rootless podman services:"
       echo -e "   \033[1;36msystemctl --user daemon-reload"
       echo -e "   \033[1;36msystemctl --user enable --now oak.container\033[0m"
     else
-      echo -e "\033[1;34m🚀 To start root podman services:\033[0m"
+      progress "🚀 To start root podman services:"
       echo -e "   \033[1;36msudo systemctl daemon-reload"
       echo -e "   \033[1;36msudo systemctl enable --now oak.container\033[0m"
     fi
@@ -429,14 +450,14 @@ EOF
     ;;
 
   3)
-    echo -e "\033[1;34m📦 Pulling latest image with docker...\033[0m"
+    progress "📦 Pulling latest image with docker..."
     docker pull "$OAK_IMG"
     echo ""
-    echo -e "\033[1;35m📋 Configuration Summary:\033[0m"
-    echo -e "\033[1;33mWill write:\033[0m"
+    heading "📋 Configuration Summary:"
+    heading "Will write:"
     echo -e "   ✏️ \033[1;36m./docker-compose.yml\033[0m"
     echo ""
-    echo -e "\033[1;33mConfiguration:\033[0m"
+    heading "Configuration:"
     echo "   - HTTP Port: $HTTP_PORT"
     echo "   - Postgres DB: $POSTGRES_DB_NAME"
     echo "   - Postgres User: $POSTGRES_USER"
@@ -445,14 +466,16 @@ EOF
     echo "   - Redis Image: $REDIS_IMG"
     echo "   - Oak Image: $OAK_IMG"
     echo ""
-    read -r -p $'\033[1;36mContinue to create this file? [y/N]: \033[0m' confirm
+    prompt "Continue to create this file?" "[y/N]" confirm
+
     if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
         echo "Installation cancelled."
         exit 0
     fi
 
     echo ""
-    echo "Generating docker-compose.yml in current directory..."
+    progress "✏ Generating docker-compose.yml in current directory..."
+    echo ""
 
     COMPOSE_YML=$(cat <<EOF
 version: '3.8'
@@ -478,7 +501,6 @@ services:
     container_name: oak
     restart: always
     environment:
-      OAK__ENV: prod
       OAK__DB__URL: jdbc:postgresql://oak-postgres:5432/${POSTGRES_DB_NAME}
       OAK__DB__USERNAME: ${POSTGRES_USER}
       OAK__DB__PASSWORD: ${POSTGRES_PASSWORD}
@@ -491,11 +513,9 @@ EOF
     write_file "$COMPOSE_YML" "docker-compose.yml" "false"
 
     echo ""
-    echo -e "\n\033[1;32m╔════════════════════════════════════════════╗\033[0m"
-    echo -e "\033[1;32m║\033[0m  ✅ \033[1;32mSuccessfully generated docker-compose.yml!\033[0m  \033[1;32m║\033[0m"
-    echo -e "\033[1;32m╚════════════════════════════════════════════╝\033[0m"
+    echo -e "✅ \033[1;32mSuccessfully generated docker-compose.yml!\033[0m"
     echo
-    echo -e "\033[1;34m🐳 To start the services:\033[0m"
+    progress "🐳 To start the services:"
     echo -e "   \033[1;36mdocker compose up -d\033[0m"
     echo
     ;;

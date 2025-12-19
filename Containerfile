@@ -23,5 +23,7 @@ echo 'exec java -jar /oak-uberjar.jar "$@"' >> /usr/bin/oakadm
 chmod +x /usr/bin/oakadm
 EOF
 
+ENV OAK__ENV=prod
+
 ENTRYPOINT ["java", "-jar", "/oak-uberjar.jar"]
 CMD ["run"]
