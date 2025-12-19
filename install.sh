@@ -220,7 +220,7 @@ heading() {
 # Blue message
 progress() {
     local message="$1"
-    echo -e "\033[1;33m$message\033[0m"
+    echo -e "\033[1;34m$message\033[0m"
 }
 
 # Create a file with the given contents, optionally using `sudo`. If the file
@@ -521,6 +521,7 @@ EOF
       echo -e "   \033[1;36msudo systemctl daemon-reload"
       echo -e "   \033[1;36msudo systemctl start --now oak.service\033[0m"
     fi
+    echo -e "\033[1;34mNext step, Configuration\n   \033[1;36mhttps://git.gaiwan.co/gaiwan/Oak/src/branch/main/doc/configuring.md\033[0m"
     echo
     ;;
 
@@ -600,10 +601,12 @@ EOF
     write_file "$COMPOSE_YML" "docker-compose.yml" "false"
 
     echo ""
-    echo -e "✅ \033[1;32mSuccessfully generated docker-compose.yml!\033[0m"
+    progress "✅ Successfully generated docker-compose.yml!"
     echo
     progress "🐳 To start the services:"
     echo -e "   \033[1;36mdocker compose up -d\033[0m"
+    echo
+    echo -e "\033[1;34mNext step, Configuration\n   \033[1;36mhttps://git.gaiwan.co/gaiwan/Oak/src/branch/main/doc/configuring.md\033[0m"
     echo
     ;;
 
