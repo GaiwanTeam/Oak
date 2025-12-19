@@ -108,3 +108,98 @@ from their default value.
 JDBC URL to connect to the database. Oak currently only supports PostgreSQL.
 Typically this is in the format `jdbc:postgresql://host:port/dbname`.
 
+### `:db/username` / `OAK__DB__USERNAME` ; `:db/password` / `OAK__DB__PASSWORD`
+
+Username and to connect to PostgreSQL. Can be omitted, e.g. when using PAM authentication.
+
+Default: `"oak"` / `"oak"`
+
+### `:application/name` / `OAK__APPLICATION__NAME`
+
+Application name used in the UI and emails. This appears in page titles, email subjects, and other user-facing text.
+
+Default: `"Oak"`
+
+### `:org/name` / `OAK__ORG__NAME`
+
+Organization name used in the UI and emails. This appears in email footers and in OAuth consent flows.
+
+Default: `"Oak"`
+
+### `:time/zone-id` / `OAK__TIME__ZONE_ID`
+
+Determines how timestamps are presented in the UI. Must be a valid [IANA time zone identifier](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones).
+
+Default: `"UTC"`
+
+### `:http/host` / `OAK__HTTP__HOST`
+
+Host the HTTP server listens on. Determines the network interfaces the application listens on. Use "0.0.0.0" to listen on all interfaces.
+
+Default: `"0.0.0.0"`
+
+### `:http/port` / `OAK__HTTP__PORT`
+
+Port the HTTP server listens on.
+
+Default: `4800`
+
+### `:http/origin` / `OAK__HTTP__ORIGIN`
+
+Used for generating OAuth 2.0/OIDC discovery metadata. Can generally be omitted, in which case we determine the hostname from the request. If behind a proxy which doesn't properly propagate the hostname the request is made on, then this may need to be set. Honors the `Host`, `x-forwarded-proto`, and `x-forwarded-host` headers, or the HTTP 2.0 "authority".
+
+Example: `"https://auth.example.com"`
+
+No default value - automatically inferred from request when not set.
+
+### `:email/smtp-host` / `OAK__EMAIL__SMTP_HOST`
+
+Hostname or IP address of the SMTP server used for sending password reset and other transactional emails.
+
+No default value - must be explicitly set to enable email functionality.
+
+### `:email/smtp-port` / `OAK__EMAIL__SMTP_PORT`
+
+Port number of the SMTP server.
+
+No default value - must be explicitly set.
+
+### `:email/from` / `OAK__EMAIL__FROM`
+
+From address used in sent emails. This should be a valid email address that your SMTP server is configured to accept.
+
+No default value - must be explicitly set.
+
+### `:redis/host` / `OAK__REDIS__HOST`
+
+Hostname or IP address of the Redis server used for HTTP session storage.
+
+Default: `"localhost"`
+
+### `:redis/port` / `OAK__REDIS__PORT`
+
+Port number of the Redis server.
+
+Default: `6379`
+
+### `:redis/timeout-ms` / `OAK__REDIS__TIMEOUT_MS`
+
+Redis connection timeout in milliseconds.
+
+Default: `1000`
+
+### `:password-reset/link-expiry-hours` / `OAK__PASSWORD_RESET__LINK_EXPIRY_HOURS`
+
+How long password reset links are valid, in hours. After this time period elapses, password reset tokens become invalid and the user must request a new reset link.
+
+Default: `24`
+
+### `:password/min-length` / `OAK__PASSWORD__MIN_LENGTH`
+
+Minimum required length for passwords. Users must choose passwords that meet this length requirement during registration and password changes.
+
+Default: `6`
+
+----
+
+Next: [Initial Setup](./setup.md)
