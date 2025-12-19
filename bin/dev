@@ -9,8 +9,7 @@
    [lioss.pom :as pom]
    [lioss.version :as version]
    [lioss.util :as util]
-   [lioss.release :as release]
-   ))
+   [lioss.release :as release]))
 
 (def init
   {:license        :apache
