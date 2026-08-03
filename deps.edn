@@ -12,24 +12,24 @@
 
   ;; HTTP
   ring/ring-jetty-adapter             {:mvn/version "1.15.3"}
-  metosin/reitit-ring                 {:mvn/version "0.9.2"}
-  metosin/reitit-middleware           {:mvn/version "0.9.2"}
+  metosin/reitit-ring                 {:mvn/version "0.10.0"}
+  metosin/reitit-middleware           {:mvn/version "0.10.0"}
   metosin/muuntaja                    {:mvn/version "0.6.11"}
   fi.metosin/muuntaja-charred         {:mvn/version "0.6.11"}
-  metosin/reitit-malli                {:mvn/version "0.9.2"}
-  fi.metosin/reitit-openapi           {:mvn/version "0.9.2"}
+  metosin/reitit-malli                {:mvn/version "0.10.0"}
+  fi.metosin/reitit-openapi           {:mvn/version "0.10.0"}
   com.lambdaisland/ring-redis-session {:mvn/version "3.4.126"}
   ring/ring-anti-forgery              {:mvn/version "1.4.0"}
   hato/hato                           {:mvn/version "1.0.0"}
 
   ;; Database
   org.postgresql/postgresql         {:mvn/version "42.7.8"}
-  com.github.seancorfield/next.jdbc {:mvn/version "1.3.1070"}
+  com.github.seancorfield/next.jdbc {:mvn/version "1.3.1086"}
   com.github.seancorfield/honeysql  {:mvn/version "2.7.1364"}
   com.zaxxer/HikariCP               {:mvn/version "7.0.2"}
 
   ;; Cryptography
-  com.nimbusds/nimbus-jose-jwt                 {:mvn/version "10.6"}
+  com.nimbusds/nimbus-jose-jwt                 {:mvn/version "10.7"}
   com.google.crypto.tink/tink                  {:mvn/version "1.20.0"}
   org.conscrypt/conscrypt-openjdk$linux-x86_64 {:mvn/version "2.5.2"}
   com.password4j/password4j                    {:mvn/version "1.8.4"}
@@ -46,16 +46,17 @@
   clojure.java-time/clojure.java-time {:mvn/version "1.4.3"}
 
   ;; Email
-  toyokumo/tarayo {:mvn/version "0.2.8"}}
+  toyokumo/tarayo {:mvn/version "0.2.8"}
+  org.biscuitsec/biscuit {:mvn/version "4.0.1"}}
 
  :aliases
  {:dev
   {:extra-paths ["dev"]
-   :extra-deps  {org.clojure/tools.namespace {:mvn/version "1.5.0"}}}
+   :extra-deps  {org.clojure/tools.namespace {:mvn/version "1.5.1"}}}
 
   :test
   {:extra-paths ["test"]
-   :extra-deps  {org.clojure/tools.gitlibs                       {:mvn/version "2.6.206"}
+   :extra-deps  {org.clojure/tools.gitlibs                       {:mvn/version "2.6.212"}
                  lambdaisland/kaocha                             {:mvn/version "1.91.1392"}
                  ring/ring-mock                                  {:mvn/version "0.6.2"}
                  nubank/matcher-combinators                      {:mvn/version "3.9.2"}}}
@@ -65,5 +66,5 @@
 
   :tools.build
   {:extra-deps
-   {io.github.clojure/tools.build                    {:mvn/version "0.10.11"}
-    io.github.seancorfield/build-uber-log4j2-handler {:git/sha "3d2e6edc71a060b395487dfcd44964d0527dc817"}}}}}
+   {io.github.clojure/tools.build                    {:mvn/version "0.10.12"}
+    io.github.seancorfield/build-uber-log4j2-handler {:git/sha "87601535de30194706d91d825aea2acc6e839b47"}}}}}

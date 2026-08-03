@@ -337,24 +337,24 @@ Some useful commands. All of these will need either `--user` (rootless) or `sudo
 If you want to remove Oak, or clean things up so you can start from a clean
 slate, these are the steps.
 
-### Stop and disable the systemd services
+### Stop the systemd services
 
 For rootless:
 
 ```shell
-systemctl --user disable --now oak.service
-systemctl --user disable --now oak-postgres.service
-systemctl --user disable --now oak-redis.service
-systemctl --user disable --now oak-net-network.service
+systemctl --user stop oak.service
+systemctl --user stop oak-postgres.service
+systemctl --user stop oak-redis.service
+systemctl --user stop oak-net-network.service
 ```
 
 For root:
 
 ```shell
-sudo systemctl disable --now oak.service
-sudo systemctl disable --now oak-postgres.service
-sudo systemctl disable --now oak-redis.service
-sudo systemctl disable --now oak-net-network.service
+sudo systemctl stop oak.service
+sudo systemctl stop oak-postgres.service
+sudo systemctl stop oak-redis.service
+sudo systemctl stop oak-net-network.service
 ```
 
 ### Remove the quadlet files
